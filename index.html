@@ -800,7 +800,7 @@
       <span class="chip">👾 weirdo <b>20+</b> 🔥</span>
       <span class="chip warn">🌟 spinning star = dizzy — dodge it!</span>
       <span class="chip warn">🧊 queen ice bolt = frozen 6s — dodge it!</span>
-      <span class="chip">🌀 press <b>S</b> = Shari's Spin Fire (lvl 3+)</span>
+      <span class="chip">🌀 press <b>S</b> = Shari's Spin Fire — hits enemies & melts ❄️ ice bolts (lvl 3+)</span>
       <span class="chip goal">👑 beat the <b>3 queens</b> to WIN!</span>
     </div>
 
@@ -836,6 +836,7 @@ const dragon     = document.getElementById("dragon");
 const dragonBody = document.getElementById("dragonBody");
 const bosses     = []; // all the bosses currently on screen
 const bigPotions = []; // golden big potions on screen (catchable by fire too)
+const queenBolts = []; // queens' ice bolts in flight (Spin Fire can melt them)
 const scoreEl  = document.getElementById("score");
 const startBtn = document.getElementById("startBtn");
 const musicBtn = document.getElementById("musicBtn");
@@ -1601,6 +1602,14 @@ function shariSpinFire() {
       collectBigPotion(bp);
     }
   }
+  // Melt any queen ice bolts in the area — this shields Clara!
+  for (const bolt of queenBolts.slice()) {
+    const r = bolt.el.getBoundingClientRect();
+    if (Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy) < SPIN_FIRE_RADIUS) {
+      explode(r.left, r.top);
+      removeBolt(bolt);
+    }
+  }
 
   startShariCooldown(30);
 }
@@ -1745,32 +1754,42 @@ function queenShoot(boss) {
   let px = qr.left;
   let py = qr.top + qr.height / 2;
 
-  const bolt = document.createElement("div");
-  bolt.className = "queenBolt";
-  bolt.textContent = "❄️";
-  bolt.style.left = px + "px";
-  bolt.style.top  = py + "px";
-  game.appendChild(bolt);
+  const el = document.createElement("div");
+  el.className = "queenBolt";
+  el.textContent = "❄️";
+  el.style.left = px + "px";
+  el.style.top  = py + "px";
+  game.appendChild(el);
 
-  const fly = setInterval(() => {
+  const bolt = { el }; // track it so Shari's Spin Fire can melt it
+  queenBolts.push(bolt);
+
+  bolt.fly = setInterval(() => {
     px += dx; py += dy;
-    bolt.style.left = px + "px";
-    bolt.style.top  = py + "px";
+    el.style.left = px + "px";
+    el.style.top  = py + "px";
     // Did it hit our hero?
     const a = dragon.getBoundingClientRect();
-    const b = bolt.getBoundingClientRect();
+    const b = el.getBoundingClientRect();
     const hit = !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
     if (hit && !frozen) {
       freezeDragon();
-      clearInterval(fly);
-      bolt.remove();
+      removeBolt(bolt);
       return;
     }
     if (px < -40 || px > window.innerWidth + 40 || py < -40 || py > window.innerHeight + 40) {
-      clearInterval(fly);
-      bolt.remove();
+      removeBolt(bolt);
     }
   }, 30);
+}
+
+function removeBolt(bolt) {
+  if (bolt.done) return;
+  bolt.done = true;
+  clearInterval(bolt.fly);
+  bolt.el.remove();
+  const i = queenBolts.indexOf(bolt);
+  if (i >= 0) queenBolts.splice(i, 1);
 }
 
 // The hero is frozen in ice for 6 seconds — she can't do anything.
