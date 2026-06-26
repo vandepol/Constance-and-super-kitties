@@ -117,6 +117,7 @@
     z-index: 4;
     pointer-events: none;
   }
+  .fire.tiny { font-size: 22px; opacity: 0.85; } /* the half-power shot */
 
   /* Stars to collect */
   .star {
@@ -494,6 +495,50 @@
   }
   .chip b { color: var(--gold); }
 
+  /* Hide the instructions when collapsed. */
+  #help.collapsed { display: none; }
+  /* The ❔ button that shows/hides the instructions. */
+  #helpToggle {
+    position: absolute;
+    bottom: 18px; right: 18px;
+    z-index: 26;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* On-screen Fire + Spin buttons — only shown on touch devices. */
+  #touchControls { display: none; }
+  body.touch #touchControls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: absolute;
+    right: 20px;
+    bottom: 76px;
+    z-index: 26;
+  }
+  .touchBtn {
+    width: 78px; height: 78px;
+    border-radius: 50%;
+    border: 2px solid var(--glass-border);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+    font-size: 38px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+  .touchBtn:active { transform: scale(0.92); }
+
   /* ---- The epic WIN screen ---- */
   #winScreen {
     position: absolute;
@@ -721,19 +766,35 @@
     bottom: 20px; left: 84px;
     z-index: 25;
     display: none;
-    align-items: center;
+    flex-direction: column;
+    gap: 6px;
     background: var(--glass);
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-pill);
-    padding: 12px 18px;
+    border-radius: 16px;
+    padding: 10px 14px;
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 14px;
+    font-size: 13px;
     box-shadow: var(--shadow);
+    min-width: 150px;
   }
-  #shariPower.ready { color: #57f08a; border-color: rgba(87, 240, 138, 0.55); }
+  #shariPowerBar {
+    height: 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    overflow: hidden;
+  }
+  #shariPowerFill {
+    width: 0%;
+    height: 100%;
+    background: #7bb0ff;
+    transition: width 0.3s linear;
+  }
+  #shariPower.ready #shariPowerLabel { color: #57f08a; }
+  #shariPower.ready #shariPowerFill { background: #57f08a; }
 
   /* The spinning ring of fire from Shari's special attack. */
   .spinFire {
@@ -745,7 +806,7 @@
   .spinFire span { position: absolute; left: 0; top: 0; font-size: 30px; }
   @keyframes spinFireAnim {
     0%   { transform: translate(-50%, -50%) rotate(0deg)   scale(0.3); opacity: 1; }
-    100% { transform: translate(-50%, -50%) rotate(540deg) scale(2.4); opacity: 0; }
+    100% { transform: translate(-50%, -50%) rotate(540deg) scale(4.6); opacity: 0; }
   }
 </style>
 </head>
@@ -791,7 +852,16 @@
 
     <button id="musicBtn" title="Music on/off">🎵</button>
 
-    <div id="shariPower">🌀 Spin Fire: Ready (S)</div>
+    <div id="shariPower">
+      <span id="shariPowerLabel">🌀 Spin Fire (S)</span>
+      <div id="shariPowerBar"><div id="shariPowerFill"></div></div>
+    </div>
+
+    <button id="helpToggle" title="Show/hide instructions">❔</button>
+    <div id="touchControls">
+      <button id="spinTouchBtn" class="touchBtn" title="Shari's Spin Fire">🌀</button>
+      <button id="fireTouchBtn" class="touchBtn" title="Fire">🔥</button>
+    </div>
 
     <div id="help">
       <span class="chip">🎤 <b>up · down · left · right · fire · go · land</b></span>
@@ -841,6 +911,8 @@ const scoreEl  = document.getElementById("score");
 const startBtn = document.getElementById("startBtn");
 const musicBtn = document.getElementById("musicBtn");
 const shariPower = document.getElementById("shariPower");
+const shariPowerLabel = document.getElementById("shariPowerLabel");
+const shariPowerFill = document.getElementById("shariPowerFill");
 const micDot   = document.getElementById("micDot");
 const micLabel = document.getElementById("micLabel");
 const heardEl    = document.getElementById("heard");
@@ -1181,10 +1253,11 @@ function breatheFire() {
 }
 
 // Spawn a fireball at (x, y) that flies right and can hit weirdos/queens.
-// Used by the player AND by Shari, the turquoise dragon friend.
-function shootFire(x, y) {
+// Used by the player AND by Shari. power = damage (1 normal, 0.5 tiny shot).
+function shootFire(x, y, power, tiny) {
+  power = power || 1;
   const fire = document.createElement("div");
-  fire.className = "fire";
+  fire.className = "fire" + (tiny ? " tiny" : "");
   fire.textContent = "🔥";
   let fx = x;
   const fy = y;
@@ -1204,7 +1277,7 @@ function shootFire(x, y) {
       const hit = !(fr.right < br.left || fr.left > br.right ||
                     fr.bottom < br.top || fr.top > br.bottom);
       if (hit) {
-        boss.hp -= 1;          // knock down its health
+        boss.hp -= power;      // knock down its health (tiny shots do less)
         explode(fx, fy);       // little sparks where it was struck
         clearInterval(flight);
         fire.remove();
@@ -1541,7 +1614,8 @@ function spawnShari() {
   shariReady = true;
   shariPower.style.display = "flex";
   shariPower.classList.add("ready");
-  shariPower.textContent = "🌀 Spin Fire: Ready (S)";
+  shariPowerLabel.textContent = "🌀 Spin Fire: Ready!";
+  shariPowerFill.style.width = "100%";
 
   // Drift smoothly toward a target, picking a fresh target now and then.
   shari.move = setInterval(moveShari, 30);
@@ -1566,18 +1640,24 @@ function moveShari() {
 // A ring of fire whirls out from Shari and hits everything around her.
 let shariReady = false;
 let shariCdTimer = null;
-const SPIN_FIRE_RADIUS = 240;
+const SPIN_FIRE_RADIUS = 340; // reaches further out
 
 function shariSpinFire() {
   if (won || !shari) return;
-  if (!shariReady) { banner("🌀 Spin Fire is recharging…"); return; }
-  shariReady = false;
-  banner("🌀 Shari unleashes SPIN FIRE! 🔥");
-  soundBoss();
-
   const sr = shari.el.getBoundingClientRect();
   const cx = sr.left + sr.width / 2;
   const cy = sr.top + sr.height / 2;
+
+  // Not charged yet? Still fire a tiny half-power shot instead of nothing.
+  if (!shariReady) {
+    soundFire();
+    shootFire(sr.right, cy, 0.5, true);
+    return;
+  }
+
+  shariReady = false;
+  banner("🌀 Shari unleashes SPIN FIRE! 🔥");
+  soundBoss();
   spinFireVisual(cx, cy);
 
   // Hit every weirdo/queen within the radius.
@@ -1636,16 +1716,19 @@ function startShariCooldown(seconds) {
   clearInterval(shariCdTimer);
   let left = seconds;
   shariPower.classList.remove("ready");
-  shariPower.textContent = "🌀 Spin Fire: " + left + "s";
+  shariPowerLabel.textContent = "🌀 Spin Fire: " + left + "s";
+  shariPowerFill.style.width = "0%";
   shariCdTimer = setInterval(() => {
     left--;
+    shariPowerFill.style.width = ((seconds - left) / seconds) * 100 + "%"; // bar fills up
     if (left <= 0) {
       clearInterval(shariCdTimer);
       shariReady = true;
       shariPower.classList.add("ready");
-      shariPower.textContent = "🌀 Spin Fire: Ready (S)";
+      shariPowerLabel.textContent = "🌀 Spin Fire: Ready!";
+      shariPowerFill.style.width = "100%";
     } else {
-      shariPower.textContent = "🌀 Spin Fire: " + left + "s";
+      shariPowerLabel.textContent = "🌀 Spin Fire: " + left + "s";
     }
   }, 1000);
 }
@@ -1955,6 +2038,52 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") moveRight();
   if (e.key === " ")          breatheFire();
 });
+
+// ---- Mobile / touch controls ----
+// On a touch device, drag your finger to move the dragon, and use the
+// on-screen 🔥 Fire and 🌀 Spin buttons.
+const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+if (isTouch) {
+  document.body.classList.add("touch");
+}
+
+// Don't treat touches that land on the HUD/buttons as "move the dragon".
+function onControl(target) {
+  return !!(target.closest && target.closest(
+    "#touchControls, #helpToggle, #hud, #mic, #help, #musicBtn, #shariPower, #startScreen, #winScreen"));
+}
+
+function dragDragon(e) {
+  if (!gameStarted || won || dizzy || frozen) return;
+  const t = e.touches[0];
+  if (!t || onControl(t.target)) return;
+  e.preventDefault();
+  dragonBody.classList.remove("landed");
+  dragonX = clamp(t.clientX - 52, 20, window.innerWidth - 120);
+  dragonY = clamp(t.clientY - 52, 40, window.innerHeight - 100);
+  placeDragon();
+}
+game.addEventListener("touchstart", dragDragon, { passive: false });
+game.addEventListener("touchmove", dragDragon, { passive: false });
+
+// The on-screen Fire + Spin buttons.
+document.getElementById("fireTouchBtn").addEventListener("touchstart", (e) => {
+  e.preventDefault(); e.stopPropagation();
+  if (!(dizzy || won || frozen)) breatheFire();
+}, { passive: false });
+document.getElementById("spinTouchBtn").addEventListener("touchstart", (e) => {
+  e.preventDefault(); e.stopPropagation();
+  shariSpinFire();
+}, { passive: false });
+
+// The ❔ button shows/hides the instructions. Start hidden on small screens.
+const helpEl = document.getElementById("help");
+document.getElementById("helpToggle").addEventListener("click", () => {
+  helpEl.classList.toggle("collapsed");
+});
+if (isTouch || window.innerWidth < 700) {
+  helpEl.classList.add("collapsed");
+}
 
 // Keep the dragon on screen if the window is resized.
 window.addEventListener("resize", placeDragon);
