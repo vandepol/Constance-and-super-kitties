@@ -25,16 +25,37 @@
     overflow: hidden;
   }
 
-  /* The dragon you fly */
+  /* The dragon you fly — built in layers so each effect has its own box.
+     Outer box = where it is on screen. Middle box = which way it faces.
+     Inner box = the flapping/landing wiggle and the PINK color. */
   #dragon {
     position: absolute;
-    font-size: 64px;
     left: 120px;
     top: 50%;
-    transform: translateY(-50%) scaleX(-1); /* face right */
     transition: top 0.25s ease, left 0.25s ease;
     filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
     z-index: 5;
+  }
+  #dragonFlip {
+    transform: scaleX(-1); /* flip it to face right */
+  }
+  #dragonBody {
+    font-size: 64px;
+    /* Turn the green dragon emoji PINK by spinning its colors around. */
+    filter: hue-rotate(230deg) saturate(1.8) brightness(1.05);
+    /* Flap up and down so it looks like it's flying. */
+    animation: flap 0.5s ease-in-out infinite;
+  }
+  /* When the dragon lands, it stops flapping and settles down. */
+  #dragonBody.landed {
+    animation: none;
+    transform: translateY(6px) rotate(0deg);
+  }
+
+  /* The flying flap: bob up, tilt a little, bob back down — forever. */
+  @keyframes flap {
+    0%, 100% { transform: translateY(0)     rotate(-4deg); }
+    50%      { transform: translateY(-12px) rotate(4deg); }
   }
 
   /* A puff of fire the dragon breathes */
@@ -58,6 +79,44 @@
     font-size: 56px;
     opacity: 0.85;
     z-index: 2;
+  }
+
+  /* Potions to drink — worth 5 points each! */
+  .potion {
+    position: absolute;
+    font-size: 38px;
+    z-index: 3;
+    animation: bobble 1.2s ease-in-out infinite;
+  }
+  @keyframes bobble {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+
+  /* The BOOM when a potion explodes (or a boss is beaten). */
+  .boom {
+    position: absolute;
+    font-size: 44px;
+    z-index: 6;
+    pointer-events: none;
+    animation: boom 0.6s ease-out forwards;
+  }
+  @keyframes boom {
+    0%   { transform: scale(0.4); opacity: 1; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  /* Bosses — big, glowing, and worth lots of points. Fire at them! */
+  .boss {
+    position: absolute;
+    font-size: 76px;
+    z-index: 4;
+    filter: drop-shadow(0 0 10px #ff3b3b);
+    animation: bossPulse 0.8s ease-in-out infinite;
+  }
+  @keyframes bossPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.14); }
   }
 
   /* ---- The scoreboard and title ---- */
@@ -142,12 +201,13 @@
       <div id="heard">say a command…</div>
     </div>
 
-    <div id="dragon">🐉</div>
+    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div></div>
 
     <button id="startBtn">▶ Press to Play (talk to fly!)</button>
 
     <div id="help">
-      Say: <b>up</b> · <b>down</b> · <b>left</b> · <b>right</b> · <b>fire</b> · <b>go</b> · <b>stop</b>
+      Say: <b>up</b> · <b>down</b> · <b>left</b> · <b>right</b> · <b>fire</b> · <b>go</b> · <b>land</b><br>
+      ⭐ star = 1 · 🧪 potion = 5 (it explodes!) · 🐲 boss = 20 (fire at it!)
     </div>
   </div>
 
@@ -163,8 +223,10 @@
 */
 
 // Grab the things on the page we want to control.
-const game     = document.getElementById("game");
-const dragon   = document.getElementById("dragon");
+const game       = document.getElementById("game");
+const dragon     = document.getElementById("dragon");
+const dragonBody = document.getElementById("dragonBody");
+const bosses     = []; // all the bosses currently on screen
 const scoreEl  = document.getElementById("score");
 const startBtn = document.getElementById("startBtn");
 const micDot   = document.getElementById("micDot");
@@ -190,10 +252,19 @@ function placeDragon() {
   dragon.style.left = dragonX + "px";
 }
 
-function moveUp()    { dragonY -= STEP; placeDragon(); }
-function moveDown()  { dragonY += STEP; placeDragon(); }
-function moveLeft()  { dragonX -= STEP; placeDragon(); }
-function moveRight() { dragonX += STEP; placeDragon(); }
+// Flying = flapping. Landing = settle down and stop flapping.
+function setFlying() { dragonBody.classList.remove("landed"); }
+function land() {
+  dragonBody.classList.add("landed");
+  dragonY = window.innerHeight - 100; // drop down to the ground
+  placeDragon();
+}
+
+// Every move makes the dragon take off (start flapping) first.
+function moveUp()    { setFlying(); dragonY -= STEP; placeDragon(); }
+function moveDown()  { setFlying(); dragonY += STEP; placeDragon(); }
+function moveLeft()  { setFlying(); dragonX -= STEP; placeDragon(); }
+function moveRight() { setFlying(); dragonX += STEP; placeDragon(); }
 
 // ---- Breathing fire ----
 // A fire emoji shoots to the right from the dragon's mouth, then disappears.
@@ -211,11 +282,39 @@ function breatheFire() {
   const flight = setInterval(() => {
     fx += 18;
     fire.style.left = fx + "px";
+
+    // Did this fire hit a boss? Check every boss on screen.
+    const fr = fire.getBoundingClientRect();
+    for (const boss of bosses.slice()) {
+      const br = boss.el.getBoundingClientRect();
+      const hit = !(fr.right < br.left || fr.left > br.right ||
+                    fr.bottom < br.top || fr.top > br.bottom);
+      if (hit) {
+        boss.hp -= 1;          // knock down its health
+        explode(fx, fy);       // little sparks where it was struck
+        clearInterval(flight);
+        fire.remove();
+        if (boss.hp <= 0) defeatBoss(boss); // beaten!
+        return;
+      }
+    }
+
     if (fx > window.innerWidth) {
       clearInterval(flight);
       fire.remove();
     }
   }, 30);
+}
+
+// A burst of explosion at a spot on the screen.
+function explode(x, y) {
+  const boom = document.createElement("div");
+  boom.className = "boom";
+  boom.textContent = "💥";
+  boom.style.left = x + "px";
+  boom.style.top  = y + "px";
+  game.appendChild(boom);
+  setTimeout(() => boom.remove(), 600);
 }
 
 // ---- Stars to catch ----
@@ -262,6 +361,74 @@ function spawnCloud() {
   }, 40);
 }
 
+// ---- Potions (worth 5 points and they EXPLODE when eaten) ----
+function spawnPotion() {
+  const potion = document.createElement("div");
+  potion.className = "potion";
+  potion.textContent = "🧪";
+  const px = Math.random() * (window.innerWidth - 120) + 40;
+  const py = Math.random() * (window.innerHeight - 200) + 60;
+  potion.style.left = px + "px";
+  potion.style.top  = py + "px";
+  game.appendChild(potion);
+
+  // Keep checking if the dragon has reached the potion.
+  const check = setInterval(() => {
+    const a = dragon.getBoundingClientRect();
+    const b = potion.getBoundingClientRect();
+    const touching = !(a.right < b.left || a.left > b.right ||
+                       a.bottom < b.top || a.top > b.bottom);
+    if (touching) {
+      score += 5;                 // potions are worth 5!
+      scoreEl.textContent = score;
+      explode(b.left, b.top);     // BOOM when eaten
+      potion.remove();
+      clearInterval(check);
+    }
+  }, 150);
+
+  // If nobody drinks it, it fades away.
+  setTimeout(() => { potion.remove(); clearInterval(check); }, 8000);
+}
+
+// ---- Bosses (worth 20 points — fire at them to beat them!) ----
+function spawnBoss() {
+  const el = document.createElement("div");
+  el.className = "boss";
+  el.textContent = "🐲";
+  let bx = window.innerWidth + 80;
+  const by = Math.random() * (window.innerHeight * 0.5) + 60;
+  el.style.left = bx + "px";
+  el.style.top  = by + "px";
+  game.appendChild(el);
+
+  const boss = { el, hp: 3 };   // takes 3 fire hits to beat
+  bosses.push(boss);
+
+  // The boss drifts slowly across the sky.
+  boss.move = setInterval(() => {
+    bx -= 1.4;
+    el.style.left = bx + "px";
+    if (bx < -120) removeBoss(boss); // left the screen, give up the chase
+  }, 30);
+}
+
+function removeBoss(boss) {
+  clearInterval(boss.move);
+  boss.el.remove();
+  const i = bosses.indexOf(boss);
+  if (i >= 0) bosses.splice(i, 1);
+}
+
+function defeatBoss(boss) {
+  const br = boss.el.getBoundingClientRect();
+  explode(br.left, br.top);        // a big double explosion
+  explode(br.left + 36, br.top + 24);
+  score += 20;                     // bosses are worth lots!
+  scoreEl.textContent = score;
+  removeBoss(boss);
+}
+
 // ---- Turning words into actions ----
 // This is the heart of the voice control. We get a sentence of text,
 // make it lowercase, and look for command words inside it.
@@ -277,6 +444,7 @@ function handleCommand(text) {
       said.includes("burn")  ||
       said.includes("flame")) breatheFire();
   if (said.includes("go") || said.includes("fly")) moveRight();
+  if (said.includes("land")) land();           // come down and rest
   if (said.includes("stop")) { /* just hover in place */ }
 }
 
@@ -334,10 +502,13 @@ startBtn.addEventListener("click", () => {
     try { recognition.start(); } catch (e) { /* already running */ }
   }
 
-  // Start the world: stars and clouds keep appearing.
+  // Start the world: stars, potions, clouds, and bosses keep appearing.
   setInterval(spawnStar, 2200);
+  setInterval(spawnPotion, 4500);
   setInterval(spawnCloud, 3000);
+  setInterval(spawnBoss, 10000);
   spawnStar();
+  spawnPotion();
 });
 
 // Keyboard backup so you can also play with arrow keys + space bar.

@@ -15,14 +15,23 @@ You fly a dragon by **talking to it** — say "up", "down", "fire" and watch it 
 
 | Say this        | The dragon does       |
 | --------------- | --------------------- |
-| **"up"**        | flies up              |
+| **"up"**        | flies up (and flaps!) |
 | **"down"**      | flies down            |
 | **"left"**      | flies left            |
 | **"right"** / **"go"** / **"fly"** | flies right |
 | **"fire"** / **"burn"** / **"flame"** | breathes fire 🔥 |
+| **"land"**      | comes down and rests  |
 | **"stop"**      | hovers in place       |
 
-Catch the ⭐ stars to score points!
+### Points
+
+| Catch this   | Worth | Notes                              |
+| ------------ | ----- | ---------------------------------- |
+| ⭐ **star**  | 1     | just fly into it                   |
+| 🧪 **potion** | 5     | it **explodes** 💥 when you eat it |
+| 🐲 **boss**  | 20    | **breathe fire** at it 3 times!    |
+
+The dragon **flaps** while flying and **settles down** when it lands. And it's **pink**! 🩷
 
 > No microphone? You can also play with the **arrow keys** and the **space bar** (for fire).
 
