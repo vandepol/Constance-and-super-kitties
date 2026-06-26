@@ -65,6 +65,14 @@ A sparkly **"Welcome to..."** banner appears each time you arrive somewhere new.
 - Add sound effects when you catch a star.
 - Change the dragon emoji 🐉 to a different color or animal.
 
+## Sound 🔊
+
+The game makes its own sounds — a beep for catching a star, a boom for
+explosions, a happy tune when you reach a new land, and a woozy slide when you
+get dizzy. Sound turns on the moment you press **▶ Play** (browsers don't allow
+sound before you click). If you hear nothing, check your computer's volume and
+make sure the browser tab isn't muted.
+
 ## How it works (the fun part)
 
 The browser has a built-in feature called the **Web Speech API**. It listens to

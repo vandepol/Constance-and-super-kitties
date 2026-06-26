@@ -391,6 +391,7 @@ function addScore(points) {
 function switchLand(idx) {
   currentLand = idx;
   const land = LANDS[idx];
+  soundLand();
   game.style.background = land.background;
   sceneryRow.textContent = land.scenery;
   landBanner.textContent = "✨ Welcome to " + land.name + "! ✨";
@@ -417,6 +418,7 @@ function spawnFairy() {
 function makeDizzy() {
   if (dizzy) return;          // already dizzy — don't stack it
   dizzy = true;
+  soundDizzy();
 
   const ring = document.createElement("div");
   ring.id = "dizzyStars";
@@ -468,6 +470,65 @@ function spawnSpinStar() {
   }, 30);
 }
 
+// ---- Sounds ----
+// We MAKE the sounds right here in the browser (no sound files needed!) using
+// the Web Audio API. Each effect is just a quick beep at a chosen pitch.
+let audioCtx = null;
+
+// Wake up the sound. Browsers only allow this after a real click (the Play button).
+function initAudio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (AC && !audioCtx) audioCtx = new AC();
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+}
+
+// Play one tone: freq = pitch, dur = length, type = the "shape" of the sound.
+function tone(freq, dur, type, volume) {
+  if (!audioCtx) return;
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || "sine";
+  osc.frequency.value = freq;
+  osc.connect(gain).connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(volume || 0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + dur); // fade out smoothly
+  osc.start(now);
+  osc.stop(now + dur);
+}
+
+// Play several tones in a row to make a little tune.
+function tune(notes) {
+  let when = 0;
+  for (const n of notes) {
+    setTimeout(() => tone(n.f, n.d || 0.15, n.t || "triangle", n.v || 0.2), when);
+    when += (n.gap || 120);
+  }
+}
+
+// The sound for each thing that happens in the game.
+const soundStar    = () => tone(880, 0.12, "triangle", 0.2);            // catch a star
+const soundFire    = () => tone(300, 0.08, "square", 0.12);            // breathe fire
+const soundPotion  = () => tune([{ f: 660 }, { f: 990 }]);             // drink a potion
+const soundExplode = () => tone(110, 0.30, "sawtooth", 0.3);          // BOOM
+const soundBoss    = () => tune([{ f: 523 }, { f: 659 }, { f: 784 }, { f: 1047, d: 0.3 }]); // beat a boss
+const soundLand    = () => tune([{ f: 784 }, { f: 1047 }, { f: 1319, d: 0.3 }]); // reach a new land
+function soundDizzy() {
+  // A woozy slide from high down to low.
+  if (!audioCtx) return;
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "sine";
+  const now = audioCtx.currentTime;
+  osc.frequency.setValueAtTime(700, now);
+  osc.frequency.exponentialRampToValueAtTime(160, now + 0.6);
+  gain.gain.setValueAtTime(0.25, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.6);
+}
+
 // Game state — the numbers we keep track of while playing.
 let score = 0;
 let dragonY = window.innerHeight / 2; // up/down position (pixels from top)
@@ -505,6 +566,7 @@ function moveRight() { setFlying(); dragonX += STEP; placeDragon(); }
 // ---- Breathing fire ----
 // A fire emoji shoots to the right from the dragon's mouth, then disappears.
 function breatheFire() {
+  soundFire();
   const fire = document.createElement("div");
   fire.className = "fire";
   fire.textContent = "🔥";
@@ -544,6 +606,7 @@ function breatheFire() {
 
 // A burst of explosion at a spot on the screen.
 function explode(x, y) {
+  soundExplode();
   const boom = document.createElement("div");
   boom.className = "boom";
   boom.textContent = "💥";
@@ -570,6 +633,7 @@ function spawnStar() {
     const touching = !(a.right < b.left || a.left > b.right ||
                        a.bottom < b.top || a.top > b.bottom);
     if (touching) {
+      soundStar();
       addScore(1);
       star.remove();
       clearInterval(check);
@@ -614,6 +678,7 @@ function spawnPotion() {
     const touching = !(a.right < b.left || a.left > b.right ||
                        a.bottom < b.top || a.top > b.bottom);
     if (touching) {
+      soundPotion();
       addScore(5);                // potions are worth 5!
       explode(b.left, b.top);     // BOOM when eaten
       potion.remove();
@@ -658,6 +723,7 @@ function defeatBoss(boss) {
   const br = boss.el.getBoundingClientRect();
   explode(br.left, br.top);        // a big double explosion
   explode(br.left + 36, br.top + 24);
+  soundBoss();
   addScore(20);                    // bosses are worth lots!
   removeBoss(boss);
 }
@@ -729,6 +795,7 @@ if (SpeechRecognition) {
 // so the game begins when you press the Play button.
 startBtn.addEventListener("click", () => {
   startBtn.style.display = "none";
+  initAudio(); // wake up the sound now that the player has clicked
   placeDragon();
 
   if (recognition) {
