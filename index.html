@@ -176,6 +176,47 @@
     100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
   }
 
+  /* The SPINNING STAR hazard — it whirls around and glows red for "danger!"
+     Don't touch it or you'll get dizzy. */
+  .spinStar {
+    position: absolute;
+    font-size: 42px;
+    z-index: 3;
+    filter: drop-shadow(0 0 9px #ff2d2d);
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* The dizzy stars that circle the dragon's head when it's stunned. */
+  #dizzyStars {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 0;
+    height: 0;
+    z-index: 10;
+    animation: dizzySpin 0.8s linear infinite;
+  }
+  #dizzyStars span { position: absolute; font-size: 22px; }
+  /* Place the three stars evenly around a circle (0°, 120°, 240°). */
+  #dizzyStars span:nth-child(1) { transform: rotate(0deg)   translateX(28px); }
+  #dizzyStars span:nth-child(2) { transform: rotate(120deg) translateX(28px); }
+  #dizzyStars span:nth-child(3) { transform: rotate(240deg) translateX(28px); }
+  @keyframes dizzySpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* While dizzy, the dragon wobbles instead of flapping. */
+  #dragonBody.dizzy { animation: wobble 0.5s ease-in-out infinite; }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(-12deg); }
+    50%      { transform: rotate(12deg); }
+  }
+
   /* ---- The scoreboard and title ---- */
   #hud {
     position: absolute;
@@ -266,7 +307,8 @@
 
     <div id="help">
       Say: <b>up</b> · <b>down</b> · <b>left</b> · <b>right</b> · <b>fire</b> · <b>go</b> · <b>land</b><br>
-      ⭐ star = 1 · 🧪 potion = 5 (it explodes!) · 🐲 boss = 20 (fire at it!)
+      ⭐ star = 1 · 🧪 potion = 5 (it explodes!) · 🐲 boss = 20 (fire at it!)<br>
+      ⚠️ Dodge the spinning 🌟 — it makes you dizzy!
     </div>
   </div>
 
@@ -370,11 +412,68 @@ function spawnFairy() {
   setTimeout(() => f.remove(), 6000); // matches the animation length
 }
 
+// ---- Getting dizzy ----
+// Put spinning stars around the dragon's head and freeze it for a moment.
+function makeDizzy() {
+  if (dizzy) return;          // already dizzy — don't stack it
+  dizzy = true;
+
+  const ring = document.createElement("div");
+  ring.id = "dizzyStars";
+  ring.innerHTML = "<span>💫</span><span>💫</span><span>💫</span>";
+  dragon.appendChild(ring);   // attach to the dragon so it follows along
+  dragonBody.classList.add("dizzy");
+  heardEl.textContent = "😵 Dizzy! Wait for the stars to stop…";
+
+  // After 3 seconds the dizziness wears off and everything works again.
+  setTimeout(() => {
+    ring.remove();
+    dragonBody.classList.remove("dizzy");
+    dizzy = false;
+    heardEl.textContent = "✨ All better! Say a command…";
+  }, 3000);
+}
+
+// ---- The spinning-star hazard ----
+// A red, whirling star flies across the screen. Touch it and you get dizzy!
+function spawnSpinStar() {
+  const s = document.createElement("div");
+  s.className = "spinStar";
+  s.textContent = "🌟";
+  let sx = window.innerWidth + 60;
+  const sy = Math.random() * (window.innerHeight - 220) + 40;
+  s.style.left = sx + "px";
+  s.style.top  = sy + "px";
+  game.appendChild(s);
+
+  const move = setInterval(() => {
+    sx -= 5; // faster than clouds — it's a hazard
+    s.style.left = sx + "px";
+
+    // Only check for a hit if we're not already dizzy (grace period).
+    if (!dizzy) {
+      const a = dragon.getBoundingClientRect();
+      const b = s.getBoundingClientRect();
+      const hit = !(a.right < b.left || a.left > b.right ||
+                    a.bottom < b.top || a.top > b.bottom);
+      if (hit) {
+        makeDizzy();
+        clearInterval(move);
+        s.remove();
+        return;
+      }
+    }
+
+    if (sx < -80) { clearInterval(move); s.remove(); } // left the screen
+  }, 30);
+}
+
 // Game state — the numbers we keep track of while playing.
 let score = 0;
 let dragonY = window.innerHeight / 2; // up/down position (pixels from top)
 let dragonX = 120;                    // left/right position
 const STEP = 80;                      // how far the dragon moves per command
+let dizzy = false;                    // true while the dragon is stunned by a spinning star
 
 // ---- Moving the dragon ----
 // We keep the dragon inside the window so it never flies off-screen.
@@ -567,6 +666,7 @@ function defeatBoss(boss) {
 // This is the heart of the voice control. We get a sentence of text,
 // make it lowercase, and look for command words inside it.
 function handleCommand(text) {
+  if (dizzy) return; // frozen! the dragon can't hear commands while dizzy
   const said = text.toLowerCase();
   heardEl.textContent = "🗣️ " + text;
 
@@ -641,6 +741,7 @@ startBtn.addEventListener("click", () => {
   setInterval(spawnPotion, 4500);
   setInterval(spawnCloud, 3000);
   setInterval(spawnBoss, 10000);
+  setInterval(spawnSpinStar, 5000); // the dizzy hazard
   spawnStar();
   spawnPotion();
 
@@ -651,6 +752,7 @@ startBtn.addEventListener("click", () => {
 
 // Keyboard backup so you can also play with arrow keys + space bar.
 document.addEventListener("keydown", (e) => {
+  if (dizzy) return; // frozen! the keys do nothing while dizzy
   if (e.key === "ArrowUp")    moveUp();
   if (e.key === "ArrowDown")  moveDown();
   if (e.key === "ArrowLeft")  moveLeft();

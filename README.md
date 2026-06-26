@@ -33,6 +33,13 @@ You fly a dragon by **talking to it** — say "up", "down", "fire" and watch it 
 
 The dragon **flaps** while flying and **settles down** when it lands. And it's **pink**! 🩷
 
+### ⚠️ Watch out — spinning stars!
+
+A whirling, red-glowing **🌟 spinning star** flies across the screen now and then.
+If it touches your dragon, **💫 stars spin around its head and it gets dizzy** —
+you can't move, fire, or do anything for a few seconds. Then the dizziness wears
+off and you can play normally again. **Dodge them!**
+
 ## The five magical lands 🗺️
 
 Every **200 points**, your dragon flies to a brand-new land — each with its own
