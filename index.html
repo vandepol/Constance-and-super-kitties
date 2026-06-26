@@ -1592,7 +1592,9 @@ function winGame() {
   const recEl = document.getElementById("winRecord");
   recEl.textContent = recordMsg;
   recEl.classList.toggle("speedy", finishSec <= FAST_TIME || isRecord);
-  document.getElementById("winBest").textContent = "⏱️ Best time: " + fmtTime(getBestTime());
+  const savedBest = getBestTime();
+  document.getElementById("winBest").textContent =
+    "⏱️ Best time: " + (savedBest !== null ? fmtTime(savedBest) : "—");
 
   document.getElementById("winScreen").classList.remove("hidden");
   soundWin();
