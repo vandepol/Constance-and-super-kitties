@@ -72,17 +72,16 @@
 
   /* Clara's jewels + sparkles — they follow her (not flipped or recoloured). */
   #dragonDecor { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+  .dJewel.hidden { display: none; }
   .dCrown {
-    position: absolute; left: 50%; top: -10px;
+    position: absolute; left: 50%; top: -12px;
     transform: translateX(-50%);
-    font-size: 36px;
+    font-size: 38px;
     animation: crownBob 0.7s ease-in-out infinite;
   }
-  .dGem  { position: absolute; left: 45%; top: 46%; font-size: 22px; animation: jewelTwinkle 1.6s ease-in-out infinite; }
-  .dSpark { position: absolute; font-size: 20px; animation: jewelTwinkle 1.4s ease-in-out infinite; }
-  .dSpark.a { left: -8px;  top: 12px; }
-  .dSpark.b { right: -8px; top: 34px; animation-delay: 0.5s; }
-  .dSpark.c { left: 32%;   bottom: -10px; animation-delay: 0.9s; }
+  .dGem   { position: absolute; left: 44%; top: 44%; font-size: 24px; animation: jewelTwinkle 1.6s ease-in-out infinite; }
+  .dSpark { position: absolute; left: -10px; top: 16px; font-size: 22px; animation: jewelTwinkle 1.4s ease-in-out infinite; }
+  .dHeart { position: absolute; right: -10px; top: 36px; font-size: 22px; animation: jewelTwinkle 1.8s ease-in-out infinite; }
   @keyframes crownBob {
     0%, 100% { transform: translateX(-50%) translateY(0) rotate(-6deg); }
     50%      { transform: translateX(-50%) translateY(-6px) rotate(6deg); }
@@ -715,6 +714,39 @@
   }
   #musicBtn:hover { transform: scale(1.08); }
   #musicBtn:active { transform: scale(0.94); }
+
+  /* Shari's Spin Fire cooldown badge (shows once she joins at level 3). */
+  #shariPower {
+    position: absolute;
+    bottom: 20px; left: 84px;
+    z-index: 25;
+    display: none;
+    align-items: center;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    padding: 12px 18px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 14px;
+    box-shadow: var(--shadow);
+  }
+  #shariPower.ready { color: #57f08a; border-color: rgba(87, 240, 138, 0.55); }
+
+  /* The spinning ring of fire from Shari's special attack. */
+  .spinFire {
+    position: absolute;
+    z-index: 7;
+    pointer-events: none;
+    animation: spinFireAnim 1.2s ease-out forwards;
+  }
+  .spinFire span { position: absolute; left: 0; top: 0; font-size: 30px; }
+  @keyframes spinFireAnim {
+    0%   { transform: translate(-50%, -50%) rotate(0deg)   scale(0.3); opacity: 1; }
+    100% { transform: translate(-50%, -50%) rotate(540deg) scale(2.4); opacity: 0; }
+  }
 </style>
 </head>
 <body>
@@ -736,7 +768,7 @@
       <div id="heard">say a command…</div>
     </div>
 
-    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dCrown">👑</span><span class="dGem">💎</span><span class="dSpark a">✨</span><span class="dSpark b">✨</span><span class="dSpark c">💖</span></div></div>
+    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dJewel dCrown hidden" data-level="1">👑</span><span class="dJewel dGem hidden" data-level="2">💎</span><span class="dJewel dSpark hidden" data-level="3">✨</span><span class="dJewel dHeart hidden" data-level="4">💖</span></div></div>
 
     <div id="startScreen">
       <div class="storyCard">
@@ -759,6 +791,8 @@
 
     <button id="musicBtn" title="Music on/off">🎵</button>
 
+    <div id="shariPower">🌀 Spin Fire: Ready (S)</div>
+
     <div id="help">
       <span class="chip">🎤 <b>up · down · left · right · fire · go · land</b></span>
       <span class="chip">⭐ <b>1</b></span>
@@ -766,6 +800,7 @@
       <span class="chip">👾 weirdo <b>20+</b> 🔥</span>
       <span class="chip warn">🌟 spinning star = dizzy — dodge it!</span>
       <span class="chip warn">🧊 queen ice bolt = frozen 6s — dodge it!</span>
+      <span class="chip">🌀 press <b>S</b> = Shari's Spin Fire (lvl 3+)</span>
       <span class="chip goal">👑 beat the <b>3 queens</b> to WIN!</span>
     </div>
 
@@ -804,6 +839,7 @@ const bigPotions = []; // golden big potions on screen (catchable by fire too)
 const scoreEl  = document.getElementById("score");
 const startBtn = document.getElementById("startBtn");
 const musicBtn = document.getElementById("musicBtn");
+const shariPower = document.getElementById("shariPower");
 const micDot   = document.getElementById("micDot");
 const micLabel = document.getElementById("micLabel");
 const heardEl    = document.getElementById("heard");
@@ -854,6 +890,14 @@ const LANDS = [
 
 let currentLand = 0;
 
+// Each new level grants Clara a new power (a jewel that appears on her).
+const LEVEL_POWERS = {
+  1: "👑 the Crown of Courage",
+  2: "💎 the Gem of the Sea",
+  3: "✨ the Sparkle of Light",
+  4: "💖 the Heart of the Dragon",
+};
+
 // Add points, update the scoreboard, and check if it's time for a new land.
 function addScore(points) {
   score += points;
@@ -874,7 +918,16 @@ function switchLand(idx) {
     ? "url('" + land.image + "') center / cover no-repeat, " + land.background
     : land.background;
   sceneryRow.textContent = land.scenery || "";
-  banner("✨ Welcome to " + land.name + "! ✨");
+
+  // Reaching a new level earns Clara a new power (reveal her next jewel).
+  const power = LEVEL_POWERS[idx];
+  if (power) {
+    const jewel = document.querySelector('#dragonDecor [data-level="' + idx + '"]');
+    if (jewel) jewel.classList.remove("hidden");
+    banner("✨ Welcome to " + land.name + " — Clara earns " + power + "! ✨");
+  } else {
+    banner("✨ Welcome to " + land.name + "! ✨");
+  }
 
   // If an evil queen rules this land, she appears after a dramatic pause.
   const q = QUEENS.find((qq) => qq.land === idx);
@@ -1481,7 +1534,13 @@ function spawnShari() {
     tx: window.innerWidth * 0.4,
     ty: window.innerHeight * 0.4,
   };
-  banner("💙 Shari joins the adventure! 🐉");
+  banner("💙 Shari joins! Press S for her Spin Fire! 🌀🔥");
+
+  // Show her Spin Fire power badge, ready to use.
+  shariReady = true;
+  shariPower.style.display = "flex";
+  shariPower.classList.add("ready");
+  shariPower.textContent = "🌀 Spin Fire: Ready (S)";
 
   // Drift smoothly toward a target, picking a fresh target now and then.
   shari.move = setInterval(moveShari, 30);
@@ -1500,6 +1559,86 @@ function moveShari() {
   shari.el.style.top  = shari.y + "px";
   // The 🐉 emoji faces left, so flip it when she's heading right.
   shari.el.style.transform = shari.tx > shari.x ? "scaleX(-1)" : "none";
+}
+
+// ---- Shari's special: SPIN FIRE (press S, once every 30 seconds) ----
+// A ring of fire whirls out from Shari and hits everything around her.
+let shariReady = false;
+let shariCdTimer = null;
+const SPIN_FIRE_RADIUS = 240;
+
+function shariSpinFire() {
+  if (won || !shari) return;
+  if (!shariReady) { banner("🌀 Spin Fire is recharging…"); return; }
+  shariReady = false;
+  banner("🌀 Shari unleashes SPIN FIRE! 🔥");
+  soundBoss();
+
+  const sr = shari.el.getBoundingClientRect();
+  const cx = sr.left + sr.width / 2;
+  const cy = sr.top + sr.height / 2;
+  spinFireVisual(cx, cy);
+
+  // Hit every weirdo/queen within the radius.
+  for (const boss of bosses.slice()) {
+    const br = (boss.hitEl || boss.el).getBoundingClientRect();
+    const bx = br.left + br.width / 2;
+    const by = br.top + br.height / 2;
+    if (Math.hypot(bx - cx, by - cy) < SPIN_FIRE_RADIUS) {
+      if (boss.isQueen) {
+        boss.hp -= 3;
+        updateQueenBar(boss);
+        if (boss.hp <= 0) defeatQueenWave(boss);
+      } else {
+        defeatBoss(boss);
+      }
+    }
+  }
+  // Scoop up any big potions in the area too.
+  for (const bp of bigPotions.slice()) {
+    const pr = bp.el.getBoundingClientRect();
+    if (Math.hypot(pr.left + pr.width / 2 - cx, pr.top + pr.height / 2 - cy) < SPIN_FIRE_RADIUS) {
+      collectBigPotion(bp);
+    }
+  }
+
+  startShariCooldown(30);
+}
+
+// Draw the whirling ring of fire that spins out and grows.
+function spinFireVisual(cx, cy) {
+  const ring = document.createElement("div");
+  ring.className = "spinFire";
+  ring.style.left = cx + "px";
+  ring.style.top  = cy + "px";
+  let html = "";
+  const N = 10;
+  for (let i = 0; i < N; i++) {
+    const ang = (i / N) * 360;
+    html += '<span style="transform:rotate(' + ang + 'deg) translateX(70px)">🔥</span>';
+  }
+  ring.innerHTML = html;
+  game.appendChild(ring);
+  setTimeout(() => ring.remove(), 1200);
+}
+
+// Count down the 30-second cooldown on the badge.
+function startShariCooldown(seconds) {
+  clearInterval(shariCdTimer);
+  let left = seconds;
+  shariPower.classList.remove("ready");
+  shariPower.textContent = "🌀 Spin Fire: " + left + "s";
+  shariCdTimer = setInterval(() => {
+    left--;
+    if (left <= 0) {
+      clearInterval(shariCdTimer);
+      shariReady = true;
+      shariPower.classList.add("ready");
+      shariPower.textContent = "🌀 Spin Fire: Ready (S)";
+    } else {
+      shariPower.textContent = "🌀 Spin Fire: " + left + "s";
+    }
+  }, 1000);
 }
 
 // ---- The three evil queens ----
@@ -1788,6 +1927,8 @@ musicBtn.addEventListener("click", toggleMusic);
 document.getElementById("playAgainBtn").addEventListener("click", () => location.reload());
 
 document.addEventListener("keydown", (e) => {
+  // Shari's Spin Fire works even if Clara is frozen — she can rescue her!
+  if (e.key === "s" || e.key === "S") { shariSpinFire(); return; }
   if (dizzy || won || frozen) return; // can't act while dizzy, frozen, or after winning
   if (e.key === "ArrowUp")    moveUp();
   if (e.key === "ArrowDown")  moveDown();
