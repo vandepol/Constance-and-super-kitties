@@ -843,8 +843,32 @@
     transition: width 0.2s ease;
   }
   .queenFace {
+    position: relative;
     font-size: 96px;
     line-height: 1;
+    display: inline-block;
+  }
+  .qFigure { display: inline-block; }
+  .queenImg { width: 1.5em; height: auto; vertical-align: middle; border-radius: 12px; }
+  /* golden crown floating on the queen's head */
+  .qCrown {
+    position: absolute;
+    top: -0.32em; left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.46em;
+    filter: drop-shadow(0 0 6px #ffd95a);
+    z-index: 2;
+    animation: crownBob 0.9s ease-in-out infinite;
+  }
+  /* her swirling magic aura */
+  .qAura { position: absolute; font-size: 0.32em; animation: queenAura 2.2s ease-in-out infinite; }
+  .qAura.a0 { top: 0.10em;  left: -0.34em; }
+  .qAura.a1 { top: 0.42em;  right: -0.34em; animation-delay: 0.6s; }
+  .qAura.a2 { bottom: 0;    left: 0.05em;   animation-delay: 1.0s; }
+  .qAura.a3 { top: -0.10em; right: 0.10em;  animation-delay: 1.5s; }
+  @keyframes queenAura {
+    0%, 100% { opacity: 0.3; transform: scale(0.7) translateY(0); }
+    50%      { opacity: 1;   transform: scale(1.25) translateY(-8px); }
   }
 
   /* ---- The music on/off button ---- */
@@ -964,7 +988,7 @@
               clears the skies!</p>
           </div>
           <div class="storyPanel">
-            <div class="storyImg">🧙‍♀️ 👹 🧛‍♀️</div>
+            <div class="storyImg">🧝‍♀️ 👸 🧛‍♀️</div>
             <h1 class="storyTitle">The Three Evil Queens</h1>
             <p>Queens <b>Chaos</b>, <b>Fire</b>, and <b>Shadow</b> have cursed the
               forest. They hurl freezing ice bolts and command armies of
@@ -1939,10 +1963,12 @@ function startShariCooldown(seconds) {
 // Each queen rules a land (levels 3, 4, 5) and must be beaten a few times.
 // Each queen has her OWN look (emoji, size, glow) and her OWN difficulty —
 // later queens have more health and more comebacks.
+// Each queen is a composed character: a figure + crown + magic aura + her colour.
+// If a painting exists at her `img` path, the game upgrades her to it automatically.
 const QUEENS = [
-  { key: "chaos",  name: "Queen Chaos",  emoji: "🧙‍♀️", glow: "#a06bff", land: 2, waves: 2, waveHp: 4, size: 104 },
-  { key: "fire",   name: "Queen Fire",   emoji: "👹",   glow: "#ff5a3c", land: 3, waves: 2, waveHp: 6, size: 120 },
-  { key: "shadow", name: "Queen Shadow", emoji: "🧛‍♀️", glow: "#7b5cff", land: 4, waves: 3, waveHp: 7, size: 134 },
+  { key: "chaos",  name: "Queen Chaos",  figure: "🧝‍♀️", tint: "saturate(1.4)",                   glow: "#e05bff", aura: ["🌀", "🔮", "💫", "✨"], img: "assets/queen-chaos.png",  land: 2, waves: 2, waveHp: 4, size: 110 },
+  { key: "fire",   name: "Queen Fire",   figure: "👸",   tint: "hue-rotate(-35deg) saturate(1.6)", glow: "#ff5a3c", aura: ["🔥", "💥", "🔥", "✨"], img: "assets/queen-fire.png",   land: 3, waves: 2, waveHp: 6, size: 122 },
+  { key: "shadow", name: "Queen Shadow", figure: "🧛‍♀️", tint: "brightness(0.92) saturate(1.2)",   glow: "#8a5cff", aura: ["🦇", "🌑", "💜", "✨"], img: "assets/queen-shadow.png", land: 4, waves: 3, waveHp: 7, size: 134 },
 ];
 const queenState = {};
 QUEENS.forEach((q) => (queenState[q.key] = { wavesDone: 0, active: false, defeated: false }));
@@ -1959,17 +1985,36 @@ function spawnQueen(qDef) {
   let qx = window.innerWidth + 140;
   el.style.left = qx + "px";
   el.style.top  = (window.innerHeight * 0.16 + Math.random() * window.innerHeight * 0.16) + "px";
+  const auraSpans = qDef.aura
+    .map((em, i) => '<span class="qAura a' + i + '">' + em + "</span>")
+    .join("");
   el.innerHTML =
     '<div class="queenLabel">👑 ' + qDef.name + '</div>' +
     '<div class="queenHpBar"><div class="queenHpFill"></div></div>' +
-    '<div class="queenFace">' + qDef.emoji + "</div>";
+    '<div class="queenFace">' +
+      '<span class="qCrown">👑</span>' +
+      '<span class="qFigure">' + qDef.figure + "</span>" +
+      auraSpans +
+    "</div>";
   game.appendChild(el);
 
   const face = el.querySelector(".queenFace");
-  face.style.filter = "drop-shadow(0 0 18px " + qDef.glow + ")";
+  face.style.filter = "drop-shadow(0 0 20px " + qDef.glow + ")";
   face.style.fontSize = qDef.size + "px"; // each queen is a different size
+  const figure = el.querySelector(".qFigure");
+  if (qDef.tint) figure.style.filter = qDef.tint;
   const fill = el.querySelector(".queenHpFill");
   fill.style.background = qDef.glow;
+
+  // If a painted portrait exists at her img path, upgrade her to it (else stay emoji).
+  if (qDef.img) {
+    const test = new Image();
+    test.onload = () => {
+      figure.style.filter = "none";
+      figure.innerHTML = '<img class="queenImg" src="' + qDef.img + '" alt="">';
+    };
+    test.src = qDef.img;
+  }
 
   const boss = {
     el, hitEl: face, isQueen: true, qKey: qDef.key,
