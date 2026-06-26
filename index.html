@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clara, Shari, and the Dragons</title>
+<style>
+  /* ---- The look of the game ---- */
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: "Trebuchet MS", "Comic Sans MS", sans-serif;
+    overflow: hidden;
+    background: #0b1026;
+    color: #fff;
+    user-select: none;
+  }
+
+  /* The sky background — a soft gradient from night to dawn */
+  #game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(180deg, #1a2a6c 0%, #6a3093 45%, #ff9966 100%);
+    overflow: hidden;
+  }
+
+  /* The dragon you fly */
+  #dragon {
+    position: absolute;
+    font-size: 64px;
+    left: 120px;
+    top: 50%;
+    transform: translateY(-50%) scaleX(-1); /* face right */
+    transition: top 0.25s ease, left 0.25s ease;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+    z-index: 5;
+  }
+
+  /* A puff of fire the dragon breathes */
+  .fire {
+    position: absolute;
+    font-size: 40px;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  /* Stars to collect */
+  .star {
+    position: absolute;
+    font-size: 38px;
+    z-index: 3;
+  }
+
+  /* Floating clouds for decoration */
+  .cloud {
+    position: absolute;
+    font-size: 56px;
+    opacity: 0.85;
+    z-index: 2;
+  }
+
+  /* ---- The scoreboard and title ---- */
+  #hud {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 20;
+    background: rgba(0,0,0,0.35);
+    padding: 12px 18px;
+    border-radius: 16px;
+    line-height: 1.5;
+  }
+  #hud h1 { margin: 0 0 6px; font-size: 20px; }
+  #score { font-size: 22px; font-weight: bold; color: #ffe66d; }
+
+  /* The microphone status badge */
+  #mic {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    background: rgba(0,0,0,0.35);
+    padding: 12px 18px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 260px;
+  }
+  #micDot {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #888;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  #micDot.listening { background: #4dff88; box-shadow: 0 0 12px #4dff88; }
+  #heard { font-style: italic; color: #ffe66d; min-height: 1.2em; }
+
+  /* The big start button */
+  #startBtn {
+    position: absolute;
+    left: 50%; top: 60%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    font-size: 28px;
+    padding: 18px 36px;
+    border: none;
+    border-radius: 20px;
+    background: #ff4d6d;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 8px 0 #c9184a;
+  }
+  #startBtn:active { transform: translate(-50%, -50%) translateY(4px); box-shadow: 0 4px 0 #c9184a; }
+
+  /* The list of voice commands */
+  #help {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: rgba(0,0,0,0.35);
+    padding: 10px 18px;
+    border-radius: 16px;
+    font-size: 15px;
+    text-align: center;
+  }
+  #help b { color: #ffe66d; }
+</style>
+</head>
+<body>
+  <div id="game">
+    <div id="hud">
+      <h1>🐉 Clara, Shari, and the Dragons</h1>
+      <div>Stars caught: <span id="score">0</span></div>
+    </div>
+
+    <div id="mic">
+      <div><span id="micDot"></span><span id="micLabel">Mic off</span></div>
+      <div id="heard">say a command…</div>
+    </div>
+
+    <div id="dragon">🐉</div>
+
+    <button id="startBtn">▶ Press to Play (talk to fly!)</button>
+
+    <div id="help">
+      Say: <b>up</b> · <b>down</b> · <b>left</b> · <b>right</b> · <b>fire</b> · <b>go</b> · <b>stop</b>
+    </div>
+  </div>
+
+<script>
+/*
+  Clara, Shari, and the Dragons
+  ------------------------------
+  A voice-controlled flying game.
+
+  The big idea: the browser listens to your voice with the Web Speech API,
+  turns what you say into text, and we look for command words inside that text.
+  Each command word moves the dragon or makes it breathe fire.
+*/
+
+// Grab the things on the page we want to control.
+const game     = document.getElementById("game");
+const dragon   = document.getElementById("dragon");
+const scoreEl  = document.getElementById("score");
+const startBtn = document.getElementById("startBtn");
+const micDot   = document.getElementById("micDot");
+const micLabel = document.getElementById("micLabel");
+const heardEl  = document.getElementById("heard");
+
+// Game state — the numbers we keep track of while playing.
+let score = 0;
+let dragonY = window.innerHeight / 2; // up/down position (pixels from top)
+let dragonX = 120;                    // left/right position
+const STEP = 80;                      // how far the dragon moves per command
+
+// ---- Moving the dragon ----
+// We keep the dragon inside the window so it never flies off-screen.
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function placeDragon() {
+  dragonY = clamp(dragonY, 40, window.innerHeight - 100);
+  dragonX = clamp(dragonX, 20, window.innerWidth - 120);
+  dragon.style.top  = dragonY + "px";
+  dragon.style.left = dragonX + "px";
+}
+
+function moveUp()    { dragonY -= STEP; placeDragon(); }
+function moveDown()  { dragonY += STEP; placeDragon(); }
+function moveLeft()  { dragonX -= STEP; placeDragon(); }
+function moveRight() { dragonX += STEP; placeDragon(); }
+
+// ---- Breathing fire ----
+// A fire emoji shoots to the right from the dragon's mouth, then disappears.
+function breatheFire() {
+  const fire = document.createElement("div");
+  fire.className = "fire";
+  fire.textContent = "🔥";
+  let fx = dragonX + 60;
+  const fy = dragonY + 10;
+  fire.style.left = fx + "px";
+  fire.style.top  = fy + "px";
+  game.appendChild(fire);
+
+  // Move the fire across the screen a little at a time.
+  const flight = setInterval(() => {
+    fx += 18;
+    fire.style.left = fx + "px";
+    if (fx > window.innerWidth) {
+      clearInterval(flight);
+      fire.remove();
+    }
+  }, 30);
+}
+
+// ---- Stars to catch ----
+// Every couple of seconds a new star pops up somewhere random.
+function spawnStar() {
+  const star = document.createElement("div");
+  star.className = "star";
+  star.textContent = "⭐";
+  star.style.left = (Math.random() * (window.innerWidth - 120) + 40) + "px";
+  star.style.top  = (Math.random() * (window.innerHeight - 160) + 60) + "px";
+  game.appendChild(star);
+
+  // Check if the dragon is touching the star a few times per second.
+  const check = setInterval(() => {
+    const a = dragon.getBoundingClientRect();
+    const b = star.getBoundingClientRect();
+    const touching = !(a.right < b.left || a.left > b.right ||
+                       a.bottom < b.top || a.top > b.bottom);
+    if (touching) {
+      score += 1;
+      scoreEl.textContent = score;
+      star.remove();
+      clearInterval(check);
+    }
+  }, 150);
+
+  // If nobody catches it, the star fades away after a while.
+  setTimeout(() => { star.remove(); clearInterval(check); }, 7000);
+}
+
+// A few decorative clouds drifting in the background.
+function spawnCloud() {
+  const cloud = document.createElement("div");
+  cloud.className = "cloud";
+  cloud.textContent = "☁️";
+  let cx = window.innerWidth + 60;
+  cloud.style.top = (Math.random() * window.innerHeight * 0.6) + "px";
+  cloud.style.left = cx + "px";
+  game.appendChild(cloud);
+  const drift = setInterval(() => {
+    cx -= 2;
+    cloud.style.left = cx + "px";
+    if (cx < -80) { clearInterval(drift); cloud.remove(); }
+  }, 40);
+}
+
+// ---- Turning words into actions ----
+// This is the heart of the voice control. We get a sentence of text,
+// make it lowercase, and look for command words inside it.
+function handleCommand(text) {
+  const said = text.toLowerCase();
+  heardEl.textContent = "🗣️ " + text;
+
+  if (said.includes("up"))           moveUp();
+  if (said.includes("down"))         moveDown();
+  if (said.includes("left"))         moveLeft();
+  if (said.includes("right"))        moveRight();
+  if (said.includes("fire") ||
+      said.includes("burn")  ||
+      said.includes("flame")) breatheFire();
+  if (said.includes("go") || said.includes("fly")) moveRight();
+  if (said.includes("stop")) { /* just hover in place */ }
+}
+
+// ---- The voice (speech recognition) ----
+// Not every browser has this. Chrome does. We check first so the game
+// still loads (just without voice) on browsers that don't support it.
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let wantListening = false;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;     // keep listening, don't stop after one phrase
+  recognition.interimResults = true; // show words as they're being recognized
+  recognition.lang = "en-US";
+
+  recognition.onstart = () => {
+    micDot.classList.add("listening");
+    micLabel.textContent = "Listening…";
+  };
+
+  recognition.onresult = (event) => {
+    // Look at the newest chunk of speech and act on it.
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const phrase = event.results[i][0].transcript.trim();
+      if (phrase) handleCommand(phrase);
+    }
+  };
+
+  // Browsers sometimes stop listening on their own — restart if we still want it.
+  recognition.onend = () => {
+    micDot.classList.remove("listening");
+    micLabel.textContent = "Mic off";
+    if (wantListening) {
+      try { recognition.start(); } catch (e) { /* already starting */ }
+    }
+  };
+
+  recognition.onerror = (e) => {
+    heardEl.textContent = "Mic error: " + e.error + " (allow microphone access)";
+  };
+} else {
+  heardEl.textContent = "This browser has no voice support — try Google Chrome.";
+}
+
+// ---- Starting the game ----
+// Browsers only allow the microphone to start after a real click,
+// so the game begins when you press the Play button.
+startBtn.addEventListener("click", () => {
+  startBtn.style.display = "none";
+  placeDragon();
+
+  if (recognition) {
+    wantListening = true;
+    try { recognition.start(); } catch (e) { /* already running */ }
+  }
+
+  // Start the world: stars and clouds keep appearing.
+  setInterval(spawnStar, 2200);
+  setInterval(spawnCloud, 3000);
+  spawnStar();
+});
+
+// Keyboard backup so you can also play with arrow keys + space bar.
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp")    moveUp();
+  if (e.key === "ArrowDown")  moveDown();
+  if (e.key === "ArrowLeft")  moveLeft();
+  if (e.key === "ArrowRight") moveRight();
+  if (e.key === " ")          breatheFire();
+});
+
+// Keep the dragon on screen if the window is resized.
+window.addEventListener("resize", placeDragon);
+placeDragon();
+</script>
+</body>
+</html>
