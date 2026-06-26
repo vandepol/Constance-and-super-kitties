@@ -120,6 +120,8 @@
     filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3));
   }
   .potion svg { display: block; width: 40px; height: auto; }
+  .potion.big { animation: none; filter: drop-shadow(0 0 11px #ffd76a) drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
+  .potion.big svg { width: 66px; }
   @keyframes bobble {
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-8px); }
@@ -729,31 +731,33 @@
         <path d="M62 56 l4 -8 l4 8 Z" fill="#ff7fc4"/>
         <!-- neck -->
         <path d="M74 64 C78 48 92 40 112 44 C106 52 100 62 96 72 C88 68 80 64 74 64 Z" fill="url(#dBody)"/>
-        <!-- mane / frill -->
-        <path d="M76 58 l4 -11 l6 9 Z" fill="#ff3fa6"/>
-        <path d="M85 50 l4 -12 l6 10 Z" fill="#ff3fa6"/>
-        <path d="M94 44 l4 -12 l6 10 Z" fill="#e0349a"/>
-        <path d="M103 40 l3 -10 l5 9 Z" fill="#e0349a"/>
+        <!-- mane / frill (tall, sharp, fierce) -->
+        <path d="M75 58 l3 -16 l7 12 Z" fill="#ff3fa6"/>
+        <path d="M84 51 l3 -18 l7 13 Z" fill="#ff2f9e"/>
+        <path d="M94 45 l3 -18 l7 13 Z" fill="#e0349a"/>
+        <path d="M103 41 l2 -14 l6 11 Z" fill="#cf2f92"/>
         <!-- head + muzzle -->
         <path d="M104 46 C104 33 116 28 125 32 C133 36 135 45 132 52 C129 60 120 63 112 60 C107 58 104 53 104 46 Z" fill="url(#dBody)"/>
         <path d="M126 43 C141 41 149 47 149 51 C149 56 141 58 132 56 C129 55 126 50 126 47 Z" fill="url(#dBody)"/>
         <circle cx="145" cy="49" r="1.3" fill="#b4568f"/>
-        <path d="M130 55 q9 5 17 1" stroke="#c0568f" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-        <!-- horns -->
-        <path d="M110 32 C106 18 98 11 90 11 C98 15 104 24 106 34 Z" fill="url(#dGold)"/>
-        <path d="M119 30 C117 19 111 11 105 9 C111 15 115 22 116 32 Z" fill="url(#dGold)"/>
+        <!-- confident smirk + a little fang -->
+        <path d="M131 54 q7 3 13 0" stroke="#b0507f" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M137 54.5 l1.4 3 l1.4 -3 Z" fill="#ffffff"/>
+        <!-- long majestic horns -->
+        <path d="M110 32 C104 13 95 5 83 3 C92 11 100 21 104 34 Z" fill="url(#dGold)"/>
+        <path d="M119 30 C116 12 109 5 99 2 C107 11 114 19 116 32 Z" fill="url(#dGold)"/>
+        <path d="M107 30 C103 20 99 14 92 11" stroke="#e2a23a" stroke-width="0.8" fill="none" opacity="0.55"/>
         <!-- ear frill -->
         <path d="M108 38 l-7 -12 l11 4 Z" fill="#ff7fc4"/>
-        <!-- cheek blush -->
-        <circle cx="126" cy="53" r="4" fill="#ff9ec9" opacity="0.6"/>
-        <!-- big eye + lashes -->
-        <ellipse cx="120" cy="45" rx="6.5" ry="8.5" fill="#ffffff"/>
-        <circle cx="121" cy="46" r="5" fill="url(#dEye)"/>
-        <circle cx="121" cy="46" r="2.4" fill="#2a1640"/>
-        <circle cx="119" cy="43" r="1.8" fill="#ffffff"/>
-        <circle cx="123" cy="48" r="0.9" fill="#ffffff" opacity="0.85"/>
-        <path d="M113 38 q-3 -2 -5 -2" stroke="#3a2a5a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-        <path d="M114 35 q-2 -3 -4 -3" stroke="#3a2a5a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <!-- subtle cheek blush -->
+        <circle cx="127" cy="54" r="3" fill="#ff9ec9" opacity="0.4"/>
+        <!-- fierce almond eye + determined brow -->
+        <path d="M113 45 Q120 39 128 44 Q121 49.5 113 45 Z" fill="#ffffff"/>
+        <circle cx="121" cy="44.6" r="4.2" fill="url(#dEye)"/>
+        <circle cx="121" cy="44.6" r="2" fill="#180b30"/>
+        <circle cx="119.4" cy="42.9" r="1.3" fill="#ffffff"/>
+        <path d="M112 39 Q120 34.5 129 39.5" stroke="#d23f8e" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+        <path d="M113 43.5 q-3 -1 -5 0" stroke="#3a2a5a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
         <!-- jewelled tiara -->
         <path d="M108 36 Q116 28 125 34" fill="none" stroke="url(#dGold)" stroke-width="3" stroke-linecap="round"/>
         <path d="M116 27 l3 5 l-3 4 l-3 -4 Z" fill="url(#dGem)" stroke="#fff" stroke-width="0.7"/>
@@ -1346,6 +1350,63 @@ function spawnPotion() {
   setTimeout(() => { potion.remove(); clearInterval(check); }, 8000);
 }
 
+// A golden "big potion" — worth more points. It drifts around and bounces off
+// the edges, and it gets faster (harder to catch) in later lands.
+const POTION_SVG_BIG =
+  '<svg viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">' +
+  '<defs><linearGradient id="pLiqG" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#ff8a3c"/>' +
+  '</linearGradient></defs>' +
+  '<rect x="15" y="3" width="10" height="7" rx="2" fill="#c98a5a"/>' +
+  '<rect x="16" y="9" width="8" height="7" fill="#fff6e0" opacity="0.5"/>' +
+  '<path d="M14 16 q-9 6 -9 18 a15 15 0 0 0 30 0 q0 -12 -9 -18 Z" fill="#fff6e0" opacity="0.35" stroke="#ffd98a" stroke-width="1"/>' +
+  '<path d="M14 23 q-6 4 -6 11 a12 12 0 0 0 24 0 q0 -7 -6 -11 Z" fill="url(#pLiqG)"/>' +
+  '<path d="M20 27 l1.6 3.4 l3.7 0.3 l-2.8 2.4 l0.9 3.6 l-3.4 -1.9 l-3.4 1.9 l0.9 -3.6 l-2.8 -2.4 l3.7 -0.3 Z" fill="#fff7d6"/>' +
+  '<path d="M12 25 q-3 4 -2 9" stroke="#fff" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>' +
+  '<path d="M31 12 l1.2 3 l3 1.2 l-3 1.2 l-1.2 3 l-1.2 -3 l-3 -1.2 l3 -1.2 Z" fill="#fff"/>' +
+  "</svg>";
+
+function spawnBigPotion() {
+  if (won) return;
+  const potion = document.createElement("div");
+  potion.className = "potion big";
+  potion.innerHTML = POTION_SVG_BIG;
+  let px = Math.random() * (window.innerWidth - 160) + 40;
+  let py = Math.random() * (window.innerHeight - 260) + 60;
+  potion.style.left = px + "px";
+  potion.style.top  = py + "px";
+  game.appendChild(potion);
+
+  const value = 10 + currentLand * 5;   // worth more in later lands (20/25/30…)
+  const speed = 2.2 + currentLand * 0.9; // faster = harder to catch in later lands
+  const ang = Math.random() * Math.PI * 2;
+  let vx = Math.cos(ang) * speed;
+  let vy = Math.sin(ang) * speed;
+
+  const move = setInterval(() => {
+    px += vx; py += vy;
+    // bounce off the edges of the screen
+    if (px < 10 || px > window.innerWidth - 70) { vx = -vx; px = clamp(px, 10, window.innerWidth - 70); }
+    if (py < 50 || py > window.innerHeight - 130) { vy = -vy; py = clamp(py, 50, window.innerHeight - 130); }
+    potion.style.left = px + "px";
+    potion.style.top  = py + "px";
+
+    const a = dragon.getBoundingClientRect();
+    const b = potion.getBoundingClientRect();
+    const touching = !(a.right < b.left || a.left > b.right ||
+                       a.bottom < b.top || a.top > b.bottom);
+    if (touching) {
+      soundPotion();
+      addScore(value);
+      bigExplosion(b.left + b.width / 2, b.top + b.height / 2, 1.4);
+      potion.remove();
+      clearInterval(move);
+    }
+  }, 30);
+
+  setTimeout(() => { potion.remove(); clearInterval(move); }, 12000);
+}
+
 // ---- Bosses (worth 20 points — fire at them to beat them!) ----
 // The weirdos — minions of the evil queens. Bigger & tougher each land.
 const WEIRDOS = ["👾", "🧌", "🦑", "👽", "👹"];
@@ -1642,6 +1703,7 @@ function beginGame() {
   setInterval(spawnCloud, 3000);
   setInterval(spawnBoss, 10000);
   setInterval(spawnSpinStar, 5000); // the dizzy hazard
+  setInterval(() => { if (currentLand >= 1) spawnBigPotion(); }, 7000); // big moving potions from level 2
   spawnStar();
   spawnPotion();
 
