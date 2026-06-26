@@ -106,9 +106,23 @@
 
   /* The flying flap: bob up, tilt a little, bob back down — forever. */
   @keyframes flap {
-    0%, 100% { transform: translateY(2px)  rotate(-6deg) scale(1); }
-    50%      { transform: translateY(-16px) rotate(6deg) scale(1.07); }
+    0%, 100% { transform: translateY(0)    rotate(-2deg); }
+    50%      { transform: translateY(-8px) rotate(2deg); }
   }
+
+  /* Clara's pink wings, behind her, flapping gently from where they attach. */
+  #dragonWings {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  #dragonWings svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .wingL, .wingR { transform-box: fill-box; }
+  .wingL { transform-origin: 96% 88%; animation: wingFlapL 1.5s ease-in-out infinite; }
+  .wingR { transform-origin: 4% 88%;  animation: wingFlapR 1.5s ease-in-out infinite; }
+  @keyframes wingFlapL { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(-22deg); } }
+  @keyframes wingFlapR { 0%, 100% { transform: rotate(5deg); }  50% { transform: rotate(22deg); } }
 
   /* SPEED BONUS: shimmering silver-rainbow skin (cycles colors + silvery glow). */
   #dragonBody.rainbow {
@@ -982,9 +996,10 @@
     <!-- Per-land silhouette scenes; switchLand reveals the one for the current land. -->
     <div class="landScene" data-land="0">
       <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-        <!-- Sky Kingdom: distant mountains, a castle, birds -->
-        <path d="M0 660 L150 520 L300 620 L470 500 L640 620 L800 520 L980 630 L1120 540 L1200 610 L1200 800 L0 800 Z" fill="#6678b4" opacity="0.45"/>
-        <path d="M0 800 L0 670 L180 580 L380 680 L560 600 L760 700 L940 620 L1120 700 L1200 660 L1200 800 Z" fill="#48568f"/>
+        <!-- Sky Kingdom: rolling mountains (3 depth layers), a castle, birds -->
+        <path d="M0 600 Q120 560 200 585 Q300 500 400 580 Q500 522 600 586 Q712 506 820 580 Q920 532 1020 582 Q1110 548 1200 586 L1200 800 L0 800 Z" fill="#7d8cc4" opacity="0.3"/>
+        <path d="M0 662 Q90 624 162 582 Q244 540 300 602 Q384 512 470 596 Q552 544 630 602 Q722 516 820 596 Q902 548 1000 592 Q1092 556 1200 602 L1200 800 L0 800 Z" fill="#6678b4" opacity="0.5"/>
+        <path d="M0 800 L0 702 Q82 666 152 690 Q242 610 340 686 Q422 640 520 696 Q612 616 712 690 Q802 646 900 696 Q992 626 1090 690 Q1150 666 1200 686 L1200 800 Z" fill="#48568f"/>
         <g fill="#39426e">
           <rect x="980" y="560" width="120" height="150"/>
           <rect x="978" y="540" width="22" height="26"/><rect x="1020" y="540" width="22" height="26"/><rect x="1062" y="540" width="22" height="26"/>
@@ -1025,8 +1040,10 @@
           <path class="kelp" style="animation-delay:0.2s" d="M1090 800 C1108 680 1058 600 1096 470 C1116 600 1124 700 1104 800 Z"/>
         </g>
         <g fill="#0a4a52">
-          <path d="M300 800 C300 740 280 720 290 690 C300 715 320 715 320 690 C330 720 320 740 330 800 Z"/>
-          <path d="M860 800 C860 745 845 728 852 702 C860 722 876 722 876 700 C886 726 876 745 884 800 Z"/>
+          <path d="M300 800 C298 758 284 740 290 710 C294 726 304 728 304 704 C312 718 310 740 312 758 C318 738 330 728 328 704 C338 722 332 752 332 800 Z"/>
+          <path d="M860 800 C858 760 846 742 852 714 C856 728 866 730 866 708 C874 722 872 742 874 760 C880 742 892 732 890 710 C900 726 894 754 894 800 Z"/>
+          <path d="M470 800 C468 766 458 750 464 728 C468 742 478 744 478 724 C486 738 482 764 484 800 Z"/>
+          <path d="M1000 800 C998 770 990 756 995 736 C999 748 1008 750 1008 732 C1015 746 1011 770 1013 800 Z"/>
         </g>
         <g>
           <circle class="bub" cx="250" cy="500" r="9" fill="url(#bubGlow)" style="animation-delay:0s"/>
@@ -1040,13 +1057,15 @@
 
     <div class="landScene" data-land="3">
       <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-        <!-- Aurora Peaks: snowy mountains and pine trees -->
-        <path d="M0 600 L200 380 L380 560 L560 360 L760 560 L940 400 L1120 580 L1200 500 L1200 800 L0 800 Z" fill="#1a2a55" opacity="0.6"/>
-        <g fill="#aebfe8" opacity="0.5">
-          <path d="M560 360 l36 54 l-22 8 l-14 -18 l-14 20 l-18 -10 Z"/>
-          <path d="M200 380 l34 50 l-20 8 l-14 -18 l-12 18 l-16 -10 Z"/>
+        <!-- Aurora Peaks: complex jagged snowy mountains and pine trees -->
+        <path d="M0 560 L110 430 L175 505 L250 360 L300 440 L370 330 L440 455 L520 380 L585 300 L660 455 L735 395 L810 470 L880 320 L955 450 L1030 370 L1100 470 L1170 410 L1200 460 L1200 800 L0 800 Z" fill="#1a2a55" opacity="0.6"/>
+        <g fill="#cdd9f4" opacity="0.55">
+          <path d="M585 300 l30 60 l-19 6 l-11 -16 l-12 18 l-16 -8 Z"/>
+          <path d="M370 330 l26 54 l-16 6 l-10 -14 l-10 16 l-14 -8 Z"/>
+          <path d="M880 320 l28 56 l-17 6 l-11 -15 l-11 17 l-15 -8 Z"/>
+          <path d="M250 360 l24 50 l-15 6 l-9 -13 l-10 15 l-13 -7 Z"/>
         </g>
-        <path d="M0 800 L0 620 L240 440 L460 640 L680 460 L900 660 L1120 480 L1200 600 L1200 800 Z" fill="#0e1a3e"/>
+        <path d="M0 800 L0 600 L130 460 L210 545 L300 410 L370 510 L450 430 L540 555 L640 400 L720 500 L800 540 L890 430 L980 555 L1070 445 L1150 540 L1200 480 L1200 800 Z" fill="#0e1a3e"/>
         <g fill="#091530">
           <rect x="116" y="742" width="8" height="40"/><path d="M120 654 l26 50 l-52 0 Z"/><path d="M120 692 l30 50 l-60 0 Z"/><path d="M120 726 l34 46 l-68 0 Z"/>
           <rect x="1076" y="742" width="8" height="40"/><path d="M1080 654 l26 50 l-52 0 Z"/><path d="M1080 692 l30 50 l-60 0 Z"/><path d="M1080 726 l34 46 l-68 0 Z"/>
@@ -1057,17 +1076,26 @@
 
     <div class="landScene" data-land="4">
       <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-        <!-- Rainbow Castle: towers and spires -->
+        <!-- Rainbow Castle: keep, wall, towers and spires -->
         <path d="M0 800 L0 700 Q300 660 600 700 Q900 740 1200 690 L1200 800 Z" fill="#34205c"/>
         <g fill="#2a1a4e">
-          <rect x="450" y="480" width="300" height="240"/>
-          <rect x="450" y="462" width="30" height="22"/><rect x="500" y="462" width="30" height="22"/><rect x="550" y="462" width="30" height="22"/><rect x="600" y="462" width="30" height="22"/><rect x="650" y="462" width="30" height="22"/><rect x="700" y="462" width="30" height="22"/>
-          <rect x="418" y="420" width="60" height="300"/><rect x="722" y="420" width="60" height="300"/>
-          <rect x="560" y="360" width="80" height="360"/>
-          <path d="M418 420 L448 356 L478 420 Z"/><path d="M722 420 L752 356 L782 420 Z"/><path d="M560 360 L600 286 L640 360 Z"/>
+          <rect x="330" y="560" width="540" height="160"/>
+          <rect x="330" y="544" width="26" height="20"/><rect x="376" y="544" width="26" height="20"/><rect x="422" y="544" width="26" height="20"/><rect x="468" y="544" width="26" height="20"/><rect x="514" y="544" width="26" height="20"/><rect x="560" y="544" width="26" height="20"/><rect x="606" y="544" width="26" height="20"/><rect x="652" y="544" width="26" height="20"/><rect x="698" y="544" width="26" height="20"/><rect x="744" y="544" width="26" height="20"/><rect x="790" y="544" width="26" height="20"/><rect x="836" y="544" width="26" height="20"/>
+          <rect x="470" y="470" width="260" height="250"/>
+          <rect x="470" y="452" width="28" height="22"/><rect x="516" y="452" width="28" height="22"/><rect x="562" y="452" width="28" height="22"/><rect x="608" y="452" width="28" height="22"/><rect x="654" y="452" width="28" height="22"/><rect x="700" y="452" width="28" height="22"/>
+          <rect x="430" y="410" width="56" height="310"/><rect x="714" y="410" width="56" height="310"/>
+          <rect x="310" y="470" width="48" height="250"/><rect x="842" y="470" width="48" height="250"/>
+          <rect x="562" y="350" width="76" height="370"/>
+          <path d="M430 410 L458 350 L486 410 Z"/><path d="M714 410 L742 350 L770 410 Z"/>
+          <path d="M310 470 L334 416 L358 470 Z"/><path d="M842 470 L866 416 L890 470 Z"/>
+          <path d="M562 350 L600 274 L638 350 Z"/>
         </g>
-        <g fill="#1f1340"><rect x="582" y="600" width="36" height="120" rx="18"/></g>
-        <g fill="#ff6fc4"><rect x="599" y="266" width="3" height="26"/><path d="M602 268 l20 8 l-20 8 Z"/></g>
+        <g fill="#1f1340">
+          <rect x="582" y="600" width="36" height="120" rx="18"/>
+          <rect x="448" y="468" width="14" height="32" rx="7"/><rect x="738" y="468" width="14" height="32" rx="7"/>
+          <rect x="592" y="418" width="16" height="34" rx="8"/>
+        </g>
+        <g fill="#ff6fc4"><rect x="599" y="254" width="3" height="26"/><path d="M602 256 l22 8 l-22 8 Z"/></g>
       </svg>
     </div>
 
@@ -1157,7 +1185,7 @@
       <div id="heard">say a command…</div>
     </div>
 
-    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dJewel dCrown hidden" data-level="1">👑</span><span class="dJewel dGem hidden" data-level="2">💎</span><span class="dJewel dSpark hidden" data-level="3">✨</span><span class="dJewel dHeart hidden" data-level="4">💖</span></div></div>
+    <div id="dragon"><div id="dragonWings"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9ad8" stop-opacity="0.95"/><stop offset="1" stop-color="#e85bb0" stop-opacity="0.9"/></linearGradient></defs><g class="wingL"><path d="M58 78 C46 44 24 26 4 30 C14 46 20 64 22 88 C34 84 48 82 58 78 Z" fill="url(#wg)" stroke="#ffd36a" stroke-width="2.5" stroke-linejoin="round"/><path d="M56 78 C40 62 24 46 10 38" stroke="#ffc0e6" stroke-width="1.4" fill="none" opacity="0.6"/></g><g class="wingR"><path d="M62 78 C74 44 96 26 116 30 C106 46 100 64 98 88 C86 84 72 82 62 78 Z" fill="url(#wg)" stroke="#ffd36a" stroke-width="2.5" stroke-linejoin="round"/><path d="M64 78 C80 62 96 46 110 38" stroke="#ffc0e6" stroke-width="1.4" fill="none" opacity="0.6"/></g></svg></div><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dJewel dCrown hidden" data-level="1">👑</span><span class="dJewel dGem hidden" data-level="2">💎</span><span class="dJewel dSpark hidden" data-level="3">✨</span><span class="dJewel dHeart hidden" data-level="4">💖</span></div></div>
 
     <div id="startScreen">
       <div class="storyCard">
