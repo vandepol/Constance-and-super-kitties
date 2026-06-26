@@ -380,6 +380,14 @@
     filter: drop-shadow(0 0 9px #8fe9ff);
     animation: spin 0.8s linear infinite;
   }
+  .queenBolt.fireBolt { filter: drop-shadow(0 0 11px #ff5a1a); } /* Queen Fire's burning bolt */
+
+  /* Clara flashes fiery when burned by Queen Fire. */
+  #dragonBody.burned { animation: burnFlash 0.6s ease; }
+  @keyframes burnFlash {
+    0%, 100% { filter: hue-rotate(230deg) saturate(1.8) brightness(1.05); }
+    50%      { filter: brightness(1.9) saturate(3) sepia(0.7) hue-rotate(-30deg); }
+  }
 
   /* ---- The scoreboard and title ---- */
   #hud {
@@ -1259,7 +1267,7 @@
       <span class="chip">🧪 potion <b>5</b> 💥</span>
       <span class="chip">👾 weirdo <b>20+</b> 🔥</span>
       <span class="chip warn">🌟 spinning star = dizzy — dodge it!</span>
-      <span class="chip warn">🧊 queen ice bolt = frozen 6s — dodge it!</span>
+      <span class="chip warn">🧊 ice bolt = frozen 6s · 🔥 Queen Fire's bolt = −1 &amp; knocked away — dodge!</span>
       <span class="chip">🌀 press <b>S</b> = Shari's Spin Fire — hits enemies & melts ❄️ ice bolts (lvl 3+)</span>
       <span class="chip goal">👑 beat the <b>3 queens</b> to WIN!</span>
     </div>
@@ -1562,6 +1570,7 @@ const soundBoss    = () => tune([{ f: 523 }, { f: 659 }, { f: 784 }, { f: 1047, 
 const soundFlap    = () => tone(200, 0.06, "sine", 0.05);             // a soft wing flap
 const soundRecover = () => tune([{ f: 440 }, { f: 660 }, { f: 880, d: 0.2 }]); // dizziness wears off
 const soundFreeze  = () => tune([{ f: 1175 }, { f: 880 }, { f: 587 }, { f: 392, d: 0.4 }]); // icy slide down
+const soundBurn    = () => tune([{ f: 300, t: "sawtooth" }, { f: 200, t: "sawtooth" }, { f: 120, t: "sawtooth", d: 0.35 }]); // harsh sizzle
 // A happy "ta-da!" fanfare when you fly into a new land.
 const soundLand    = () => tune([
   { f: 659 }, { f: 880 }, { f: 1047 }, { f: 1319, d: 0.32 }, { f: 1047, gap: 90, d: 0.3 },
@@ -2315,9 +2324,12 @@ function queenShoot(boss) {
   let px = qr.left;
   let py = qr.top + qr.height / 2;
 
+  // Queen Fire shoots a BURNING bolt (−1 point + knockback); the others freeze.
+  const isFire = boss.qKey === "fire";
+
   const el = document.createElement("div");
-  el.className = "queenBolt";
-  el.textContent = "❄️";
+  el.className = "queenBolt" + (isFire ? " fireBolt" : "");
+  el.textContent = isFire ? "🔥" : "❄️";
   el.style.left = px + "px";
   el.style.top  = py + "px";
   game.appendChild(el);
@@ -2333,8 +2345,9 @@ function queenShoot(boss) {
     const a = dragon.getBoundingClientRect();
     const b = el.getBoundingClientRect();
     const hit = !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
-    if (hit && !frozen) {
-      freezeDragon();
+    if (hit) {
+      if (isFire) burnDragon();
+      else if (!frozen) freezeDragon();
       removeBolt(bolt);
       return;
     }
@@ -2342,6 +2355,32 @@ function queenShoot(boss) {
       removeBolt(bolt);
     }
   }, 30);
+}
+
+// Queen Fire's burn: lose one point and get knocked to a random corner.
+function burnDragon() {
+  if (won) return;
+  score = Math.max(0, score - 1); // lose exactly one point
+  scoreEl.textContent = score;
+
+  const dr = dragon.getBoundingClientRect();
+  explode(dr.left + dr.width / 2, dr.top + dr.height / 2);
+  soundBurn();
+  dragonBody.classList.add("burned");
+  setTimeout(() => dragonBody.classList.remove("burned"), 600);
+  banner("🔥 Burned! −1 point and knocked away!");
+
+  // Fling her to a random corner (she slides there via her CSS transition).
+  const corners = [
+    [30, 50],
+    [window.innerWidth - 140, 50],
+    [30, window.innerHeight - 120],
+    [window.innerWidth - 140, window.innerHeight - 120],
+  ];
+  const c = corners[Math.floor(Math.random() * corners.length)];
+  dragonX = c[0];
+  dragonY = c[1];
+  placeDragon();
 }
 
 function removeBolt(bolt) {
