@@ -59,15 +59,15 @@
     z-index: 5;
   }
   #dragonFlip {
-    transform: scaleX(-1); /* flip it to face right */
+    /* Our dragon is drawn (as an SVG) already facing right, so no flip. */
+    transform: none;
   }
   #dragonBody {
-    font-size: 64px;
-    /* Turn the green dragon emoji PINK by spinning its colors around. */
-    filter: hue-rotate(230deg) saturate(1.8) brightness(1.05);
-    /* Flap up and down so it looks like it's flying. */
+    /* Our hand-drawn magical girl dragon flaps up and down as she flies. */
+    line-height: 0;
     animation: flap 0.5s ease-in-out infinite;
   }
+  #dragonBody svg { display: block; width: 98px; height: auto; }
   /* When the dragon lands, it stops flapping and settles down. */
   #dragonBody.landed {
     animation: none;
@@ -139,6 +139,29 @@
   @keyframes bossPulse {
     0%, 100% { transform: scale(1); }
     50%      { transform: scale(1.14); }
+  }
+
+  /* A white flash when a weirdo blows up. */
+  .flash {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    background: #ffffff;
+    animation: flashFade 0.24s ease-out forwards;
+  }
+  @keyframes flashFade {
+    0%   { opacity: 0.7; }
+    100% { opacity: 0; }
+  }
+  /* A quick screen shake for big explosions. */
+  #game.shake { animation: shake 0.44s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-7px, 4px); }
+    40% { transform: translate(7px, -4px); }
+    60% { transform: translate(-5px, -3px); }
+    80% { transform: translate(5px, 3px); }
   }
 
   /* Twinkling magical particles in the background (fairies, sparkles, bubbles).
@@ -494,6 +517,141 @@
     font-size: 50px;
     animation: boom 0.7s ease-out forwards;
   }
+
+  /* ---- The intro story card ---- */
+  .storyCard {
+    max-width: min(90vw, 560px);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 26px;
+    box-shadow: var(--shadow);
+    padding: 26px 32px 30px;
+    text-align: center;
+    line-height: 1.5;
+    font-size: 17px;
+  }
+  .storyCard p { margin: 10px 0; }
+  .storyCard b { color: var(--gold); }
+  .storyTitle {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 30px;
+    margin: 0 0 14px;
+    line-height: 1.1;
+    background: linear-gradient(92deg, #ffd95a, #ff8fc7 55%, #b69cff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .storyButtons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  #skipBtn {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    padding: 14px 24px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: transform 0.09s ease, filter 0.15s ease;
+  }
+  #skipBtn:hover { filter: brightness(1.15); }
+  #skipBtn:active { transform: translateY(3px); }
+
+  /* ---- The queen tracker in the HUD ---- */
+  #queenTracker {
+    display: flex;
+    gap: 6px;
+    margin-top: 9px;
+    flex-wrap: wrap;
+  }
+  .qtag {
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 9px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    opacity: 0.8;
+  }
+  .qtag.done {
+    background: rgba(255, 217, 90, 0.25);
+    border-color: rgba(255, 217, 90, 0.7);
+    color: var(--gold);
+    opacity: 1;
+  }
+
+  /* ---- The evil queens ---- */
+  .queen {
+    position: absolute;
+    z-index: 5;
+    text-align: center;
+    pointer-events: none;
+    animation: queenFloat 2.4s ease-in-out infinite;
+  }
+  @keyframes queenFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-16px); }
+  }
+  .queenLabel {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    margin-bottom: 4px;
+    white-space: nowrap;
+  }
+  .queenHpBar {
+    width: 120px;
+    height: 10px;
+    margin: 0 auto 6px;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+  }
+  .queenHpFill {
+    width: 100%;
+    height: 100%;
+    background: #ff5a3c;
+    transition: width 0.2s ease;
+  }
+  .queenFace {
+    font-size: 96px;
+    line-height: 1;
+  }
+
+  /* ---- The music on/off button ---- */
+  #musicBtn {
+    position: absolute;
+    bottom: 18px;
+    left: 18px;
+    z-index: 25;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+    font-size: 22px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+  #musicBtn:hover { transform: scale(1.08); }
+  #musicBtn:active { transform: scale(0.94); }
 </style>
 </head>
 <body>
@@ -502,7 +660,12 @@
     <div id="landBanner"></div>
     <div id="hud">
       <h1>🐉 Clara, Shari &amp; the Dragons</h1>
-      <div class="scoreRow">Score <span id="score">0</span> <span style="opacity:.7">/ 1000 🏆</span></div>
+      <div class="scoreRow">Score <span id="score">0</span></div>
+      <div id="queenTracker">
+        <span class="qtag" data-q="chaos">👑 Chaos</span>
+        <span class="qtag" data-q="fire">👑 Fire</span>
+        <span class="qtag" data-q="shadow">👑 Shadow</span>
+      </div>
     </div>
 
     <div id="mic">
@@ -510,27 +673,109 @@
       <div id="heard">say a command…</div>
     </div>
 
-    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div></div>
+    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">
+      <svg viewBox="0 0 120 110" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="dBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffd6f0"/><stop offset="1" stop-color="#c9a3f0"/>
+          </linearGradient>
+          <linearGradient id="dWing" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#d99bff"/><stop offset="1" stop-color="#ff9ad5"/>
+          </linearGradient>
+          <radialGradient id="dGem" cx="0.4" cy="0.35" r="0.8">
+            <stop offset="0" stop-color="#d7f3ff"/><stop offset="0.5" stop-color="#5cc0ff"/><stop offset="1" stop-color="#1f6fe0"/>
+          </radialGradient>
+          <linearGradient id="dGold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#f4b942"/>
+          </linearGradient>
+        </defs>
+        <!-- wing -->
+        <path d="M52 44 C30 18 6 26 10 50 C14 70 40 66 54 58 Z" fill="url(#dWing)" stroke="#b06fe0" stroke-width="1.5"/>
+        <path d="M30 30 C28 42 30 52 36 58" fill="none" stroke="#b06fe0" stroke-width="1.1" opacity="0.6"/>
+        <path d="M18 35 C18 46 22 56 30 60" fill="none" stroke="#b06fe0" stroke-width="1.1" opacity="0.6"/>
+        <!-- tail -->
+        <path d="M40 80 C24 94 14 88 6 92 C16 92 22 96 34 84 Z" fill="url(#dBody)"/>
+        <path d="M9 92 l-7 -3 l6 -3 Z" fill="#ff8fd0"/>
+        <!-- back spikes -->
+        <path d="M46 50 l5 -9 l5 9 Z" fill="#b98cf0"/>
+        <path d="M56 47 l5 -9 l5 9 Z" fill="#b98cf0"/>
+        <path d="M66 46 l5 -8 l5 8 Z" fill="#b98cf0"/>
+        <!-- body -->
+        <ellipse cx="62" cy="68" rx="30" ry="24" fill="url(#dBody)"/>
+        <ellipse cx="70" cy="73" rx="17" ry="15" fill="#fff2fb" opacity="0.85"/>
+        <!-- feet -->
+        <ellipse cx="52" cy="90" rx="7" ry="5" fill="#c9a3f0"/>
+        <ellipse cx="72" cy="92" rx="7" ry="5" fill="#c9a3f0"/>
+        <!-- chest gem -->
+        <path d="M61 63 l5 5 l-5 6 l-5 -6 Z" fill="url(#dGem)" stroke="#fff" stroke-width="1"/>
+        <!-- head -->
+        <circle cx="90" cy="46" r="22" fill="url(#dBody)"/>
+        <ellipse cx="108" cy="50" rx="8" ry="6.5" fill="url(#dBody)"/>
+        <circle cx="111" cy="49" r="1" fill="#9a5fd0"/><circle cx="108" cy="51" r="1" fill="#9a5fd0"/>
+        <!-- cheek blush -->
+        <circle cx="86" cy="56" r="5" fill="#ff9ec9" opacity="0.6"/>
+        <!-- big blue eye + lashes -->
+        <ellipse cx="92" cy="44" rx="8" ry="10" fill="#ffffff"/>
+        <circle cx="93" cy="45" r="6" fill="url(#dGem)"/>
+        <circle cx="93" cy="45" r="3" fill="#10325f"/>
+        <circle cx="91" cy="42" r="2" fill="#ffffff"/>
+        <circle cx="95" cy="48" r="1" fill="#ffffff" opacity="0.85"/>
+        <path d="M84 38 q-3 -2 -5 -1" stroke="#3a2a5a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M85 35 q-2 -3 -4 -3" stroke="#3a2a5a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <!-- little frill -->
+        <path d="M78 28 l3 -10 l5 8 Z" fill="#b98cf0"/>
+        <!-- jewelled tiara -->
+        <path d="M80 30 Q90 22 100 30" fill="none" stroke="url(#dGold)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M90 22 l3 6 l-3 4 l-3 -4 Z" fill="url(#dGem)" stroke="#fff" stroke-width="0.8"/>
+        <circle cx="82" cy="29" r="1.8" fill="#ff7fc4" stroke="#fff" stroke-width="0.5"/>
+        <circle cx="98" cy="29" r="1.8" fill="#ff7fc4" stroke="#fff" stroke-width="0.5"/>
+        <!-- sparkles -->
+        <g fill="#ffffff">
+          <path d="M114 21 l1.5 3.5 l3.5 1.5 l-3.5 1.5 l-1.5 3.5 l-1.5 -3.5 l-3.5 -1.5 l3.5 -1.5 Z"/>
+          <path d="M22 20 l1 2.5 l2.5 1 l-2.5 1 l-1 2.5 l-1 -2.5 l-2.5 -1 l2.5 -1 Z"/>
+        </g>
+      </svg>
+    </div></div></div>
 
     <div id="startScreen">
-      <button id="startBtn">▶ Play</button>
-      <p class="btnHint">🎤 Talk to fly — or use the arrow keys & space bar</p>
+      <div class="storyCard">
+        <h1 class="storyTitle">🐉 Clara, Shari &amp; the Dragons 🐉</h1>
+        <p>One midsummer night, two best friends — <b>Clara</b> and <b>Shari</b> —
+          wandered into an enchanted forest, and the fairies turned them into
+          <b>magical dragons</b>! 🧚✨</p>
+        <p>But three <b>evil queens</b> — 👑 <b>Chaos</b>, 👑 <b>Fire</b>, and
+          👑 <b>Shadow</b> — and their <b>weirdo</b> minions are ruining the forest!</p>
+        <p>Fly through five magical lands, catch ⭐ stars and 🧪 potions, breathe
+          🔥 fire on the weirdos, and <b>defeat all three queens</b> to save the
+          forest! 🌈</p>
+        <p class="btnHint">🎤 Talk to fly — or use the arrow keys &amp; space bar</p>
+        <div class="storyButtons">
+          <button id="startBtn">▶ Start the Adventure!</button>
+          <button id="skipBtn">Skip ⏭</button>
+        </div>
+      </div>
     </div>
+
+    <button id="musicBtn" title="Music on/off">🎵</button>
 
     <div id="help">
       <span class="chip">🎤 <b>up · down · left · right · fire · go · land</b></span>
       <span class="chip">⭐ <b>1</b></span>
       <span class="chip">🧪 potion <b>5</b> 💥</span>
-      <span class="chip">🐲 boss <b>20</b> 🔥</span>
+      <span class="chip">👾 weirdo <b>20+</b> 🔥</span>
       <span class="chip warn">🌟 spinning star = dizzy — dodge it!</span>
-      <span class="chip goal">🏆 reach <b>1000</b> to WIN!</span>
+      <span class="chip goal">👑 beat the <b>3 queens</b> to WIN!</span>
     </div>
 
     <div id="winScreen" class="hidden">
       <div class="winCard">
         <div class="winDragons">🐉💖🐉</div>
-        <h1 class="winTitle">YOU WIN!</h1>
-        <p class="winSub">Clara &amp; Shari saved all five magical lands! 🌈</p>
+        <h1 class="winTitle">YOU SAVED THE FOREST!</h1>
+        <p class="winSub">With one last burst of dragon-fire, Clara &amp; Shari
+          defeated Queen Chaos, Queen Fire, and Queen Shadow! 👑💥</p>
+        <p class="winSub">The dark magic melted away, the fairies came home, and the
+          Midsummer Forest bloomed brighter than ever. 🌸🧚✨ The fairy queen gave
+          the two brave dragons a magical jewelled crown as their prize. 💎👑</p>
         <div class="winScore">Final score: <span id="finalScore">0</span></div>
         <button id="playAgainBtn">▶ Play Again</button>
       </div>
@@ -555,6 +800,7 @@ const dragonBody = document.getElementById("dragonBody");
 const bosses     = []; // all the bosses currently on screen
 const scoreEl  = document.getElementById("score");
 const startBtn = document.getElementById("startBtn");
+const musicBtn = document.getElementById("musicBtn");
 const micDot   = document.getElementById("micDot");
 const micLabel = document.getElementById("micLabel");
 const heardEl    = document.getElementById("heard");
@@ -611,7 +857,7 @@ function addScore(points) {
   scoreEl.textContent = score;
   const idx = Math.min(LANDS.length - 1, Math.floor(score / 200));
   if (idx !== currentLand) switchLand(idx);
-  if (!won && score >= WIN_SCORE) winGame(); // reached the goal — you win!
+  // (You win by defeating all three queens, not by score — see defeatQueenWave.)
 }
 
 // Fly to a new land: change the sky, the scenery, and announce it.
@@ -625,9 +871,20 @@ function switchLand(idx) {
     ? "url('" + land.image + "') center / cover no-repeat, " + land.background
     : land.background;
   sceneryRow.textContent = land.scenery || "";
-  landBanner.textContent = "✨ Welcome to " + land.name + "! ✨";
+  banner("✨ Welcome to " + land.name + "! ✨");
+
+  // If an evil queen rules this land, she appears after a dramatic pause.
+  const q = QUEENS.find((qq) => qq.land === idx);
+  if (q && !queenState[q.key].defeated && !queenState[q.key].active) {
+    setTimeout(() => { if (!won) spawnQueen(q); }, 2600);
+  }
+}
+
+// Show a big sparkly banner message (reused for lands, queens, etc.).
+function banner(msg) {
+  landBanner.textContent = msg;
   landBanner.classList.remove("show");
-  void landBanner.offsetWidth; // a little trick that restarts the animation
+  void landBanner.offsetWidth; // a trick that restarts the animation
   landBanner.classList.add("show");
 }
 
@@ -875,7 +1132,7 @@ function breatheFire() {
     // Did this fire hit a boss? Check every boss on screen.
     const fr = fire.getBoundingClientRect();
     for (const boss of bosses.slice()) {
-      const br = boss.el.getBoundingClientRect();
+      const br = (boss.hitEl || boss.el).getBoundingClientRect();
       const hit = !(fr.right < br.left || fr.left > br.right ||
                     fr.bottom < br.top || fr.top > br.bottom);
       if (hit) {
@@ -883,7 +1140,11 @@ function breatheFire() {
         explode(fx, fy);       // little sparks where it was struck
         clearInterval(flight);
         fire.remove();
-        if (boss.hp <= 0) defeatBoss(boss); // beaten!
+        if (boss.isQueen) updateQueenBar(boss);
+        if (boss.hp <= 0) {
+          if (boss.isQueen) defeatQueenWave(boss); // a queen loses this round
+          else defeatBoss(boss);                   // a weirdo is beaten
+        }
         return;
       }
     }
@@ -905,6 +1166,45 @@ function explode(x, y) {
   boom.style.top  = y + "px";
   game.appendChild(boom);
   setTimeout(() => boom.remove(), 600);
+}
+
+// A DRAMATIC, screen-shaking explosion — used when a weirdo or queen is beaten.
+function bigExplosion(x, y, scale) {
+  scale = scale || 1;
+  flashScreen();
+  shakeScreen();
+  soundExplode();
+  if (audioCtx) tone(70, 0.5, "sawtooth", 0.3); // deep boom under it
+  const bits = ["💥", "✨", "🌟", "💫", "🔥", "⭐"];
+  const count = Math.round(12 + currentLand * 4); // more bits in later lands
+  for (let i = 0; i < count; i++) {
+    const b = document.createElement("div");
+    b.className = "boom";
+    b.textContent = bits[i % bits.length];
+    const ang = Math.random() * Math.PI * 2;
+    const dist = Math.random() * 60 * scale;
+    b.style.left = (x + Math.cos(ang) * dist) + "px";
+    b.style.top  = (y + Math.sin(ang) * dist) + "px";
+    b.style.fontSize = (28 + Math.random() * 40 * scale) + "px";
+    game.appendChild(b);
+    setTimeout(() => b.remove(), 750);
+  }
+}
+
+// A quick white flash over the whole screen.
+function flashScreen() {
+  const fl = document.createElement("div");
+  fl.className = "flash";
+  game.appendChild(fl);
+  setTimeout(() => fl.remove(), 240);
+}
+
+// Shake the screen briefly (remove + re-add so it always replays).
+function shakeScreen() {
+  game.classList.remove("shake");
+  void game.offsetWidth;
+  game.classList.add("shake");
+  setTimeout(() => game.classList.remove("shake"), 440);
 }
 
 // ---- Stars to catch ----
@@ -982,24 +1282,29 @@ function spawnPotion() {
 }
 
 // ---- Bosses (worth 20 points — fire at them to beat them!) ----
+// The weirdos — minions of the evil queens. Bigger & tougher each land.
+const WEIRDOS = ["👾", "🧌", "🦑", "👽", "👹"];
 function spawnBoss() {
+  if (won) return;
   const el = document.createElement("div");
   el.className = "boss";
-  el.textContent = "🐲";
+  el.textContent = WEIRDOS[currentLand] || "👾";
+  el.style.fontSize = (64 + currentLand * 18) + "px"; // BIGGER each land
   let bx = window.innerWidth + 80;
-  const by = Math.random() * (window.innerHeight * 0.5) + 60;
+  const by = Math.random() * (window.innerHeight * 0.45) + 50;
   el.style.left = bx + "px";
   el.style.top  = by + "px";
   game.appendChild(el);
 
-  const boss = { el, hp: 3 };   // takes 3 fire hits to beat
+  // Tougher and worth more in later lands.
+  const boss = { el, hp: 3 + currentLand, points: 20 + currentLand * 10 };
   bosses.push(boss);
 
-  // The boss drifts slowly across the sky.
+  // The weirdo drifts slowly across the sky.
   boss.move = setInterval(() => {
     bx -= 1.4;
     el.style.left = bx + "px";
-    if (bx < -120) removeBoss(boss); // left the screen, give up the chase
+    if (bx < -180) removeBoss(boss); // left the screen, give up the chase
   }, 30);
 }
 
@@ -1012,10 +1317,9 @@ function removeBoss(boss) {
 
 function defeatBoss(boss) {
   const br = boss.el.getBoundingClientRect();
-  explode(br.left, br.top);        // a big double explosion
-  explode(br.left + 36, br.top + 24);
+  bigExplosion(br.left + br.width / 2, br.top + br.height / 2, 1 + currentLand * 0.4);
   soundBoss();
-  addScore(20);                    // bosses are worth lots!
+  addScore(boss.points);           // weirdos are worth more in later lands!
   removeBoss(boss);
 }
 
@@ -1042,6 +1346,122 @@ function handleCommand(text) {
 // ---- The voice (speech recognition) ----
 // Not every browser has this. Chrome does. We check first so the game
 // still loads (just without voice) on browsers that don't support it.
+// ---- The three evil queens ----
+// Each queen rules a land (levels 3, 4, 5) and must be beaten a few times.
+const QUEENS = [
+  { key: "chaos",  name: "Queen Chaos",  emoji: "🧙‍♀️", glow: "#a06bff", land: 2 },
+  { key: "fire",   name: "Queen Fire",   emoji: "🧙‍♀️", glow: "#ff5a3c", land: 3 },
+  { key: "shadow", name: "Queen Shadow", emoji: "🧙‍♀️", glow: "#6a5acd", land: 4 },
+];
+const WAVES_PER_QUEEN = 2;  // how many times each queen comes back
+const QUEEN_WAVE_HP = 4;    // fire hits to beat one appearance
+const queenState = {};
+QUEENS.forEach((q) => (queenState[q.key] = { wavesDone: 0, active: false, defeated: false }));
+
+// A queen flies in, hovers, and has a name + health bar above her.
+function spawnQueen(qDef) {
+  const st = queenState[qDef.key];
+  if (st.defeated || st.active || won) return;
+  st.active = true;
+  banner("👑 " + qDef.name + " appears!");
+
+  const el = document.createElement("div");
+  el.className = "queen";
+  let qx = window.innerWidth + 140;
+  el.style.left = qx + "px";
+  el.style.top  = (window.innerHeight * 0.16 + Math.random() * window.innerHeight * 0.16) + "px";
+  el.innerHTML =
+    '<div class="queenLabel">👑 ' + qDef.name + '</div>' +
+    '<div class="queenHpBar"><div class="queenHpFill"></div></div>' +
+    '<div class="queenFace">' + qDef.emoji + "</div>";
+  game.appendChild(el);
+
+  const face = el.querySelector(".queenFace");
+  face.style.filter = "drop-shadow(0 0 18px " + qDef.glow + ")";
+  const fill = el.querySelector(".queenHpFill");
+  fill.style.background = qDef.glow;
+
+  const boss = {
+    el, hitEl: face, isQueen: true, qKey: qDef.key,
+    hp: QUEEN_WAVE_HP, maxHp: QUEEN_WAVE_HP, barFill: fill,
+  };
+  bosses.push(boss);
+
+  // Glide in from the right, then hover and drift gently.
+  const hoverX = window.innerWidth * 0.56;
+  boss.move = setInterval(() => {
+    if (qx > hoverX) qx -= 6;
+    el.style.left = qx + "px";
+  }, 30);
+}
+
+function updateQueenBar(boss) {
+  if (boss.barFill) boss.barFill.style.width = Math.max(0, boss.hp / boss.maxHp) * 100 + "%";
+}
+
+// A queen loses one appearance. After enough waves she's defeated for good.
+function defeatQueenWave(boss) {
+  const qDef = QUEENS.find((q) => q.key === boss.qKey);
+  const st = queenState[boss.qKey];
+  const br = boss.hitEl.getBoundingClientRect();
+  bigExplosion(br.left + br.width / 2, br.top + br.height / 2, 2.4); // HUGE
+  soundBoss();
+  removeBoss(boss);
+  st.active = false;
+  st.wavesDone++;
+
+  if (st.wavesDone >= WAVES_PER_QUEEN) {
+    st.defeated = true;
+    banner("✨ " + qDef.name + " is DEFEATED! ✨");
+    updateQueenTracker();
+    if (QUEENS.every((q) => queenState[q.key].defeated)) winGame();
+  } else {
+    banner(qDef.name + " flees… but she'll be back! 😱");
+    setTimeout(() => { if (!won) spawnQueen(qDef); }, 12000); // she returns
+  }
+}
+
+// Update the crown tracker in the top-left as queens fall.
+function updateQueenTracker() {
+  QUEENS.forEach((q) => {
+    const tag = document.querySelector('.qtag[data-q="' + q.key + '"]');
+    if (tag && queenState[q.key].defeated) {
+      tag.classList.add("done");
+      tag.textContent = "👑 " + q.name.replace("Queen ", "") + " ✓";
+    }
+  });
+}
+
+// ---- Magical background music ----
+// A gentle looping arpeggio (a I–V–vi–IV chord pattern) on soft synth tones,
+// quiet enough to sit under the sound effects.
+let musicOn = true;
+let musicTimer = null;
+let musicStep = 0;
+const MUSIC_MELODY = [
+  523, 659, 784, 1047, // C major sparkle
+  494, 587, 784, 988,  // G major
+  440, 523, 659, 880,  // A minor
+  392, 523, 698, 880,  // F major
+];
+const MUSIC_BASS = [131, 98, 110, 87]; // low C, G, A, F — one per bar
+
+function musicTick() {
+  if (!audioCtx || !musicOn) return;
+  const i = musicStep % MUSIC_MELODY.length;
+  tone(MUSIC_MELODY[i], 0.24, "triangle", 0.05);                     // twinkly melody
+  if (i % 4 === 0) tone(MUSIC_BASS[(i / 4) % 4], 0.6, "sine", 0.05); // soft bass
+  if (i % 8 === 2) tone(MUSIC_MELODY[i] * 2, 0.15, "sine", 0.022);   // high sparkle
+  musicStep++;
+}
+function startMusic() {
+  if (!musicTimer) musicTimer = setInterval(musicTick, 270);
+}
+function toggleMusic() {
+  musicOn = !musicOn;
+  musicBtn.textContent = musicOn ? "🎵" : "🔇";
+}
+
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let wantListening = false;
@@ -1082,11 +1502,15 @@ if (SpeechRecognition) {
 }
 
 // ---- Starting the game ----
-// Browsers only allow the microphone to start after a real click,
-// so the game begins when you press the Play button.
-startBtn.addEventListener("click", () => {
+// Browsers only allow the microphone + sound to start after a real click,
+// so the game begins when you press Start (or Skip) on the story screen.
+let gameStarted = false;
+function beginGame() {
+  if (gameStarted) return;
+  gameStarted = true;
   document.getElementById("startScreen").style.display = "none";
-  initAudio(); // wake up the sound now that the player has clicked
+  initAudio();   // wake up the sound now that the player has clicked
+  startMusic();  // begin the magical soundtrack
   placeDragon();
 
   if (recognition) {
@@ -1094,7 +1518,7 @@ startBtn.addEventListener("click", () => {
     try { recognition.start(); } catch (e) { /* already running */ }
   }
 
-  // Start the world: stars, potions, clouds, and bosses keep appearing.
+  // Start the world: stars, potions, clouds, weirdos, and hazards keep appearing.
   setInterval(spawnStar, 2200);
   setInterval(spawnPotion, 4500);
   setInterval(spawnCloud, 3000);
@@ -1106,7 +1530,12 @@ startBtn.addEventListener("click", () => {
   // Set up the first land's scenery and start the twinkling fairies.
   sceneryRow.textContent = LANDS[0].scenery;
   setInterval(spawnFairy, 350);
-});
+}
+
+// Both the Start and Skip buttons begin the adventure.
+startBtn.addEventListener("click", beginGame);
+document.getElementById("skipBtn").addEventListener("click", beginGame);
+musicBtn.addEventListener("click", toggleMusic);
 
 // Keyboard backup so you can also play with arrow keys + space bar.
 // Play Again simply reloads the page for a clean, fresh game.

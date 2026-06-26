@@ -40,16 +40,31 @@ If it touches your dragon, **💫 stars spin around its head and it gets dizzy**
 you can't move, fire, or do anything for a few seconds. Then the dizziness wears
 off and you can play normally again. **Dodge them!**
 
+## The story 📖
+
+Clara and Shari were turned into **magical dragons** in an enchanted forest — but
+three **evil queens** (👑 Chaos, 👑 Fire, and 👑 Shadow) and their **weirdo**
+minions are trying to ruin it. The game opens with the story; press **Start the
+Adventure** to read it or **Skip ⏭** to jump right in.
+
 ## How to win 🏆
 
-**Reach 1000 points!** That takes you all the way through the five lands and a
-victory lap in the Rainbow Castle. When you hit 1000:
+**Defeat all three evil queens!** Each one rules a later land (levels 3, 4, 5),
+has a **health bar**, and **comes back a couple of times** before she's gone for
+good — so chase her down and breathe fire! The top-left shows a crown for each
+queen (👑 Chaos · 👑 Fire · 👑 Shadow); they get a ✓ as you beat them.
 
-- The game freezes and an **epic finish** plays: confetti rains down, fireworks
-  burst, a triumphant fanfare sounds, and a big **"YOU WIN!"** appears.
-- Then a **▶ Play Again** button starts a brand-new game.
+When all three are defeated, an **epic finish** plays — confetti, fireworks, a
+fanfare, and the **ending story** of how Clara & Shari saved the forest (and won
+a magical jewelled crown 💎👑). Then **▶ Play Again** starts fresh.
 
-Your score and the goal (`/ 1000 🏆`) are shown in the top-left the whole time.
+The **weirdos** are the queens' minions: they get **bigger, tougher, and worth
+more points** in each later land, and explode dramatically when beaten.
+
+## Music 🎵
+
+A gentle magical soundtrack plays during the game. Tap the **🎵 button**
+(bottom-left) to turn it on or off.
 
 ## The five magical lands 🗺️
 
