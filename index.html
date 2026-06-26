@@ -800,6 +800,7 @@ const game       = document.getElementById("game");
 const dragon     = document.getElementById("dragon");
 const dragonBody = document.getElementById("dragonBody");
 const bosses     = []; // all the bosses currently on screen
+const bigPotions = []; // golden big potions on screen (catchable by fire too)
 const scoreEl  = document.getElementById("score");
 const startBtn = document.getElementById("startBtn");
 const musicBtn = document.getElementById("musicBtn");
@@ -1162,6 +1163,19 @@ function shootFire(x, y) {
       }
     }
 
+    // Did this fire hit a golden big potion? Collect it!
+    for (const bp of bigPotions.slice()) {
+      const pr = bp.el.getBoundingClientRect();
+      const hit = !(fr.right < pr.left || fr.left > pr.right ||
+                    fr.bottom < pr.top || fr.top > pr.bottom);
+      if (hit) {
+        collectBigPotion(bp);
+        clearInterval(flight);
+        fire.remove();
+        return;
+      }
+    }
+
     if (fx > window.innerWidth) {
       clearInterval(flight);
       fire.remove();
@@ -1344,7 +1358,10 @@ function spawnBigPotion() {
   let vx = Math.cos(ang) * speed;
   let vy = Math.sin(ang) * speed;
 
-  const move = setInterval(() => {
+  const bp = { el: potion, value }; // track it so FIRE can hit it too
+  bigPotions.push(bp);
+
+  bp.move = setInterval(() => {
     px += vx; py += vy;
     // bounce off the edges of the screen
     if (px < 10 || px > window.innerWidth - 70) { vx = -vx; px = clamp(px, 10, window.innerWidth - 70); }
@@ -1352,20 +1369,35 @@ function spawnBigPotion() {
     potion.style.left = px + "px";
     potion.style.top  = py + "px";
 
+    // Caught by flying into it?
     const a = dragon.getBoundingClientRect();
     const b = potion.getBoundingClientRect();
     const touching = !(a.right < b.left || a.left > b.right ||
                        a.bottom < b.top || a.top > b.bottom);
-    if (touching) {
-      soundPotion();
-      addScore(value);
-      bigExplosion(b.left + b.width / 2, b.top + b.height / 2, 1.4);
-      potion.remove();
-      clearInterval(move);
-    }
+    if (touching) collectBigPotion(bp);
   }, 30);
 
-  setTimeout(() => { potion.remove(); clearInterval(move); }, 12000);
+  bp.timeout = setTimeout(() => removeBigPotion(bp), 12000);
+}
+
+// Award + celebrate a big potion — used by flying into it AND by shooting it.
+function collectBigPotion(bp) {
+  if (bp.done) return;
+  const b = bp.el.getBoundingClientRect();
+  soundPotion();
+  addScore(bp.value);
+  bigExplosion(b.left + b.width / 2, b.top + b.height / 2, 1.4);
+  removeBigPotion(bp);
+}
+
+function removeBigPotion(bp) {
+  if (bp.done) return;
+  bp.done = true;
+  clearInterval(bp.move);
+  clearTimeout(bp.timeout);
+  bp.el.remove();
+  const i = bigPotions.indexOf(bp);
+  if (i >= 0) bigPotions.splice(i, 1);
 }
 
 // ---- Bosses (worth 20 points — fire at them to beat them!) ----
