@@ -4,16 +4,35 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Clara, Shari, and the Dragons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
+  /* ---- Design tokens: the game's one shared "style guide" ---- */
+  :root {
+    --font-display: "Baloo 2", "Trebuchet MS", sans-serif; /* friendly, rounded */
+    --font-body: "Nunito", system-ui, -apple-system, sans-serif;
+    --glass: rgba(24, 18, 54, 0.42);          /* frosted panel */
+    --glass-border: rgba(255, 255, 255, 0.22);
+    --ink: #f7f4ff;                            /* main text */
+    --gold: #ffd95a;                           /* score / highlights */
+    --pink: #ff4d9d;                           /* the dragon's color */
+    --radius: 22px;
+    --radius-pill: 999px;
+    --shadow: 0 12px 34px rgba(8, 4, 26, 0.45);
+  }
+
   /* ---- The look of the game ---- */
   html, body {
     margin: 0;
     height: 100%;
-    font-family: "Trebuchet MS", "Comic Sans MS", sans-serif;
+    font-family: var(--font-body);
+    font-weight: 700;
     overflow: hidden;
     background: #0b1026;
-    color: #fff;
+    color: var(--ink);
     user-select: none;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* The sky background — a soft gradient from night to dawn */
@@ -220,71 +239,168 @@
   /* ---- The scoreboard and title ---- */
   #hud {
     position: absolute;
-    top: 16px;
-    left: 16px;
+    top: 18px;
+    left: 18px;
     z-index: 20;
-    background: rgba(0,0,0,0.35);
-    padding: 12px 18px;
-    border-radius: 16px;
-    line-height: 1.5;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
   }
-  #hud h1 { margin: 0 0 6px; font-size: 20px; }
-  #score { font-size: 22px; font-weight: bold; color: #ffe66d; }
+  #hud h1 {
+    margin: 0 0 8px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 21px;
+    line-height: 1.1;
+    /* A soft rainbow-gradient title — gold to pink to lilac. */
+    background: linear-gradient(92deg, #ffd95a, #ff8fc7 55%, #b69cff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .scoreRow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    color: rgba(247, 244, 255, 0.85);
+  }
+  #score {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--gold);
+    line-height: 1;
+  }
 
   /* The microphone status badge */
   #mic {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 18px;
+    right: 18px;
     z-index: 20;
-    background: rgba(0,0,0,0.35);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--glass-border);
     padding: 12px 18px;
-    border-radius: 16px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     text-align: center;
-    max-width: 260px;
+    max-width: 270px;
+  }
+  .micStatus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 15px;
   }
   #micDot {
-    display: inline-block;
-    width: 14px; height: 14px;
+    width: 12px; height: 12px;
     border-radius: 50%;
-    background: #888;
-    margin-right: 6px;
-    vertical-align: middle;
+    background: #7b7898;
+    box-shadow: 0 0 0 4px rgba(123, 120, 152, 0.18);
   }
-  #micDot.listening { background: #4dff88; box-shadow: 0 0 12px #4dff88; }
-  #heard { font-style: italic; color: #ffe66d; min-height: 1.2em; }
+  #micDot.listening {
+    background: #57f08a;
+    box-shadow: 0 0 14px #57f08a, 0 0 0 4px rgba(87, 240, 138, 0.22);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 12px #57f08a, 0 0 0 3px rgba(87,240,138,0.18); }
+    50%      { box-shadow: 0 0 20px #57f08a, 0 0 0 7px rgba(87,240,138,0.30); }
+  }
+  #heard {
+    margin-top: 7px;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--gold);
+    min-height: 1.2em;
+    font-size: 14px;
+  }
 
-  /* The big start button */
-  #startBtn {
+  /* The start screen — a centered column with the Play button and a hint. */
+  #startScreen {
     position: absolute;
-    left: 50%; top: 60%;
-    transform: translate(-50%, -50%);
+    inset: 0;
     z-index: 30;
-    font-size: 28px;
-    padding: 18px 36px;
-    border: none;
-    border-radius: 20px;
-    background: #ff4d6d;
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 8px 0 #c9184a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: radial-gradient(circle at center, rgba(10, 6, 30, 0.35), rgba(10, 6, 30, 0) 62%);
   }
-  #startBtn:active { transform: translate(-50%, -50%) translateY(4px); box-shadow: 0 4px 0 #c9184a; }
+  #startBtn {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 27px;
+    padding: 20px 46px;
+    border: none;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    background: linear-gradient(180deg, #ff86c2 0%, #ff4d9d 55%, #e72f87 100%);
+    box-shadow: 0 10px 0 #b51e6e, 0 22px 38px rgba(8, 4, 26, 0.45);
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: transform 0.09s ease, box-shadow 0.09s ease, filter 0.15s ease;
+  }
+  #startBtn:hover { filter: brightness(1.06); transform: scale(1.03); }
+  #startBtn:active {
+    transform: translateY(6px);
+    box-shadow: 0 4px 0 #b51e6e, 0 10px 18px rgba(8, 4, 26, 0.4);
+  }
+  .btnHint {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    color: rgba(247, 244, 255, 0.92);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
 
-  /* The list of voice commands */
+  /* The command + scoring help bar, shown as little rounded "chips". */
   #help {
     position: absolute;
-    bottom: 16px;
+    bottom: 18px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 20;
-    background: rgba(0,0,0,0.35);
-    padding: 10px 18px;
-    border-radius: 16px;
-    font-size: 15px;
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    max-width: min(94vw, 940px);
+    padding: 12px 16px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
   }
-  #help b { color: #ffe66d; }
+  .chip {
+    background: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-pill);
+    padding: 7px 14px;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .chip.warn {
+    background: rgba(255, 80, 80, 0.18);
+    border-color: rgba(255, 120, 120, 0.5);
+  }
+  .chip b { color: var(--gold); }
 </style>
 </head>
 <body>
@@ -292,23 +408,28 @@
     <div id="sceneryRow"></div>
     <div id="landBanner"></div>
     <div id="hud">
-      <h1>🐉 Clara, Shari, and the Dragons</h1>
-      <div>Stars caught: <span id="score">0</span></div>
+      <h1>🐉 Clara, Shari &amp; the Dragons</h1>
+      <div class="scoreRow">Score <span id="score">0</span></div>
     </div>
 
     <div id="mic">
-      <div><span id="micDot"></span><span id="micLabel">Mic off</span></div>
+      <div class="micStatus"><span id="micDot"></span><span id="micLabel">Mic off</span></div>
       <div id="heard">say a command…</div>
     </div>
 
     <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div></div>
 
-    <button id="startBtn">▶ Press to Play (talk to fly!)</button>
+    <div id="startScreen">
+      <button id="startBtn">▶ Play</button>
+      <p class="btnHint">🎤 Talk to fly — or use the arrow keys & space bar</p>
+    </div>
 
     <div id="help">
-      Say: <b>up</b> · <b>down</b> · <b>left</b> · <b>right</b> · <b>fire</b> · <b>go</b> · <b>land</b><br>
-      ⭐ star = 1 · 🧪 potion = 5 (it explodes!) · 🐲 boss = 20 (fire at it!)<br>
-      ⚠️ Dodge the spinning 🌟 — it makes you dizzy!
+      <span class="chip">🎤 <b>up · down · left · right · fire · go · land</b></span>
+      <span class="chip">⭐ <b>1</b></span>
+      <span class="chip">🧪 potion <b>5</b> 💥</span>
+      <span class="chip">🐲 boss <b>20</b> 🔥</span>
+      <span class="chip warn">🌟 spinning star = dizzy — dodge it!</span>
     </div>
   </div>
 
@@ -349,10 +470,11 @@ const LANDS = [
   },
   {
     name: "🧚 the Midsummer Forest",
-    background: "linear-gradient(180deg, #07261c 0%, #0f5236 38%, #2f9d63 78%, #d4f3d0 100%)",
+    background: "linear-gradient(180deg, #1a1452 0%, #3a2c80 45%, #6a5bb0 80%, #c9b6e8 100%)",
+    image: "assets/midsummer-forest.png", // the magical moonlit fairy-forest picture
     fairy: "🧚",
-    glow: "#b6ff9e",
-    scenery: "🌲 🌳 🍄 🌸 🌳 🦋 🌲 🍄 🌳",
+    glow: "#e7c8ff",
+    scenery: "", // the picture already has its own scenery, so no emoji row
   },
   {
     name: "🧜 the Mermaid Lagoon",
@@ -392,8 +514,12 @@ function switchLand(idx) {
   currentLand = idx;
   const land = LANDS[idx];
   soundLand();
-  game.style.background = land.background;
-  sceneryRow.textContent = land.scenery;
+  // Use a picture if this land has one; the gradient stays underneath as a
+  // safety net in case the image file hasn't been added yet.
+  game.style.background = land.image
+    ? "url('" + land.image + "') center / cover no-repeat, " + land.background
+    : land.background;
+  sceneryRow.textContent = land.scenery || "";
   landBanner.textContent = "✨ Welcome to " + land.name + "! ✨";
   landBanner.classList.remove("show");
   void landBanner.offsetWidth; // a little trick that restarts the animation
@@ -432,6 +558,7 @@ function makeDizzy() {
     ring.remove();
     dragonBody.classList.remove("dizzy");
     dizzy = false;
+    soundRecover();
     heardEl.textContent = "✨ All better! Say a command…";
   }, 3000);
 }
@@ -512,7 +639,12 @@ const soundFire    = () => tone(300, 0.08, "square", 0.12);            // breath
 const soundPotion  = () => tune([{ f: 660 }, { f: 990 }]);             // drink a potion
 const soundExplode = () => tone(110, 0.30, "sawtooth", 0.3);          // BOOM
 const soundBoss    = () => tune([{ f: 523 }, { f: 659 }, { f: 784 }, { f: 1047, d: 0.3 }]); // beat a boss
-const soundLand    = () => tune([{ f: 784 }, { f: 1047 }, { f: 1319, d: 0.3 }]); // reach a new land
+const soundFlap    = () => tone(200, 0.06, "sine", 0.05);             // a soft wing flap
+const soundRecover = () => tune([{ f: 440 }, { f: 660 }, { f: 880, d: 0.2 }]); // dizziness wears off
+// A happy "ta-da!" fanfare when you fly into a new land.
+const soundLand    = () => tune([
+  { f: 659 }, { f: 880 }, { f: 1047 }, { f: 1319, d: 0.32 }, { f: 1047, gap: 90, d: 0.3 },
+]);
 function soundDizzy() {
   // A woozy slide from high down to low.
   if (!audioCtx) return;
@@ -550,7 +682,7 @@ function placeDragon() {
 }
 
 // Flying = flapping. Landing = settle down and stop flapping.
-function setFlying() { dragonBody.classList.remove("landed"); }
+function setFlying() { dragonBody.classList.remove("landed"); soundFlap(); }
 function land() {
   dragonBody.classList.add("landed");
   dragonY = window.innerHeight - 100; // drop down to the ground
@@ -794,7 +926,7 @@ if (SpeechRecognition) {
 // Browsers only allow the microphone to start after a real click,
 // so the game begins when you press the Play button.
 startBtn.addEventListener("click", () => {
-  startBtn.style.display = "none";
+  document.getElementById("startScreen").style.display = "none";
   initAudio(); // wake up the sound now that the player has clicked
   placeDragon();
 

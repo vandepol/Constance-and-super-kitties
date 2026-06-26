@@ -65,6 +65,16 @@ A sparkly **"Welcome to..."** banner appears each time you arrive somewhere new.
 - Add sound effects when you catch a star.
 - Change the dragon emoji 🐉 to a different color or animal.
 
+## Adding the Midsummer Forest picture 🖼️
+
+The Midsummer Forest level can use a real painted background. To add it:
+
+1. Save the fairy-forest image into the **`assets/`** folder.
+2. Name it exactly **`midsummer-forest.png`**.
+
+That's it — the forest level will show the picture automatically. Until the file
+is there, the level just uses a purple gradient sky (so the game still works).
+
 ## Sound 🔊
 
 The game makes its own sounds — a beep for catching a star, a boom for
