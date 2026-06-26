@@ -670,8 +670,9 @@
   /* ---- The ending animation: dragons crowned, the forest growing ---- */
   #endStage { position: relative; height: 150px; margin-bottom: 8px; }
   #endStage span { position: absolute; }
-  .endDragon.left  { left: 26%;  bottom: 30px; font-size: 58px; animation: endBobL 1.2s ease-in-out infinite; }
-  .endDragon.right { right: 26%; bottom: 30px; font-size: 58px; animation: endBobR 1.2s ease-in-out infinite; }
+  /* Clara is pink, Shari is turquoise — same recolours as in the game. */
+  .endDragon.left  { left: 26%;  bottom: 30px; font-size: 58px; animation: endBobL 1.2s ease-in-out infinite; filter: hue-rotate(230deg) saturate(1.8) brightness(1.05); }
+  .endDragon.right { right: 26%; bottom: 30px; font-size: 58px; animation: endBobR 1.2s ease-in-out infinite; filter: hue-rotate(55deg) saturate(1.35); }
   @keyframes endBobL { 0%,100% { transform: scaleX(-1) translateY(0); } 50% { transform: scaleX(-1) translateY(-10px); } }
   @keyframes endBobR { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
