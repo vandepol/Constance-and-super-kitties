@@ -40,6 +40,13 @@ If it touches your dragon, **💫 stars spin around its head and it gets dizzy**
 you can't move, fire, or do anything for a few seconds. Then the dizziness wears
 off and you can play normally again. **Dodge them!**
 
+## The two dragons 🐉💙
+
+- **Clara** is the main pink dragon you fly — a hand-drawn dragon with horns, a
+  spiky mane, gold-edged wings, a jewelled tiara, and a heart chest-gem.
+- **Shari** is her turquoise dragon friend. She **joins at level 3** (the Mermaid
+  Lagoon) and flies around on her own, even helping you breathe fire at enemies!
+
 ## The story 📖
 
 Clara and Shari were turned into **magical dragons** in an enchanted forest — but
