@@ -260,6 +260,16 @@
     30%  { opacity: 1; }
     100% { opacity: 0; transform: translateY(-130px); }
   }
+  /* Kelp sways gently from its base, like it's drifting in the current. */
+  .landScene .kelp {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: kelpSway 4.5s ease-in-out infinite;
+  }
+  @keyframes kelpSway {
+    0%, 100% { transform: rotate(-3.5deg); }
+    50%      { transform: rotate(3.5deg); }
+  }
 
   /* The "Welcome to a new land!" banner that sparkles up when you arrive. */
   #landBanner {
@@ -1002,11 +1012,16 @@
           <ellipse cx="180" cy="720" rx="120" ry="60"/><ellipse cx="1000" cy="730" rx="140" ry="64"/><ellipse cx="600" cy="748" rx="100" ry="46"/>
         </g>
         <g fill="#063e44">
-          <path d="M120 800 C100 680 150 600 110 500 C90 600 80 700 96 800 Z"/>
-          <path d="M150 800 C140 700 170 640 150 560 C130 640 132 720 134 800 Z"/>
-          <path d="M1080 800 C1100 680 1050 600 1090 500 C1110 600 1120 700 1104 800 Z"/>
-          <path d="M1050 800 C1060 700 1030 640 1050 560 C1070 640 1068 720 1066 800 Z"/>
-          <path d="M640 800 C620 690 660 620 630 540 C610 620 612 720 614 800 Z"/>
+          <path class="kelp" style="animation-delay:0s"   d="M110 800 C92 680 140 600 104 470 C84 600 76 700 92 800 Z"/>
+          <path class="kelp" style="animation-delay:0.6s" d="M150 800 C140 700 168 640 150 560 C130 640 132 720 134 800 Z"/>
+          <path class="kelp" style="animation-delay:1.1s" d="M210 800 C196 700 228 630 206 520 C188 630 184 720 190 800 Z"/>
+          <path class="kelp" style="animation-delay:0.3s" d="M350 800 C334 690 372 620 344 500 C322 620 326 720 330 800 Z"/>
+          <path class="kelp" style="animation-delay:1.4s" d="M500 800 C486 700 520 640 498 540 C480 640 482 720 484 800 Z"/>
+          <path class="kelp" style="animation-delay:0.8s" d="M640 800 C620 690 660 620 630 520 C610 620 612 720 614 800 Z"/>
+          <path class="kelp" style="animation-delay:1.6s" d="M770 800 C756 700 790 630 766 540 C748 630 750 720 752 800 Z"/>
+          <path class="kelp" style="animation-delay:0.5s" d="M900 800 C886 695 920 625 896 515 C878 625 880 720 884 800 Z"/>
+          <path class="kelp" style="animation-delay:1.2s" d="M1050 800 C1062 700 1030 640 1050 560 C1070 640 1068 720 1066 800 Z"/>
+          <path class="kelp" style="animation-delay:0.2s" d="M1090 800 C1108 680 1058 600 1096 470 C1116 600 1124 700 1104 800 Z"/>
         </g>
         <g fill="#0a4a52">
           <path d="M300 800 C300 740 280 720 290 690 C300 715 320 715 320 690 C330 720 320 740 330 800 Z"/>
