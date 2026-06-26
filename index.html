@@ -119,10 +119,11 @@
   }
   #dragonWings svg { width: 100%; height: 100%; overflow: visible; display: block; }
   .wingL, .wingR { transform-box: fill-box; }
-  .wingL { transform-origin: 96% 88%; animation: wingFlapL 1.5s ease-in-out infinite; }
-  .wingR { transform-origin: 4% 88%;  animation: wingFlapR 1.5s ease-in-out infinite; }
-  @keyframes wingFlapL { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(-22deg); } }
-  @keyframes wingFlapR { 0%, 100% { transform: rotate(5deg); }  50% { transform: rotate(22deg); } }
+  /* Pivot at the shoulder (where the wing meets the body) so it hinges naturally. */
+  .wingL { transform-origin: 100% 72%; animation: wingFlapL 1.6s ease-in-out infinite; }
+  .wingR { transform-origin: 0% 72%;   animation: wingFlapR 1.6s ease-in-out infinite; }
+  @keyframes wingFlapL { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(8deg); } }
+  @keyframes wingFlapR { 0%, 100% { transform: rotate(7deg); }  50% { transform: rotate(-8deg); } }
 
   /* SPEED BONUS: shimmering silver-rainbow skin (cycles colors + silvery glow). */
   #dragonBody.rainbow {
@@ -1193,7 +1194,7 @@
       <div id="heard">say a command…</div>
     </div>
 
-    <div id="dragon"><div id="dragonWings"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9ad8" stop-opacity="0.95"/><stop offset="1" stop-color="#e85bb0" stop-opacity="0.9"/></linearGradient></defs><g class="wingL"><path d="M58 78 C46 44 24 26 4 30 C14 46 20 64 22 88 C34 84 48 82 58 78 Z" fill="url(#wg)" stroke="#ffd36a" stroke-width="2.5" stroke-linejoin="round"/><path d="M56 78 C40 62 24 46 10 38" stroke="#ffc0e6" stroke-width="1.4" fill="none" opacity="0.6"/></g><g class="wingR"><path d="M62 78 C74 44 96 26 116 30 C106 46 100 64 98 88 C86 84 72 82 62 78 Z" fill="url(#wg)" stroke="#ffd36a" stroke-width="2.5" stroke-linejoin="round"/><path d="M64 78 C80 62 96 46 110 38" stroke="#ffc0e6" stroke-width="1.4" fill="none" opacity="0.6"/></g></svg></div><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dJewel dCrown hidden" data-level="1">👑</span><span class="dJewel dGem hidden" data-level="2">💎</span><span class="dJewel dSpark hidden" data-level="3">✨</span><span class="dJewel dHeart hidden" data-level="4">💖</span></div></div>
+    <div id="dragon"><div id="dragonWings"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="wg" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ffb0e0" stop-opacity="0.96"/><stop offset="1" stop-color="#d44fa6" stop-opacity="0.92"/></linearGradient></defs><g class="wingL"><path d="M62 60 C50 49 39 43 30 41 L7 37 C12 47 11 52 18 57 C13 60 12 63 19 66 C15 69 15 71 23 72 C20 75 22 77 30 76 C40 76 52 70 62 64 Z" fill="url(#wg)" stroke="#ffcf6a" stroke-width="2" stroke-linejoin="round"/><path d="M30 41 L7 37 M30 41 L18 57 M30 41 L23 72 M30 41 L48 73" stroke="#bd4496" stroke-width="1.5" fill="none" opacity="0.75"/><path d="M48 73 C52 70 58 69 62 64" fill="none" stroke="#bd4496" stroke-width="1.5" opacity="0.6"/><path d="M7 37 l-6 -3 l4 7 Z" fill="#ffcf6a"/></g><g class="wingR"><path d="M58 60 C70 49 81 43 90 41 L113 37 C108 47 109 52 102 57 C107 60 108 63 101 66 C105 69 105 71 97 72 C100 75 98 77 90 76 C80 76 68 70 58 64 Z" fill="url(#wg)" stroke="#ffcf6a" stroke-width="2" stroke-linejoin="round"/><path d="M90 41 L113 37 M90 41 L102 57 M90 41 L97 72 M90 41 L72 73" stroke="#bd4496" stroke-width="1.5" fill="none" opacity="0.75"/><path d="M72 73 C68 70 62 69 58 64" fill="none" stroke="#bd4496" stroke-width="1.5" opacity="0.6"/><path d="M113 37 l6 -3 l-4 7 Z" fill="#ffcf6a"/></g></svg></div><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dJewel dCrown hidden" data-level="1">👑</span><span class="dJewel dGem hidden" data-level="2">💎</span><span class="dJewel dSpark hidden" data-level="3">✨</span><span class="dJewel dHeart hidden" data-level="4">💖</span></div></div>
 
     <div id="startScreen">
       <div class="storyCard">
