@@ -110,6 +110,15 @@
     50%      { transform: translateY(-16px) rotate(6deg) scale(1.07); }
   }
 
+  /* SPEED BONUS: shimmering silver-rainbow skin (cycles colors + silvery glow). */
+  #dragonBody.rainbow {
+    animation: flap 0.5s ease-in-out infinite, rainbow 1.4s linear infinite;
+  }
+  @keyframes rainbow {
+    0%   { filter: hue-rotate(0deg)   saturate(1.9) brightness(1.5) drop-shadow(0 0 16px rgba(255,255,255,0.95)); }
+    100% { filter: hue-rotate(360deg) saturate(1.9) brightness(1.5) drop-shadow(0 0 16px rgba(255,255,255,0.95)); }
+  }
+
   /* A puff of fire the dragon breathes */
   .fire {
     position: absolute;
@@ -1157,6 +1166,23 @@ function switchLand(idx) {
 
   // Shari joins for the Mermaid Lagoon (level 3) and stays for the rest.
   if (idx === 2) spawnShari();
+
+  // SPEED BONUS: cleared the previous level in under a minute? Rainbow skin!
+  const nowMs = Date.now();
+  if (idx > 0 && levelStartMs && nowMs - levelStartMs < 60000) {
+    setTimeout(awardRainbow, 1500); // after the welcome banner
+  }
+  levelStartMs = nowMs; // start the clock for this new level
+}
+
+// Grant the shimmering silver-rainbow skin (and double fire) as a speed reward.
+function awardRainbow() {
+  if (won) return;
+  rainbow = true;
+  dragonBody.classList.add("rainbow");
+  flashScreen();
+  soundLand();
+  banner("⚡ SPEED BONUS! 🌈 Silver Rainbow Skin + DOUBLE FIRE! ✨");
 }
 
 // Show a big sparkly banner message (reused for lands, queens, etc.).
@@ -1389,6 +1415,8 @@ let dragonX = 120;                    // left/right position
 const STEP = 80;                      // how far the dragon moves per command
 let dizzy = false;                    // true while the dragon is stunned by a spinning star
 let frozen = false;                   // true while a queen's ice bolt has frozen her (6s)
+let rainbow = false;                  // true once the speed-bonus rainbow skin is earned
+let levelStartMs = 0;                 // when the current level started (for the < 1 min bonus)
 let won = false;                      // true once the player reaches the goal
 const WIN_SCORE = 1000;               // reach this to win the whole game!
 
@@ -1423,7 +1451,7 @@ function moveRight() { setFlying(); dragonX += STEP; placeDragon(); }
 // A fire emoji shoots to the right from the dragon's mouth, then disappears.
 function breatheFire() {
   soundFire();
-  shootFire(dragonX + 60, dragonY + 10);
+  shootFire(dragonX + 60, dragonY + 10, rainbow ? 2 : 1); // rainbow skin = double fire
 }
 
 // Spawn a fireball at (x, y) that flies right and can hit weirdos/queens.
@@ -2196,6 +2224,7 @@ function beginGame() {
 
   // Start the timer.
   gameStartMs = Date.now();
+  levelStartMs = Date.now();
   timerInterval = setInterval(() => {
     document.getElementById("timer").textContent = fmtTime(elapsedSec());
   }, 500);
