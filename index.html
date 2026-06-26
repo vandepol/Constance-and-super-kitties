@@ -1361,8 +1361,8 @@ function spawnBoss() {
   el.style.top  = by + "px";
   game.appendChild(el);
 
-  // Tougher and worth more in later lands.
-  const boss = { el, hp: 3 + currentLand, points: 20 + currentLand * 10 };
+  // Tougher and worth more in later lands (hp: 3, 5, 6, 8, 9).
+  const boss = { el, hp: 3 + Math.ceil(currentLand * 1.5), points: 20 + currentLand * 10 };
   bosses.push(boss);
 
   // The weirdo drifts slowly across the sky.
@@ -1449,13 +1449,13 @@ function moveShari() {
 
 // ---- The three evil queens ----
 // Each queen rules a land (levels 3, 4, 5) and must be beaten a few times.
+// Each queen has her OWN look (emoji, size, glow) and her OWN difficulty —
+// later queens have more health and more comebacks.
 const QUEENS = [
-  { key: "chaos",  name: "Queen Chaos",  emoji: "🧙‍♀️", glow: "#a06bff", land: 2 },
-  { key: "fire",   name: "Queen Fire",   emoji: "🧙‍♀️", glow: "#ff5a3c", land: 3 },
-  { key: "shadow", name: "Queen Shadow", emoji: "🧙‍♀️", glow: "#6a5acd", land: 4 },
+  { key: "chaos",  name: "Queen Chaos",  emoji: "🧙‍♀️", glow: "#a06bff", land: 2, waves: 2, waveHp: 4, size: 104 },
+  { key: "fire",   name: "Queen Fire",   emoji: "👹",   glow: "#ff5a3c", land: 3, waves: 2, waveHp: 6, size: 120 },
+  { key: "shadow", name: "Queen Shadow", emoji: "🧛‍♀️", glow: "#7b5cff", land: 4, waves: 3, waveHp: 7, size: 134 },
 ];
-const WAVES_PER_QUEEN = 2;  // how many times each queen comes back
-const QUEEN_WAVE_HP = 4;    // fire hits to beat one appearance
 const queenState = {};
 QUEENS.forEach((q) => (queenState[q.key] = { wavesDone: 0, active: false, defeated: false }));
 
@@ -1479,12 +1479,13 @@ function spawnQueen(qDef) {
 
   const face = el.querySelector(".queenFace");
   face.style.filter = "drop-shadow(0 0 18px " + qDef.glow + ")";
+  face.style.fontSize = qDef.size + "px"; // each queen is a different size
   const fill = el.querySelector(".queenHpFill");
   fill.style.background = qDef.glow;
 
   const boss = {
     el, hitEl: face, isQueen: true, qKey: qDef.key,
-    hp: QUEEN_WAVE_HP, maxHp: QUEEN_WAVE_HP, barFill: fill,
+    hp: qDef.waveHp, maxHp: qDef.waveHp, barFill: fill,
   };
   bosses.push(boss);
 
@@ -1511,7 +1512,7 @@ function defeatQueenWave(boss) {
   st.active = false;
   st.wavesDone++;
 
-  if (st.wavesDone >= WAVES_PER_QUEEN) {
+  if (st.wavesDone >= qDef.waves) {
     st.defeated = true;
     banner("✨ " + qDef.name + " is DEFEATED! ✨");
     updateQueenTracker();
@@ -1566,11 +1567,13 @@ function toggleMusic() {
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let wantListening = false;
+let micDenied = false;     // true once the user blocks the mic (stop asking)
+let restartTimer = null;
 
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
-  recognition.continuous = true;     // keep listening, don't stop after one phrase
-  recognition.interimResults = true; // show words as they're being recognized
+  recognition.continuous = true;      // keep listening, don't stop after one phrase
+  recognition.interimResults = false; // only final phrases (less restart churn)
   recognition.lang = "en-US";
 
   recognition.onstart = () => {
@@ -1586,17 +1589,31 @@ if (SpeechRecognition) {
     }
   };
 
-  // Browsers sometimes stop listening on their own — restart if we still want it.
+  // Browsers sometimes stop listening on their own — restart GENTLY if we still
+  // want it. The small delay avoids a tight stop/start loop (which, on a file://
+  // page, makes Chrome pop the mic permission over and over).
   recognition.onend = () => {
     micDot.classList.remove("listening");
     micLabel.textContent = "Mic off";
-    if (wantListening) {
-      try { recognition.start(); } catch (e) { /* already starting */ }
+    if (wantListening && !micDenied) {
+      clearTimeout(restartTimer);
+      restartTimer = setTimeout(() => {
+        if (wantListening && !micDenied) {
+          try { recognition.start(); } catch (e) { /* already starting */ }
+        }
+      }, 900);
     }
   };
 
   recognition.onerror = (e) => {
-    heardEl.textContent = "Mic error: " + e.error + " (allow microphone access)";
+    // If the user blocks the mic, stop trying so we don't keep prompting.
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      micDenied = true;
+      wantListening = false;
+      heardEl.textContent = "🎮 Mic off — use the arrow keys & space bar!";
+    } else if (e.error !== "no-speech" && e.error !== "aborted") {
+      heardEl.textContent = "Mic: " + e.error;
+    }
   };
 } else {
   heardEl.textContent = "This browser has no voice support — try Google Chrome.";
