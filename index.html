@@ -55,17 +55,41 @@
     left: 120px;
     top: 50%;
     transition: top 0.25s ease, left 0.25s ease;
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+    /* a soft pink aura so she glows beyond her emoji square */
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4)) drop-shadow(0 0 16px rgba(255,120,200,0.55));
     z-index: 5;
   }
   #dragonFlip {
-    transform: scaleX(-1); /* the 🐉 emoji faces left, so flip it to face right */
+    /* face right (emoji faces left) + stretch a touch so she fills more space */
+    transform: scaleX(-1.12) scaleY(1.06);
   }
   #dragonBody {
-    font-size: 64px;
+    font-size: 104px; /* bigger hero dragon */
     /* Turn the green dragon emoji PINK (Clara) by spinning its colors around. */
     filter: hue-rotate(230deg) saturate(1.8) brightness(1.05);
     animation: flap 0.5s ease-in-out infinite;
+  }
+
+  /* Clara's jewels + sparkles — they follow her (not flipped or recoloured). */
+  #dragonDecor { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+  .dCrown {
+    position: absolute; left: 50%; top: -10px;
+    transform: translateX(-50%);
+    font-size: 36px;
+    animation: crownBob 0.7s ease-in-out infinite;
+  }
+  .dGem  { position: absolute; left: 45%; top: 46%; font-size: 22px; animation: jewelTwinkle 1.6s ease-in-out infinite; }
+  .dSpark { position: absolute; font-size: 20px; animation: jewelTwinkle 1.4s ease-in-out infinite; }
+  .dSpark.a { left: -8px;  top: 12px; }
+  .dSpark.b { right: -8px; top: 34px; animation-delay: 0.5s; }
+  .dSpark.c { left: 32%;   bottom: -10px; animation-delay: 0.9s; }
+  @keyframes crownBob {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-6deg); }
+    50%      { transform: translateX(-50%) translateY(-6px) rotate(6deg); }
+  }
+  @keyframes jewelTwinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.7); }
+    50%      { opacity: 1;    transform: scale(1.25); }
   }
 
   /* Shari — the SAME 🐉 emoji, kept green/turquoise. */
@@ -83,8 +107,8 @@
 
   /* The flying flap: bob up, tilt a little, bob back down — forever. */
   @keyframes flap {
-    0%, 100% { transform: translateY(0)     rotate(-4deg); }
-    50%      { transform: translateY(-12px) rotate(4deg); }
+    0%, 100% { transform: translateY(2px)  rotate(-6deg) scale(1); }
+    50%      { transform: translateY(-16px) rotate(6deg) scale(1.07); }
   }
 
   /* A puff of fire the dragon breathes */
@@ -712,7 +736,7 @@
       <div id="heard">say a command…</div>
     </div>
 
-    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div></div>
+    <div id="dragon"><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dCrown">👑</span><span class="dGem">💎</span><span class="dSpark a">✨</span><span class="dSpark b">✨</span><span class="dSpark c">💖</span></div></div>
 
     <div id="startScreen">
       <div class="storyCard">
@@ -1627,6 +1651,13 @@ function toggleMusic() {
   musicOn = !musicOn;
   musicBtn.textContent = musicOn ? "🎵" : "🔇";
 }
+
+// Clean up the music + audio when the page is refreshed or closed, so a
+// reload never leaves an old soundtrack playing underneath the new one.
+window.addEventListener("pagehide", () => {
+  if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+  if (audioCtx) { try { audioCtx.close(); } catch (e) { /* already closed */ } audioCtx = null; }
+});
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
