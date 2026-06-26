@@ -261,7 +261,8 @@
     position: absolute;
     font-size: 42px;
     z-index: 3;
-    filter: drop-shadow(0 0 9px #ff2d2d);
+    /* tint the golden star RED so it clearly reads as "danger!" */
+    filter: brightness(1.1) saturate(4) hue-rotate(-55deg) drop-shadow(0 0 10px #ff0000);
     animation: spin 0.6s linear infinite;
   }
   @keyframes spin {
@@ -625,6 +626,63 @@
     animation: boom 0.7s ease-out forwards;
   }
 
+  /* ---- The ending animation: dragons crowned, the forest growing ---- */
+  #endStage { position: relative; height: 150px; margin-bottom: 8px; }
+  #endStage span { position: absolute; }
+  .endDragon.left  { left: 26%;  bottom: 30px; font-size: 58px; animation: endBobL 1.2s ease-in-out infinite; }
+  .endDragon.right { right: 26%; bottom: 30px; font-size: 58px; animation: endBobR 1.2s ease-in-out infinite; }
+  @keyframes endBobL { 0%,100% { transform: scaleX(-1) translateY(0); } 50% { transform: scaleX(-1) translateY(-10px); } }
+  @keyframes endBobR { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .endCrown { font-size: 30px; bottom: 80px; opacity: 0; }
+  #endStage.play .endCrown.left  { left: 28%;  animation: crownDrop 1s ease-out 0.6s forwards; }
+  #endStage.play .endCrown.right { right: 28%; animation: crownDrop 1s ease-out 1.0s forwards; }
+  @keyframes crownDrop {
+    0%   { opacity: 0; transform: translateY(-50px) rotate(-20deg); }
+    70%  { opacity: 1; transform: translateY(4px)  rotate(6deg); }
+    100% { opacity: 1; transform: translateY(0)    rotate(0deg); }
+  }
+
+  .endForest { font-size: 30px; bottom: 0; opacity: 0; }
+  #endStage.play .endForest { animation: forestGrow 0.6s ease-out forwards; }
+  #endStage.play .endForest.f1 { animation-delay: 1.2s; }
+  #endStage.play .endForest.f2 { animation-delay: 1.4s; }
+  #endStage.play .endForest.f3 { animation-delay: 1.6s; }
+  #endStage.play .endForest.f4 { animation-delay: 1.5s; }
+  #endStage.play .endForest.f5 { animation-delay: 1.7s; }
+  #endStage.play .endForest.f6 { animation-delay: 1.9s; }
+  .endForest.f1 { left: 3%; }
+  .endForest.f2 { left: 18%; font-size: 36px; }
+  .endForest.f3 { left: 40%; }
+  .endForest.f4 { left: 56%; }
+  .endForest.f5 { right: 18%; }
+  .endForest.f6 { right: 3%; font-size: 36px; }
+  @keyframes forestGrow {
+    0%   { opacity: 0; transform: translateY(22px) scale(0.2); }
+    100% { opacity: 1; transform: translateY(0)    scale(1); }
+  }
+
+  .endFairy { font-size: 22px; opacity: 0; }
+  .endFairy.g1 { top: 8px;  left: 16%; }
+  .endFairy.g2 { top: 2px;  right: 18%; }
+  #endStage.play .endFairy { animation: jewelTwinkle 1.4s ease-in-out 1.4s infinite; }
+
+  /* Win-screen time + record. */
+  #winRecord {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--gold);
+    min-height: 1em;
+    margin-bottom: 4px;
+  }
+  #winRecord.speedy {
+    color: #ffd23f;
+    text-shadow: 0 0 14px rgba(255, 210, 90, 0.85);
+    animation: bossPulse 0.7s ease-in-out infinite;
+  }
+  #winBest { font-size: 14px; opacity: 0.85; margin-bottom: 16px; }
+
   /* ---- The intro story card ---- */
   .storyCard {
     max-width: min(90vw, 560px);
@@ -644,14 +702,55 @@
   .storyTitle {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 30px;
-    margin: 0 0 14px;
+    font-size: 28px;
+    margin: 0 0 12px;
     line-height: 1.1;
     background: linear-gradient(92deg, #ffd95a, #ff8fc7 55%, #b69cff);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
+  /* One story panel at a time, with a big character "image". */
+  .storyPanel { display: none; }
+  .storyPanel.active { display: block; animation: panelIn 0.4s ease both; }
+  @keyframes panelIn {
+    0%   { opacity: 0; transform: translateX(18px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  .storyImg {
+    font-size: 70px;
+    line-height: 1.1;
+    margin-bottom: 10px;
+    min-height: 78px;
+  }
+  .imgShari { display: inline-block; filter: hue-rotate(55deg) saturate(1.35); }
+  .storyDots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 14px 0 4px;
+  }
+  .storyDots .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .storyDots .dot.active { background: var(--gold); }
+  #startBestTime { margin-top: 10px; font-size: 14px; font-weight: 800; color: var(--gold); }
+  .storyNav {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    padding: 14px 22px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.16);
+    cursor: pointer;
+    transition: transform 0.09s ease, filter 0.15s ease;
+  }
+  .storyNav:hover { filter: brightness(1.15); }
+  .storyNav:active { transform: translateY(3px); }
   .storyButtons {
     display: flex;
     gap: 12px;
@@ -816,7 +915,7 @@
     <div id="landBanner"></div>
     <div id="hud">
       <h1>🐉 Clara, Shari &amp; the Dragons</h1>
-      <div class="scoreRow">Score <span id="score">0</span></div>
+      <div class="scoreRow">Score <span id="score">0</span> · ⏱️ <span id="timer">0:00</span></div>
       <div id="queenTracker">
         <span class="qtag" data-q="chaos">👑 Chaos</span>
         <span class="qtag" data-q="fire">👑 Fire</span>
@@ -833,17 +932,51 @@
 
     <div id="startScreen">
       <div class="storyCard">
-        <h1 class="storyTitle">🐉 Clara, Shari &amp; the Dragons 🐉</h1>
-        <p>One midsummer night, two best friends — <b>Clara</b> and <b>Shari</b> —
-          wandered into an enchanted forest, and the fairies turned them into
-          <b>magical dragons</b>! 🧚✨</p>
-        <p>But three <b>evil queens</b> — 👑 <b>Chaos</b>, 👑 <b>Fire</b>, and
-          👑 <b>Shadow</b> — and their <b>weirdo</b> minions are ruining the forest!</p>
-        <p>Fly through five magical lands, catch ⭐ stars and 🧪 potions, breathe
-          🔥 fire on the weirdos, and <b>defeat all three queens</b> to save the
-          forest! 🌈</p>
-        <p class="btnHint">🎤 Talk to fly — or use the arrow keys &amp; space bar</p>
+        <div class="storyPanels">
+          <div class="storyPanel active">
+            <div class="storyImg">🌙🌲🧚</div>
+            <h1 class="storyTitle">The Midsummer Forest</h1>
+            <p>Deep in a forest where the moonlight <i>sings</i> and the fairies
+              dance, an old magic stirs… and tonight, it will change two best
+              friends forever.</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg">👑🐉</div>
+            <h1 class="storyTitle">Meet Clara</h1>
+            <p>Brave and true, <b>Clara</b> was touched by fairy magic and became a
+              <b>pink dragon</b>. Her fire can burn away any darkness — and her
+              heart never gives up.</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg"><span class="imgShari">🐉</span>💙</div>
+            <h1 class="storyTitle">Meet Shari</h1>
+            <p>Clever and loyal, <b>Shari</b> becomes a <b>turquoise dragon</b>. She
+              soars to your side and unleashes a whirling <b>Spin Fire</b> that
+              clears the skies!</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg">🧙‍♀️ 👹 🧛‍♀️</div>
+            <h1 class="storyTitle">The Three Evil Queens</h1>
+            <p>Queens <b>Chaos</b>, <b>Fire</b>, and <b>Shadow</b> have cursed the
+              forest. They hurl freezing ice bolts and command armies of
+              <b>weirdos</b>. The trees are fading…</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg">⭐ 🧪 🔥 👑</div>
+            <h1 class="storyTitle">Your Quest</h1>
+            <p>Soar through <b>five magical lands</b>, grow new powers, and defeat all
+              <b>three queens</b> to save the forest. Destiny is calling, Guardian —
+              will you answer?</p>
+            <p class="btnHint">🎤 Say up · down · left · right · fire — or drag &amp; tap 🔥 / 🌀</p>
+            <div id="startBestTime"></div>
+          </div>
+        </div>
+        <div class="storyDots">
+          <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
         <div class="storyButtons">
+          <button id="storyBack" class="storyNav">◀ Back</button>
+          <button id="storyNext" class="storyNav">Next ▶</button>
           <button id="startBtn">▶ Start the Adventure!</button>
           <button id="skipBtn">Skip ⏭</button>
         </div>
@@ -876,14 +1009,28 @@
 
     <div id="winScreen" class="hidden">
       <div class="winCard">
-        <div class="winDragons">🐉💖🐉</div>
+        <div id="endStage">
+          <span class="endDragon left">🐉</span>
+          <span class="endCrown left">👑</span>
+          <span class="endDragon right">🐉</span>
+          <span class="endCrown right">👑</span>
+          <span class="endForest f1">🌲</span>
+          <span class="endForest f2">🌳</span>
+          <span class="endForest f3">🌸</span>
+          <span class="endForest f4">🍄</span>
+          <span class="endForest f5">🌷</span>
+          <span class="endForest f6">🦋</span>
+          <span class="endFairy g1">🧚</span>
+          <span class="endFairy g2">✨</span>
+        </div>
         <h1 class="winTitle">YOU SAVED THE FOREST!</h1>
-        <p class="winSub">With one last burst of dragon-fire, Clara &amp; Shari
-          defeated Queen Chaos, Queen Fire, and Queen Shadow! 👑💥</p>
-        <p class="winSub">The dark magic melted away, the fairies came home, and the
-          Midsummer Forest bloomed brighter than ever. 🌸🧚✨ The fairy queen gave
-          the two brave dragons a magical jewelled crown as their prize. 💎👑</p>
-        <div class="winScore">Final score: <span id="finalScore">0</span></div>
+        <p class="winSub">The three queens are beaten, and the fairy queen crowns
+          Clara &amp; Shari as the true Guardians of the Forest. 👑💖</p>
+        <p class="winSub">All around them, the Midsummer Forest bursts back to
+          life — stronger, greener, and more magical than ever. 🌲🌸🧚✨</p>
+        <div class="winScore">Final score: <b id="finalScore">0</b> · ⏱️ Time: <b id="winTime">0:00</b></div>
+        <div id="winRecord"></div>
+        <div id="winBest"></div>
         <button id="playAgainBtn">▶ Play Again</button>
       </div>
     </div>
@@ -1149,10 +1296,29 @@ const soundWin = () => tune([
 // ---- Winning the game ----
 function winGame() {
   won = true;
+  clearInterval(timerInterval);
+  const finishSec = elapsedSec();
+
+  // Compare against the saved best time and update it if this run is faster.
+  const prevBest = getBestTime();
+  const isRecord = prevBest === null || finishSec < prevBest;
+  if (isRecord) localStorage.setItem("claraBestTime", finishSec);
+
   document.getElementById("finalScore").textContent = score;
+  document.getElementById("winTime").textContent = fmtTime(finishSec);
+  let recordMsg = "";
+  if (isRecord) recordMsg = "🏆 NEW BEST TIME!";
+  else recordMsg = "Best: " + fmtTime(prevBest);
+  if (finishSec <= FAST_TIME) recordMsg = "⚡ SPEED CHAMPION! ⚡ " + recordMsg;
+  const recEl = document.getElementById("winRecord");
+  recEl.textContent = recordMsg;
+  recEl.classList.toggle("speedy", finishSec <= FAST_TIME || isRecord);
+  document.getElementById("winBest").textContent = "⏱️ Best time: " + fmtTime(getBestTime());
+
   document.getElementById("winScreen").classList.remove("hidden");
   soundWin();
   launchConfetti(90);
+  playEndAnimation();
 
   // Fire off bursts of fireworks for a few seconds.
   let bursts = 0;
@@ -1160,6 +1326,14 @@ function winGame() {
     firework();
     if (++bursts > 14) clearInterval(show);
   }, 320);
+}
+
+// Kick off the ending animation (crowns drop, the forest grows).
+function playEndAnimation() {
+  const stage = document.getElementById("endStage");
+  stage.classList.remove("play");
+  void stage.offsetWidth; // restart the animations
+  stage.classList.add("play");
 }
 
 // Rain colourful confetti down the win screen.
@@ -1990,6 +2164,22 @@ if (SpeechRecognition) {
 // ---- Starting the game ----
 // Browsers only allow the microphone + sound to start after a real click,
 // so the game begins when you press Start (or Skip) on the story screen.
+// ---- Timer + best-time high score (saved in the browser) ----
+let gameStartMs = 0;
+let timerInterval = null;
+const FAST_TIME = 180; // beating the game under 3:00 = a "Speed Champion"
+
+function fmtTime(totalSec) {
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+function elapsedSec() { return Math.floor((Date.now() - gameStartMs) / 1000); }
+function getBestTime() {
+  const v = parseInt(localStorage.getItem("claraBestTime"), 10);
+  return isNaN(v) ? null : v;
+}
+
 let gameStarted = false;
 function beginGame() {
   if (gameStarted) return;
@@ -1999,9 +2189,20 @@ function beginGame() {
   startMusic();  // begin the magical soundtrack
   placeDragon();
 
-  if (recognition) {
+  // Start the timer.
+  gameStartMs = Date.now();
+  timerInterval = setInterval(() => {
+    document.getElementById("timer").textContent = fmtTime(elapsedSec());
+  }, 500);
+
+  // Voice works on desktop/Android Chrome; iPhones don't support it reliably,
+  // so there we guide the player to the touch controls instead.
+  if (recognition && !isIOS) {
     wantListening = true;
     try { recognition.start(); } catch (e) { /* already running */ }
+  } else if (isTouch) {
+    micLabel.textContent = "🎮 Touch controls";
+    heardEl.textContent = "Drag to move · tap 🔥 / 🌀 · S = Spin";
   }
 
   // Start the world: stars, potions, clouds, weirdos, and hazards keep appearing.
@@ -2018,6 +2219,32 @@ function beginGame() {
   sceneryRow.textContent = LANDS[0].scenery;
   setInterval(spawnFairy, 350);
 }
+
+// ---- The intro story carousel ----
+const storyPanels = document.querySelectorAll(".storyPanel");
+const storyDots = document.querySelectorAll(".storyDots .dot");
+const storyBackBtn = document.getElementById("storyBack");
+const storyNextBtn = document.getElementById("storyNext");
+let storyIndex = 0;
+
+function showStory(i) {
+  storyIndex = Math.max(0, Math.min(storyPanels.length - 1, i));
+  storyPanels.forEach((p, idx) => p.classList.toggle("active", idx === storyIndex));
+  storyDots.forEach((d, idx) => d.classList.toggle("active", idx === storyIndex));
+  const last = storyIndex === storyPanels.length - 1;
+  storyBackBtn.style.visibility = storyIndex === 0 ? "hidden" : "visible";
+  storyNextBtn.style.display = last ? "none" : "inline-block";
+  startBtn.style.display = last ? "inline-block" : "none";
+}
+storyNextBtn.addEventListener("click", () => showStory(storyIndex + 1));
+storyBackBtn.addEventListener("click", () => showStory(storyIndex - 1));
+
+// Show the best time to beat on the last story panel.
+const bestNow = getBestTime();
+document.getElementById("startBestTime").textContent =
+  bestNow !== null ? "🏆 Best time to beat: " + fmtTime(bestNow) : "🏆 No best time yet — set one!";
+
+showStory(0);
 
 // Both the Start and Skip buttons begin the adventure.
 startBtn.addEventListener("click", beginGame);
@@ -2043,8 +2270,12 @@ document.addEventListener("keydown", (e) => {
 // On a touch device, drag your finger to move the dragon, and use the
 // on-screen 🔥 Fire and 🌀 Spin buttons.
 const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 if (isTouch) {
   document.body.classList.add("touch");
+  // Resume the sound on any tap (mobile browsers suspend audio until you touch).
+  document.addEventListener("touchstart", () => initAudio(), { passive: true });
 }
 
 // Don't treat touches that land on the HUD/buttons as "move the dragon".
