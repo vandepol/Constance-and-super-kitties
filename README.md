@@ -40,6 +40,17 @@ If it touches your dragon, **💫 stars spin around its head and it gets dizzy**
 you can't move, fire, or do anything for a few seconds. Then the dizziness wears
 off and you can play normally again. **Dodge them!**
 
+## How to win 🏆
+
+**Reach 1000 points!** That takes you all the way through the five lands and a
+victory lap in the Rainbow Castle. When you hit 1000:
+
+- The game freezes and an **epic finish** plays: confetti rains down, fireworks
+  burst, a triumphant fanfare sounds, and a big **"YOU WIN!"** appears.
+- Then a **▶ Play Again** button starts a brand-new game.
+
+Your score and the goal (`/ 1000 🏆`) are shown in the top-left the whole time.
+
 ## The five magical lands 🗺️
 
 Every **200 points**, your dragon flies to a brand-new land — each with its own

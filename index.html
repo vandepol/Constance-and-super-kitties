@@ -40,7 +40,10 @@
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(180deg, #1a2a6c 0%, #6a3093 45%, #ff9966 100%);
+    background:
+      radial-gradient(circle at 80% 16%, rgba(255,243,190,0.95) 0%, rgba(255,221,150,0.5) 8%, rgba(255,221,150,0) 20%),
+      radial-gradient(circle at 20% 82%, rgba(255,180,150,0.35), rgba(255,180,150,0) 40%),
+      linear-gradient(180deg, #244aa8 0%, #5f7fd0 35%, #9fb6ef 60%, #ffd1a3 100%);
     overflow: hidden;
   }
 
@@ -400,7 +403,97 @@
     background: rgba(255, 80, 80, 0.18);
     border-color: rgba(255, 120, 120, 0.5);
   }
+  .chip.goal {
+    background: rgba(255, 217, 90, 0.18);
+    border-color: rgba(255, 217, 90, 0.6);
+  }
   .chip b { color: var(--gold); }
+
+  /* ---- The epic WIN screen ---- */
+  #winScreen {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(circle at center, rgba(40, 10, 70, 0.72), rgba(10, 4, 30, 0.93));
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  #winScreen.hidden { display: none; }
+  .winCard {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 28px 46px 34px;
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    animation: pop 0.6s cubic-bezier(.2, 1.4, .4, 1) both;
+  }
+  @keyframes pop {
+    from { transform: scale(0.6); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .winDragons { font-size: 58px; animation: bossPulse 1s ease-in-out infinite; }
+  .winTitle {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 64px;
+    margin: 4px 0;
+    background: linear-gradient(92deg, #ffd95a, #ff6fb5 45%, #8db4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 4px 14px rgba(255, 140, 200, 0.5));
+  }
+  .winSub { font-size: 20px; margin: 2px 0 6px; }
+  .winScore {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  #playAgainBtn {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 23px;
+    padding: 16px 40px;
+    border: none;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    background: linear-gradient(180deg, #8be0ff, #4d9dff 55%, #2f6fe7);
+    box-shadow: 0 8px 0 #1e4fb5, 0 18px 30px rgba(8, 4, 26, 0.45);
+    cursor: pointer;
+    transition: transform 0.09s ease, box-shadow 0.09s ease, filter 0.15s ease;
+  }
+  #playAgainBtn:hover { filter: brightness(1.06); }
+  #playAgainBtn:active { transform: translateY(5px); box-shadow: 0 3px 0 #1e4fb5; }
+
+  /* Confetti + fireworks raining over the win screen. */
+  .confetti {
+    position: absolute;
+    top: -30px;
+    z-index: 1;
+    pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-30px) rotate(0deg);   opacity: 1; }
+    100% { transform: translateY(106vh) rotate(720deg); opacity: 0.9; }
+  }
+  .firework {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    font-size: 50px;
+    animation: boom 0.7s ease-out forwards;
+  }
 </style>
 </head>
 <body>
@@ -409,7 +502,7 @@
     <div id="landBanner"></div>
     <div id="hud">
       <h1>🐉 Clara, Shari &amp; the Dragons</h1>
-      <div class="scoreRow">Score <span id="score">0</span></div>
+      <div class="scoreRow">Score <span id="score">0</span> <span style="opacity:.7">/ 1000 🏆</span></div>
     </div>
 
     <div id="mic">
@@ -430,6 +523,17 @@
       <span class="chip">🧪 potion <b>5</b> 💥</span>
       <span class="chip">🐲 boss <b>20</b> 🔥</span>
       <span class="chip warn">🌟 spinning star = dizzy — dodge it!</span>
+      <span class="chip goal">🏆 reach <b>1000</b> to WIN!</span>
+    </div>
+
+    <div id="winScreen" class="hidden">
+      <div class="winCard">
+        <div class="winDragons">🐉💖🐉</div>
+        <h1 class="winTitle">YOU WIN!</h1>
+        <p class="winSub">Clara &amp; Shari saved all five magical lands! 🌈</p>
+        <div class="winScore">Final score: <span id="finalScore">0</span></div>
+        <button id="playAgainBtn">▶ Play Again</button>
+      </div>
     </div>
   </div>
 
@@ -463,7 +567,7 @@ const landBanner = document.getElementById("landBanner");
 const LANDS = [
   {
     name: "🏰 the Sky Kingdom",
-    background: "linear-gradient(180deg, #1a2a6c 0%, #6a3093 45%, #ff9966 100%)",
+    background: "radial-gradient(circle at 80% 16%, rgba(255,243,190,0.95) 0%, rgba(255,221,150,0.5) 8%, rgba(255,221,150,0) 20%), radial-gradient(circle at 20% 82%, rgba(255,180,150,0.35), rgba(255,180,150,0) 40%), linear-gradient(180deg, #244aa8 0%, #5f7fd0 35%, #9fb6ef 60%, #ffd1a3 100%)",
     fairy: "✨",
     glow: "#fff6b0",
     scenery: "☁️ ☁️ ☁️ ☁️ ☁️",
@@ -478,21 +582,21 @@ const LANDS = [
   },
   {
     name: "🧜 the Mermaid Lagoon",
-    background: "linear-gradient(180deg, #00224e 0%, #0a4f8a 45%, #2bb3c0 85%, #aef3f0 100%)",
+    background: "repeating-linear-gradient(115deg, rgba(255,255,255,0.10) 0px, rgba(255,255,255,0.10) 14px, rgba(255,255,255,0) 14px, rgba(255,255,255,0) 72px), radial-gradient(ellipse at 50% -10%, rgba(190,255,250,0.6), rgba(190,255,250,0) 45%), linear-gradient(180deg, #00224e 0%, #0a4f8a 45%, #1f9fb8 80%, #8fe9e0 100%)",
     fairy: "🫧",
     glow: "#9af0ff",
     scenery: "🐚 🪸 🐠 🌊 🪸 🐡 🐚 🌊 🪸",
   },
   {
     name: "❄️ the Aurora Peaks",
-    background: "linear-gradient(180deg, #0d0033 0%, #2b0a6b 35%, #1f7a6b 70%, #d9f7ff 100%)",
+    background: "radial-gradient(ellipse 60% 40% at 30% 30%, rgba(80,255,180,0.40), rgba(80,255,180,0) 60%), radial-gradient(ellipse 55% 45% at 68% 26%, rgba(150,110,255,0.38), rgba(150,110,255,0) 60%), radial-gradient(ellipse 50% 30% at 50% 42%, rgba(120,200,255,0.30), rgba(120,200,255,0) 65%), linear-gradient(180deg, #050024 0%, #0c1747 45%, #123a5a 78%, #bfe8ff 100%)",
     fairy: "🌟",
     glow: "#aeffe9",
     scenery: "🏔️ ⛰️ 🗻 ⛰️ 🏔️ 🗻 ⛰️",
   },
   {
     name: "🌈 the Rainbow Castle",
-    background: "linear-gradient(180deg, #ff7eb3 0%, #b16cea 40%, #6a5cff 75%, #ffe6f7 100%)",
+    background: "radial-gradient(circle at 50% 125%, rgba(255,0,0,0) 28%, rgba(255,90,90,0.55) 30%, rgba(255,170,70,0.55) 33%, rgba(255,235,80,0.55) 36%, rgba(90,220,120,0.55) 39%, rgba(90,170,255,0.55) 42%, rgba(170,110,255,0.55) 45%, rgba(170,110,255,0) 48%), linear-gradient(180deg, #ff9ec9 0%, #c9a7ff 50%, #a7d8ff 100%)",
     fairy: "🌈",
     glow: "#fff0fb",
     scenery: "🏰 ☁️ 🌈 ☁️ 🏰 🌈 ☁️",
@@ -507,6 +611,7 @@ function addScore(points) {
   scoreEl.textContent = score;
   const idx = Math.min(LANDS.length - 1, Math.floor(score / 200));
   if (idx !== currentLand) switchLand(idx);
+  if (!won && score >= WIN_SCORE) winGame(); // reached the goal — you win!
 }
 
 // Fly to a new land: change the sky, the scenery, and announce it.
@@ -542,7 +647,7 @@ function spawnFairy() {
 // ---- Getting dizzy ----
 // Put spinning stars around the dragon's head and freeze it for a moment.
 function makeDizzy() {
-  if (dizzy) return;          // already dizzy — don't stack it
+  if (dizzy || won) return;   // already dizzy, or the game is already won
   dizzy = true;
   soundDizzy();
 
@@ -645,6 +750,58 @@ const soundRecover = () => tune([{ f: 440 }, { f: 660 }, { f: 880, d: 0.2 }]); /
 const soundLand    = () => tune([
   { f: 659 }, { f: 880 }, { f: 1047 }, { f: 1319, d: 0.32 }, { f: 1047, gap: 90, d: 0.3 },
 ]);
+// A big triumphant fanfare for winning the whole game.
+const soundWin = () => tune([
+  { f: 523 }, { f: 659 }, { f: 784 }, { f: 1047, d: 0.25 },
+  { f: 784, gap: 90 }, { f: 1047 }, { f: 1319, d: 0.6 },
+]);
+
+// ---- Winning the game ----
+function winGame() {
+  won = true;
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("winScreen").classList.remove("hidden");
+  soundWin();
+  launchConfetti(90);
+
+  // Fire off bursts of fireworks for a few seconds.
+  let bursts = 0;
+  const show = setInterval(() => {
+    firework();
+    if (++bursts > 14) clearInterval(show);
+  }, 320);
+}
+
+// Rain colourful confetti down the win screen.
+function launchConfetti(count) {
+  const winScreen = document.getElementById("winScreen");
+  const emojis = ["🎉", "✨", "⭐", "🌈", "💖", "🎊", "💫", "🩷"];
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.textContent = emojis[i % emojis.length];
+    c.style.left = (Math.random() * 100) + "vw";
+    c.style.fontSize = (18 + Math.random() * 22) + "px";
+    const dur = 2.5 + Math.random() * 2.8;
+    c.style.animationDuration = dur + "s";
+    c.style.animationDelay = (Math.random() * 1.6) + "s";
+    winScreen.appendChild(c);
+    setTimeout(() => c.remove(), (dur + 2) * 1000);
+  }
+}
+
+// One firework burst at a random spot.
+function firework() {
+  const winScreen = document.getElementById("winScreen");
+  const f = document.createElement("div");
+  f.className = "firework";
+  f.textContent = Math.random() < 0.5 ? "🎆" : "🎇";
+  f.style.left = (Math.random() * 86 + 7) + "vw";
+  f.style.top  = (Math.random() * 56 + 10) + "vh";
+  winScreen.appendChild(f);
+  if (audioCtx) tone(660 + Math.random() * 400, 0.12, "triangle", 0.12);
+  setTimeout(() => f.remove(), 700);
+}
 function soundDizzy() {
   // A woozy slide from high down to low.
   if (!audioCtx) return;
@@ -667,6 +824,8 @@ let dragonY = window.innerHeight / 2; // up/down position (pixels from top)
 let dragonX = 120;                    // left/right position
 const STEP = 80;                      // how far the dragon moves per command
 let dizzy = false;                    // true while the dragon is stunned by a spinning star
+let won = false;                      // true once the player reaches the goal
+const WIN_SCORE = 1000;               // reach this to win the whole game!
 
 // ---- Moving the dragon ----
 // We keep the dragon inside the window so it never flies off-screen.
@@ -864,7 +1023,7 @@ function defeatBoss(boss) {
 // This is the heart of the voice control. We get a sentence of text,
 // make it lowercase, and look for command words inside it.
 function handleCommand(text) {
-  if (dizzy) return; // frozen! the dragon can't hear commands while dizzy
+  if (dizzy || won) return; // frozen while dizzy, or after winning the game
   const said = text.toLowerCase();
   heardEl.textContent = "🗣️ " + text;
 
@@ -950,8 +1109,11 @@ startBtn.addEventListener("click", () => {
 });
 
 // Keyboard backup so you can also play with arrow keys + space bar.
+// Play Again simply reloads the page for a clean, fresh game.
+document.getElementById("playAgainBtn").addEventListener("click", () => location.reload());
+
 document.addEventListener("keydown", (e) => {
-  if (dizzy) return; // frozen! the keys do nothing while dizzy
+  if (dizzy || won) return; // frozen while dizzy, or after winning the game
   if (e.key === "ArrowUp")    moveUp();
   if (e.key === "ArrowDown")  moveDown();
   if (e.key === "ArrowLeft")  moveLeft();
