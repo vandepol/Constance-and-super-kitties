@@ -119,6 +119,63 @@
     50%      { transform: scale(1.14); }
   }
 
+  /* Twinkling magical particles in the background (fairies, sparkles, bubbles).
+     Each one floats upward and twinkles, then disappears. */
+  .fairy {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    font-size: 24px;
+    animation: fairy 6s ease-in-out forwards;
+  }
+  @keyframes fairy {
+    0%   { opacity: 0;   transform: translateY(0)      scale(0.6); }
+    20%  { opacity: 1;   transform: translateY(-30px)  scale(1.2); }
+    50%  { opacity: 0.4; transform: translateY(-80px)  scale(0.9); }
+    80%  { opacity: 1;   transform: translateY(-130px) scale(1.2); }
+    100% { opacity: 0;   transform: translateY(-180px) scale(0.6); }
+  }
+
+  /* A row of scenery along the bottom — trees, shells, mountains, etc. */
+  #sceneryRow {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    text-align: center;
+    font-size: 56px;
+    word-spacing: 22px;
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 1;
+    padding-bottom: 4px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* The "Welcome to a new land!" banner that sparkles up when you arrive. */
+  #landBanner {
+    position: absolute;
+    left: 50%; top: 38%;
+    transform: translate(-50%, -50%);
+    z-index: 40;
+    font-size: 34px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 0 18px #ffe66d, 0 2px 6px rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.35);
+    padding: 18px 30px;
+    border-radius: 20px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #landBanner.show { animation: banner 2.8s ease-in-out; }
+  @keyframes banner {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    80%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+  }
+
   /* ---- The scoreboard and title ---- */
   #hud {
     position: absolute;
@@ -191,6 +248,8 @@
 </head>
 <body>
   <div id="game">
+    <div id="sceneryRow"></div>
+    <div id="landBanner"></div>
     <div id="hud">
       <h1>🐉 Clara, Shari, and the Dragons</h1>
       <div>Stars caught: <span id="score">0</span></div>
@@ -231,7 +290,85 @@ const scoreEl  = document.getElementById("score");
 const startBtn = document.getElementById("startBtn");
 const micDot   = document.getElementById("micDot");
 const micLabel = document.getElementById("micLabel");
-const heardEl  = document.getElementById("heard");
+const heardEl    = document.getElementById("heard");
+const sceneryRow = document.getElementById("sceneryRow");
+const landBanner = document.getElementById("landBanner");
+
+// ---- The five magical lands ----
+// Each land is just a "recipe card": its sky, its sparkle, its scenery.
+// The dragon flies to the next land every 200 points.
+const LANDS = [
+  {
+    name: "🏰 the Sky Kingdom",
+    background: "linear-gradient(180deg, #1a2a6c 0%, #6a3093 45%, #ff9966 100%)",
+    fairy: "✨",
+    glow: "#fff6b0",
+    scenery: "☁️ ☁️ ☁️ ☁️ ☁️",
+  },
+  {
+    name: "🧚 the Midsummer Forest",
+    background: "linear-gradient(180deg, #07261c 0%, #0f5236 38%, #2f9d63 78%, #d4f3d0 100%)",
+    fairy: "🧚",
+    glow: "#b6ff9e",
+    scenery: "🌲 🌳 🍄 🌸 🌳 🦋 🌲 🍄 🌳",
+  },
+  {
+    name: "🧜 the Mermaid Lagoon",
+    background: "linear-gradient(180deg, #00224e 0%, #0a4f8a 45%, #2bb3c0 85%, #aef3f0 100%)",
+    fairy: "🫧",
+    glow: "#9af0ff",
+    scenery: "🐚 🪸 🐠 🌊 🪸 🐡 🐚 🌊 🪸",
+  },
+  {
+    name: "❄️ the Aurora Peaks",
+    background: "linear-gradient(180deg, #0d0033 0%, #2b0a6b 35%, #1f7a6b 70%, #d9f7ff 100%)",
+    fairy: "🌟",
+    glow: "#aeffe9",
+    scenery: "🏔️ ⛰️ 🗻 ⛰️ 🏔️ 🗻 ⛰️",
+  },
+  {
+    name: "🌈 the Rainbow Castle",
+    background: "linear-gradient(180deg, #ff7eb3 0%, #b16cea 40%, #6a5cff 75%, #ffe6f7 100%)",
+    fairy: "🌈",
+    glow: "#fff0fb",
+    scenery: "🏰 ☁️ 🌈 ☁️ 🏰 🌈 ☁️",
+  },
+];
+
+let currentLand = 0;
+
+// Add points, update the scoreboard, and check if it's time for a new land.
+function addScore(points) {
+  score += points;
+  scoreEl.textContent = score;
+  const idx = Math.min(LANDS.length - 1, Math.floor(score / 200));
+  if (idx !== currentLand) switchLand(idx);
+}
+
+// Fly to a new land: change the sky, the scenery, and announce it.
+function switchLand(idx) {
+  currentLand = idx;
+  const land = LANDS[idx];
+  game.style.background = land.background;
+  sceneryRow.textContent = land.scenery;
+  landBanner.textContent = "✨ Welcome to " + land.name + "! ✨";
+  landBanner.classList.remove("show");
+  void landBanner.offsetWidth; // a little trick that restarts the animation
+  landBanner.classList.add("show");
+}
+
+// Make one twinkling magical sparkle for whichever land we're in.
+function spawnFairy() {
+  const land = LANDS[currentLand];
+  const f = document.createElement("div");
+  f.className = "fairy";
+  f.textContent = land.fairy;
+  f.style.left = (Math.random() * window.innerWidth) + "px";
+  f.style.top  = (Math.random() * window.innerHeight) + "px";
+  f.style.textShadow = "0 0 10px " + land.glow;
+  game.appendChild(f);
+  setTimeout(() => f.remove(), 6000); // matches the animation length
+}
 
 // Game state — the numbers we keep track of while playing.
 let score = 0;
@@ -334,8 +471,7 @@ function spawnStar() {
     const touching = !(a.right < b.left || a.left > b.right ||
                        a.bottom < b.top || a.top > b.bottom);
     if (touching) {
-      score += 1;
-      scoreEl.textContent = score;
+      addScore(1);
       star.remove();
       clearInterval(check);
     }
@@ -379,8 +515,7 @@ function spawnPotion() {
     const touching = !(a.right < b.left || a.left > b.right ||
                        a.bottom < b.top || a.top > b.bottom);
     if (touching) {
-      score += 5;                 // potions are worth 5!
-      scoreEl.textContent = score;
+      addScore(5);                // potions are worth 5!
       explode(b.left, b.top);     // BOOM when eaten
       potion.remove();
       clearInterval(check);
@@ -424,8 +559,7 @@ function defeatBoss(boss) {
   const br = boss.el.getBoundingClientRect();
   explode(br.left, br.top);        // a big double explosion
   explode(br.left + 36, br.top + 24);
-  score += 20;                     // bosses are worth lots!
-  scoreEl.textContent = score;
+  addScore(20);                    // bosses are worth lots!
   removeBoss(boss);
 }
 
@@ -509,6 +643,10 @@ startBtn.addEventListener("click", () => {
   setInterval(spawnBoss, 10000);
   spawnStar();
   spawnPotion();
+
+  // Set up the first land's scenery and start the twinkling fairies.
+  sceneryRow.textContent = LANDS[0].scenery;
+  setInterval(spawnFairy, 350);
 });
 
 // Keyboard backup so you can also play with arrow keys + space bar.

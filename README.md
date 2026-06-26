@@ -33,6 +33,21 @@ You fly a dragon by **talking to it** — say "up", "down", "fire" and watch it 
 
 The dragon **flaps** while flying and **settles down** when it lands. And it's **pink**! 🩷
 
+## The five magical lands 🗺️
+
+Every **200 points**, your dragon flies to a brand-new land — each with its own
+magical sky, twinkling sparkles, and scenery:
+
+| Points | Land | Magic |
+| ------ | ---- | ----- |
+| 0   | 🏰 **Sky Kingdom**     | dawn sky and drifting clouds |
+| 200 | 🧚 **Midsummer Forest** | a deep enchanted wood with **twinkling fairies**, mushrooms, and butterflies |
+| 400 | 🧜 **Mermaid Lagoon**   | underwater blues with floating bubbles |
+| 600 | ❄️ **Aurora Peaks**    | icy mountains under glowing northern lights |
+| 800 | 🌈 **Rainbow Castle**   | a candy-colored sky full of rainbows |
+
+A sparkly **"Welcome to..."** banner appears each time you arrive somewhere new.
+
 > No microphone? You can also play with the **arrow keys** and the **space bar** (for fire).
 
 ## Ideas to add next (for Clara!)
