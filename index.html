@@ -1302,7 +1302,7 @@ function winGame() {
   // Compare against the saved best time and update it if this run is faster.
   const prevBest = getBestTime();
   const isRecord = prevBest === null || finishSec < prevBest;
-  if (isRecord) localStorage.setItem("claraBestTime", finishSec);
+  if (isRecord) saveBestTime(finishSec);
 
   document.getElementById("finalScore").textContent = score;
   document.getElementById("winTime").textContent = fmtTime(finishSec);
@@ -2176,8 +2176,13 @@ function fmtTime(totalSec) {
 }
 function elapsedSec() { return Math.floor((Date.now() - gameStartMs) / 1000); }
 function getBestTime() {
-  const v = parseInt(localStorage.getItem("claraBestTime"), 10);
-  return isNaN(v) ? null : v;
+  try {
+    const v = parseInt(localStorage.getItem("claraBestTime"), 10);
+    return isNaN(v) ? null : v;
+  } catch (e) { return null; } // localStorage can be blocked in sandboxes
+}
+function saveBestTime(sec) {
+  try { localStorage.setItem("claraBestTime", sec); } catch (e) { /* blocked */ }
 }
 
 let gameStarted = false;
@@ -2220,6 +2225,11 @@ function beginGame() {
   setInterval(spawnFairy, 350);
 }
 
+// Wire the critical buttons FIRST so nothing later can stop them attaching.
+startBtn.addEventListener("click", beginGame);
+document.getElementById("skipBtn").addEventListener("click", beginGame);
+musicBtn.addEventListener("click", toggleMusic);
+
 // ---- The intro story carousel ----
 const storyPanels = document.querySelectorAll(".storyPanel");
 const storyDots = document.querySelectorAll(".storyDots .dot");
@@ -2245,11 +2255,6 @@ document.getElementById("startBestTime").textContent =
   bestNow !== null ? "🏆 Best time to beat: " + fmtTime(bestNow) : "🏆 No best time yet — set one!";
 
 showStory(0);
-
-// Both the Start and Skip buttons begin the adventure.
-startBtn.addEventListener("click", beginGame);
-document.getElementById("skipBtn").addEventListener("click", beginGame);
-musicBtn.addEventListener("click", toggleMusic);
 
 // Keyboard backup so you can also play with arrow keys + space bar.
 // Play Again simply reloads the page for a clean, fresh game.
