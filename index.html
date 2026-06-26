@@ -2475,14 +2475,22 @@ document.getElementById("spinTouchBtn").addEventListener("touchstart", (e) => {
   shariSpinFire();
 }, { passive: false });
 
-// The ❔ button shows/hides the instructions. Start hidden on small screens.
+// The ❔ / ✕ button shows/hides the instructions. Start hidden on small screens.
 const helpEl = document.getElementById("help");
-document.getElementById("helpToggle").addEventListener("click", () => {
+const helpToggleBtn = document.getElementById("helpToggle");
+function updateHelpToggleIcon() {
+  const hidden = helpEl.classList.contains("collapsed");
+  helpToggleBtn.textContent = hidden ? "❔" : "✕";
+  helpToggleBtn.title = hidden ? "Show instructions" : "Hide instructions";
+}
+helpToggleBtn.addEventListener("click", () => {
   helpEl.classList.toggle("collapsed");
+  updateHelpToggleIcon();
 });
 if (isTouch || window.innerWidth < 700) {
   helpEl.classList.add("collapsed");
 }
+updateHelpToggleIcon();
 
 // Keep the dragon on screen if the window is resized.
 window.addEventListener("resize", placeDragon);
