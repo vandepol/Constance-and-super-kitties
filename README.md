@@ -27,7 +27,11 @@ A sneaky **Cat Burglar** (a black, grey and white cat with a robber mask and a
 swag bag) wants the treats too. Press **SPACE** to throw **yarn** and slow her
 down, then grab the treats before she does.
 
-**Fill the basket → the kitties SUIT UP into Super Kitties** and zoom to Level 2!
+**Level 1 lasts at least a minute.** You finish when you've caught **12 fish**
+*and* the **1-minute timer** ⏱ has run out — whichever takes longer. So if you grab
+your 12 fish quickly, you've got the rest of the minute to **collect extra gems** 💎
+before you suit up. The basket fills, the clock counts down, then the kitties
+**SUIT UP into Super Kitties** and zoom to Level 2!
 
 ## 📦 Level 2 — Kitty Land
 

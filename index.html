@@ -245,7 +245,7 @@
   .cat.plain .glove { fill: var(--fur); }
   .cat.plain .boot  { fill: var(--fur); }
   .cat.plain .belt, .cat.plain .buckle, .cat.plain .mask,
-  .cat.plain .emblem, .cat.plain .emHeart, .cat.plain .cape { display: none; }
+  .cat.plain .emblem, .cat.plain .emHeart, .cat.plain .cape, .cat.plain .capeClasp { display: none; }
   .cat .body { transform-box: fill-box; transform-origin: 50% 60%; animation: catBob 0.7s ease-in-out infinite; }
   @keyframes catBob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-5px) rotate(1.5deg); } }
   .cat .tail { transform-box: fill-box; transform-origin: 18% 80%; animation: tailWag 1.3s ease-in-out infinite; }
@@ -257,7 +257,8 @@
   .catWrap.charge { animation: chargeFlash .5s ease-in-out 5; }
   @keyframes chargeFlash { 0%,100% { filter: drop-shadow(0 0 6px #fff); } 50% { filter: brightness(2.2) drop-shadow(0 0 30px #fff); } }
   .cat .cape { fill: var(--capeC, var(--suit)); opacity: .96; }
-  .cat.wearCape .cape { display: block !important; }   /* a bought cape shows even on a plain kitty */
+  .cat .capeClasp { fill: #ffd23f; stroke: #c79320; stroke-width: 2; }
+  .cat.wearCape .cape, .cat.wearCape .capeClasp { display: block !important; }   /* a bought cape shows even on a plain kitty */
 
   /* ---- treats (Level 1) ---- */
   .treat { position: absolute; z-index: 3; animation: treatBob 1.1s ease-in-out infinite; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
@@ -818,7 +819,9 @@
 const CAT_SVG = `
 <svg class="cat" viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg">
   <path class="tail fur" d="M64 252 C14 248 12 190 44 170 C24 198 38 226 72 224 C68 238 66 246 64 252 Z"/>
-  <path class="cape" d="M94 150 C74 178 68 226 82 262 L120 242 L158 262 C172 226 166 178 146 150 Z"/>
+  <!-- a real flowing cape: clasped at the neck, billowing wide BEHIND the body -->
+  <path class="capeClasp" d="M104 150 Q120 142 136 150 L132 162 Q120 156 108 162 Z"/>
+  <path class="cape" d="M106 154 C70 172 52 220 56 274 Q76 260 92 276 Q106 260 120 276 Q134 260 148 276 Q164 260 184 274 C188 220 170 172 134 154 Q120 148 106 154 Z"/>
   <g class="body">
     <!-- legs braced apart in an athletic ready stance -->
     <path class="boot" d="M108 250 C100 264 91 276 87 288 q-3 8 7 10 q10 2 14 -6 q5 -18 7 -42 z"/>
@@ -1121,7 +1124,11 @@ const W = () => window.innerWidth;
 const H = () => window.innerHeight;
 const now = () => performance.now();
 
-const treatGoal = () => (isHard() ? 30 : 16);   // Hard needs way more treats!
+const treatGoal = () => (isHard() ? 18 : 12);   // fish needed to finish Level 1
+const L1_MIN_MS = 60000;                         // ...but Level 1 lasts at least 1 minute
+const l1Elapsed = () => now() - (state.l1Start || now());
+const l1TimeLeft = () => Math.max(0, L1_MIN_MS - l1Elapsed());
+const fmtTime = (ms) => { const s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 let chosenHero = "ginny";
 let companionHero = "bitsy";
 let twoPlayer = false;   // take-turns mode for two sisters
@@ -1183,7 +1190,7 @@ const SHOP = [
   { id: "cap",        cat: "Hats",     slot: "hat",   word: "Cap",      emoji: "🧢", price: 5 },
   { id: "flower",     cat: "Hats",     slot: "hat",   word: "Flower",   emoji: "🌸", price: 5 },
   { id: "party",      cat: "Hats",     slot: "hat",   word: "Party",    emoji: "🥳", price: 8 },
-  { id: "crown",      cat: "Hats",     slot: "hat",   word: "Crown",    emoji: "👑", price: 10 },
+  { id: "crown",      cat: "Hats",     slot: "hat",   word: "Tiara",    emoji: "👑", price: 10, svg: `<svg viewBox="0 0 100 46" xmlns="http://www.w3.org/2000/svg"><path d="M6 40 Q50 2 94 40" fill="none" stroke="#ffd23f" stroke-width="9" stroke-linecap="round"/><path d="M6 40 Q50 2 94 40" fill="none" stroke="#ffe98a" stroke-width="3" stroke-linecap="round"/><circle cx="14" cy="36" r="5" fill="#ff5ab0" stroke="#c79320" stroke-width="1.5"/><circle cx="86" cy="36" r="5" fill="#1fc8d8" stroke="#c79320" stroke-width="1.5"/><path d="M50 6 l6 13 14 1 -11 9 4 14 -13 -8 -13 8 4 -14 -11 -9 14 -1 z" fill="#e63b3b" stroke="#a8235f" stroke-width="1.5"/></svg>` },
   { id: "shades",     cat: "Glasses",  slot: "face",  word: "Shades",   emoji: "🕶️", price: 7 },
   { id: "specs",      cat: "Glasses",  slot: "face",  word: "Specs",    emoji: "👓", price: 6 },
   { id: "starface",   cat: "Glasses",  slot: "cheek", word: "Star",     emoji: "⭐", price: 5 },
@@ -1335,6 +1342,15 @@ function applyCosmetics(wrapEl, sizePx) {
     s.style.position = "absolute"; s.style.pointerEvents = "none"; s.style.zIndex = "9";
     Object.assign(s.style, css); wrapEl.appendChild(s);
   };
+  // an item can carry its own little SVG (e.g. the tiara) instead of an emoji
+  const addItem = (it, css) => {
+    if (!it) return;
+    if (it.svg) {
+      const s = document.createElement("div"); s.className = "cosmetic";
+      s.style.position = "absolute"; s.style.pointerEvents = "none"; s.style.zIndex = "9";
+      s.innerHTML = it.svg; Object.assign(s.style, css); wrapEl.appendChild(s);
+    } else add(it.emoji, css);
+  };
   // a bought CAPE recolours the cape (and makes it show even on a plain kitty); a
   // GLITTER SUIT recolours the suit + shimmers. These ride on CSS custom props.
   const cat = wrapEl.querySelector(".cat");
@@ -1347,7 +1363,7 @@ function applyCosmetics(wrapEl, sizePx) {
   const suitIt = equip.suit && shopItem(equip.suit);
   wrapEl.style.setProperty("--suitC", suitIt ? suitIt.color : "");
   // emoji accessories — each slot has its OWN spot so nothing covers the face
-  if (equip.hat) { const it = shopItem(equip.hat); if (it) add(it.emoji, { left: "50%", top: "-7%", transform: "translateX(-50%)", fontSize: (w * 0.4) + "px" }); }     // on top of the head
+  if (equip.hat) { const it = shopItem(equip.hat); if (it) addItem(it, { left: "50%", top: it.svg ? "4%" : "-7%", transform: "translateX(-50%)", width: (w * 0.5) + "px", fontSize: (w * 0.4) + "px" }); }     // on top of the head
   if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "25%", transform: "translateX(-50%)", fontSize: (w * 0.28) + "px" }); }    // glasses on the eyes
   if (equip.cheek) { const it = shopItem(equip.cheek); if (it) add(it.emoji, { left: "26%", top: "34%", fontSize: (w * 0.2) + "px" }); }                                  // little accent on the cheek
   if (equip.neck) { const it = shopItem(equip.neck); if (it) add(it.emoji, { left: "50%", top: "54%", transform: "translateX(-50%)", fontSize: (w * 0.24) + "px" }); }    // emblem on the chest
@@ -1566,9 +1582,10 @@ function setupLevel1() {
   hideCoach(); resetHearts();
   state.score = 0; state.burglarScore = 0; state.basket = 0;
   state.treats = []; state.yarns = [];
+  state.l1Start = now(); state.l1Won = false; state.l1GoalReached = false;
   scoreEl.textContent = 0; burgScoreEl.textContent = 0;
   basketFish.innerHTML = "";
-  hudLine1.innerHTML = 'Treats: <b id="score">0</b> / ' + treatGoal();
+  hudLine1.innerHTML = 'Treats: <b id="score">0</b> / ' + treatGoal() + ' &nbsp;•&nbsp; ⏱ <b id="l1clock">1:00</b>';
   hudLine2.innerHTML = 'You <b id="meName">' + heroDisplayName() + '</b> &nbsp;•&nbsp; Cat Burglar stole: <b id="burgScore">0</b>';
 
   makeHeroAndCompanion(false);
@@ -1613,7 +1630,18 @@ function catchTreat(t) {
   popAt(t.x - 16, t.y - 16, t.golden ? "🌟" : "💖");
   state.hero.el.classList.add("hop"); setTimeout(() => state.hero.el.classList.remove("hop"), 360);
   t.golden ? sndGold() : sndTreat();
-  if (state.basket >= treatGoal()) winLevel1();
+  maybeWinLevel1();
+}
+// Level 1 finishes only when BOTH are true: all the fish AND the full minute.
+// Get the fish fast and you've got time left to grab extra gems!
+function maybeWinLevel1() {
+  if (level !== 1 || state.l1Won) return;
+  if (state.basket >= treatGoal() && !state.l1GoalReached) {
+    state.l1GoalReached = true;                 // hit the fish goal — now run out the clock
+    banner("🐟 Got them all! Grab gems! 💎");
+    tune([{ f: 784 }, { f: 988 }, { f: 1319, d: 0.22 }]);
+  }
+  if (state.basket >= treatGoal() && l1TimeLeft() <= 0) { state.l1Won = true; winLevel1(); }
 }
 function stealTreat(t) {
   removeTreat(t);
@@ -1650,6 +1678,11 @@ function updateLevel1(ts) {
   }
   for (const t of [...state.treats]) if (heroOrCompNear(t.x, t.y, 64)) catchTreat(t);
   for (const t of [...state.treats]) if (Math.hypot(t.x - b.x, t.y - b.y) < 56) stealTreat(t);
+
+  // tick the 1-minute clock and finish when the time's up (if the fish are in)
+  const clock = document.getElementById("l1clock");
+  if (clock) clock.textContent = fmtTime(l1TimeLeft());
+  maybeWinLevel1();
 }
 
 function winLevel1() {
@@ -2577,7 +2610,8 @@ function renderShop() {
       else if (isEquipped) btn = `<button class="buyBtn owned" data-off="${it.id}">Wearing ✓</button>`;
       else btn = `<button class="buyBtn owned" data-wear="${it.id}">Wear it</button>`;
       const swatch = it.color ? `<span class="swatch" style="background:${it.color}"></span>` : "";
-      card.innerHTML = `<div class="pic">${it.emoji}${swatch}</div><div class="word" data-spell="${it.word}">${it.word}</div>`
+      const pic = it.svg ? `<span style="display:inline-block;width:46px;vertical-align:middle">${it.svg}</span>` : it.emoji;
+      card.innerHTML = `<div class="pic">${pic}${swatch}</div><div class="word" data-spell="${it.word}">${it.word}</div>`
         + `<button class="readBtn" data-say="${it.word}">🔊 read</button>` + btn;
       row.appendChild(card);
     }
