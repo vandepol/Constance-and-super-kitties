@@ -1387,9 +1387,9 @@ function startLevel3() {
   ze.className = "enemyWrap"; ze.style.position = "absolute"; ze.style.zIndex = "6";
   ze.style.width = "150px"; ze.style.height = "140px"; ze.innerHTML = ZSAZSA_SVG;
   game.appendChild(ze);
-  state.zsa = { x: W() * 0.7, y: H() * 0.3, el: ze, tangle: 0, slowUntil: 0, r: 60, hittable: true, tx: W() * 0.5, ty: H() * 0.3, retargetAt: 0, singAt: now() + 1600 };
+  state.zsa = { x: W() * 0.7, y: H() * 0.3, el: ze, tangle: 0, slowUntil: 0, r: 60, hittable: true, tx: W() * 0.5, ty: H() * 0.3, phase: "perch", phaseUntil: now() + 1400 };
   state.enemy = state.zsa;
-  state.tangleNeed = isHard() ? 7 : 5;
+  state.tangleNeed = isHard() ? 6 : 4;
   state.tangleLabel = "🎤 Throw yarn at Zsa Zsa:";
   showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw yarn at <b>Zsa Zsa</b>! Dodge her songs.");
   state.enemyCenter = 75; state.onWin = winLevel3; state.lastNote = 0;
@@ -1400,20 +1400,30 @@ function startLevel3() {
 function updateLevel3(ts) {
   const z = state.zsa; if (!z) return;
   const slowed = ts < z.slowUntil;
-  if (ts >= z.retargetAt) {
-    z.tx = 120 + Math.random() * (W() - 240); z.ty = 100 + Math.random() * (H() * 0.5);
-    z.retargetAt = ts + 1000 + Math.random() * 700;
+  z.phase = z.phase || "swoop"; z.phaseUntil = z.phaseUntil || 0;
+  // SWOOP to a new spot (hard to hit) -> PERCH and sing (stays still = your window!)
+  if (ts >= z.phaseUntil) {
+    if (z.phase === "swoop") {
+      z.phase = "perch"; z.phaseUntil = ts + (isHard() ? 1300 : 1800);
+      spawnWave(z.x, z.y, "song");                 // she belts a song-ring while perched — dodge it!
+    } else {
+      z.phase = "swoop"; z.phaseUntil = ts + 1000;
+      z.tx = 150 + Math.random() * (W() - 300); z.ty = 110 + Math.random() * (H() * 0.42);
+    }
   }
-  const sp = (slowed ? 1.0 : 3.4) * (isHard() ? 1.2 : 1);
-  const dx = z.tx - z.x, dy = z.ty - z.y, d = Math.hypot(dx, dy) || 1;
-  z.x += (dx / d) * sp; z.y += (dy / d) * sp + Math.sin(ts / 170) * 1.3;
+  if (z.phase === "swoop") {
+    const sp = (slowed ? 1.2 : 3.0) * (isHard() ? 1.15 : 1);
+    const dx = z.tx - z.x, dy = z.ty - z.y, d = Math.hypot(dx, dy) || 1;
+    z.x += (dx / d) * sp; z.y += (dy / d) * sp + Math.sin(ts / 160) * 1.0;
+    z.el.style.transform = (dx < 0) ? "scaleX(-1)" : "none";
+  } else {
+    z.y += Math.sin(ts / 200) * 0.8;               // perched: gentle bob, easy to lasso
+  }
   z.x = Math.max(60, Math.min(W() - 60, z.x)); z.y = Math.max(80, Math.min(H() * 0.72, z.y));
   z.el.style.left = (z.x - 75) + "px"; z.el.style.top = (z.y - 70) + "px";
-  z.el.style.transform = (dx < 0) ? "scaleX(-1)" : "none";
   drawSlowStars(z, slowed);
-  if (!slowed && ts >= z.singAt) { spawnWave(z.x, z.y, "song"); z.singAt = ts + (isHard() ? 2000 : 2900); }
-  // floating voices drift up; Zsa Zsa swoops to steal them (flavour)
-  if (ts - (state.lastNote || 0) > 1500 && state.notes.length < 5) { spawnNote(); state.lastNote = ts; }
+  // floating voices drift up (flavour)
+  if (ts - (state.lastNote || 0) > 1600 && state.notes.length < 5) { spawnNote(); state.lastNote = ts; }
   for (const n of [...state.notes]) {
     n.y -= 0.6; n.el.style.top = n.y + "px";
     if (n.y < -40) { n.el.remove(); state.notes = state.notes.filter((q) => q !== n); }
@@ -1438,7 +1448,7 @@ function startLevel4() {
   level = 4; state.running = true;
   setScene(4); basketEl.classList.add("hidden");
   levelNameEl.textContent = "Level 4 · Dumpster Alley";
-  hudLine1.innerHTML = "🐀 Catch the Lab Rat — dodge Otto's tentacles!";
+  hudLine1.innerHTML = "🐀 Catch the Lab Rat — dodge Otto's beams!";
   clearLevelObjects();
   state.hero.x = W() * 0.5; state.hero.y = H() * 0.84; state.hero.vx = 0; state.hero.vy = 0; placeHero();
   state.companion.x = W() * 0.4; state.companion.y = H() * 0.86;
@@ -1453,11 +1463,11 @@ function startLevel4() {
     el.style.left = (dd.x - 70) + "px"; el.style.top = (dd.y - 55) + "px"; game.appendChild(el);
     state.dumpsters.push(dd);
   }
-  // Otto — stationary tentacle hazard
+  // Otto — a smaller octopus that ROAMS and shoots ring beams
   const oe = document.createElement("div"); oe.className = "enemyWrap"; oe.style.position = "absolute"; oe.style.zIndex = "4";
-  oe.style.width = "180px"; oe.style.height = "160px"; oe.innerHTML = OTTO_SVG;
-  const ox = W() * 0.52, oy = H() * 0.58; oe.style.left = (ox - 90) + "px"; oe.style.top = (oy - 80) + "px"; game.appendChild(oe);
-  state.otto = { x: ox, y: oy, el: oe, sweepAt: now() + 1600 };
+  oe.style.width = "120px"; oe.style.height = "106px"; oe.innerHTML = OTTO_SVG;
+  const ox = W() * 0.5, oy = H() * 0.5; oe.style.left = (ox - 60) + "px"; oe.style.top = (oy - 53) + "px"; game.appendChild(oe);
+  state.otto = { x: ox, y: oy, el: oe, r: 44, sweepAt: now() + 1500, tx: ox, ty: oy, retargetAt: 0 };
   // Lab Rat — the target
   const re = document.createElement("div"); re.className = "enemyWrap"; re.style.position = "absolute"; re.style.zIndex = "6";
   re.style.width = "140px"; re.style.height = "120px"; re.innerHTML = LABRAT_SVG; game.appendChild(re);
@@ -1475,17 +1485,27 @@ function startLevel4() {
 }
 function updateLevel4(ts) {
   const r = state.rat, o = state.otto; if (!r) return;
-  if (o && ts >= o.sweepAt) { spawnWave(o.x, o.y, "ink"); o.sweepAt = ts + (isHard() ? 2300 : 3100); }
-  // rat hide/pop state machine
+  // Otto roams slowly and fires ring beams from wherever he is
+  if (o) {
+    if (ts >= o.retargetAt) { o.tx = W() * 0.22 + Math.random() * (W() * 0.56); o.ty = H() * 0.3 + Math.random() * (H() * 0.42); o.retargetAt = ts + 1400 + Math.random() * 900; }
+    const osp = isHard() ? 1.7 : 1.2;
+    const odx = o.tx - o.x, ody = o.ty - o.y, od = Math.hypot(odx, ody) || 1;
+    o.x += (odx / od) * osp; o.y += (ody / od) * osp;
+    o.x = Math.max(70, Math.min(W() - 70, o.x)); o.y = Math.max(H() * 0.28, Math.min(H() - 90, o.y));
+    o.el.style.left = (o.x - 60) + "px"; o.el.style.top = (o.y - 53) + "px";
+    o.el.style.transform = (odx < 0) ? "scaleX(-1)" : "none";
+    if (ts >= o.sweepAt) { spawnWave(o.x, o.y, "ink"); o.sweepAt = ts + (isHard() ? 2100 : 2900); }
+  }
+  // Lab Rat: mostly OUT roaming the alley, only briefly ducking into a dumpster
   if (ts >= r.modeUntil) {
     if (r.mode === "out") {
       r.mode = "hiding"; r.hittable = false; r.el.style.opacity = "0";
       r.hideTo = state.dumpsters[Math.floor(Math.random() * state.dumpsters.length)];
-      r.modeUntil = ts + (isHard() ? 900 : 1200);
+      r.modeUntil = ts + (isHard() ? 600 : 800);          // quick dip into the trash
     } else {
       r.mode = "out"; r.hittable = true;
       const d = r.hideTo || state.dumpsters[0]; r.x = d.x; r.y = d.y - 14; r.el.style.opacity = "1";
-      r.modeUntil = ts + (isHard() ? 1900 : 2600); r.retargetAt = 0;
+      r.modeUntil = ts + (isHard() ? 3200 : 4000); r.retargetAt = 0;   // out & scurrying much longer
     }
   }
   if (r.mode === "out") {
