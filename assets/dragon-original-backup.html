@@ -1,0 +1,2752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clara, Shari, and the Dragons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ---- Design tokens: the game's one shared "style guide" ---- */
+  :root {
+    --font-display: "Baloo 2", "Trebuchet MS", sans-serif; /* friendly, rounded */
+    --font-body: "Nunito", system-ui, -apple-system, sans-serif;
+    --glass: rgba(24, 18, 54, 0.42);          /* frosted panel */
+    --glass-border: rgba(255, 255, 255, 0.22);
+    --ink: #f7f4ff;                            /* main text */
+    --gold: #ffd95a;                           /* score / highlights */
+    --pink: #ff4d9d;                           /* the dragon's color */
+    --radius: 22px;
+    --radius-pill: 999px;
+    --shadow: 0 12px 34px rgba(8, 4, 26, 0.45);
+  }
+
+  /* ---- The look of the game ---- */
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: var(--font-body);
+    font-weight: 700;
+    overflow: hidden;
+    background: #0b1026;
+    color: var(--ink);
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The sky background — a soft gradient from night to dawn */
+  #game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background:
+      radial-gradient(circle at 80% 16%, rgba(255,243,190,0.95) 0%, rgba(255,221,150,0.5) 8%, rgba(255,221,150,0) 20%),
+      radial-gradient(circle at 20% 82%, rgba(255,180,150,0.35), rgba(255,180,150,0) 40%),
+      linear-gradient(180deg, #244aa8 0%, #5f7fd0 35%, #9fb6ef 60%, #ffd1a3 100%);
+    overflow: hidden;
+  }
+
+  /* The dragon you fly — built in layers so each effect has its own box.
+     Outer box = where it is on screen. Middle box = which way it faces.
+     Inner box = the flapping/landing wiggle and the PINK color. */
+  #dragon {
+    position: absolute;
+    left: 120px;
+    top: 50%;
+    transition: top 0.25s ease, left 0.25s ease, transform 0.3s ease;
+    /* a soft pink aura so she glows beyond her emoji square */
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4)) drop-shadow(0 0 16px rgba(255,120,200,0.55));
+    z-index: 5;
+  }
+  #dragonFlip {
+    /* face right (emoji faces left) + stretch a touch so she fills more space */
+    transform: scaleX(-1.12) scaleY(1.06);
+  }
+  #dragonBody {
+    font-size: 104px; /* bigger hero dragon */
+    /* Turn the green dragon emoji PINK (Clara) by spinning its colors around. */
+    filter: hue-rotate(230deg) saturate(1.8) brightness(1.05);
+    animation: flap 0.5s ease-in-out infinite;
+  }
+
+  /* Clara's jewels + sparkles — they follow her (not flipped or recoloured). */
+  #dragonDecor { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+  .dJewel.hidden { display: none; }
+  .dCrown {
+    position: absolute; left: 50%; top: -12px;
+    transform: translateX(-50%);
+    font-size: 38px;
+    animation: crownBob 0.7s ease-in-out infinite;
+  }
+  .dGem   { position: absolute; left: 44%; top: 44%; font-size: 24px; animation: jewelTwinkle 1.6s ease-in-out infinite; }
+  .dSpark { position: absolute; left: -10px; top: 16px; font-size: 22px; animation: jewelTwinkle 1.4s ease-in-out infinite; }
+  .dHeart { position: absolute; right: -10px; top: 36px; font-size: 22px; animation: jewelTwinkle 1.8s ease-in-out infinite; }
+  @keyframes crownBob {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-6deg); }
+    50%      { transform: translateX(-50%) translateY(-6px) rotate(6deg); }
+  }
+  @keyframes jewelTwinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.7); }
+    50%      { opacity: 1;    transform: scale(1.25); }
+  }
+
+  /* Shari — the SAME 🐉 emoji, kept green/turquoise. */
+  #shari {
+    position: absolute;
+    z-index: 5;
+    filter: hue-rotate(55deg) saturate(1.35) drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+  }
+  #shariBody { font-size: 58px; animation: flap 0.5s ease-in-out infinite; }
+  /* When the dragon lands, it stops flapping and settles down. */
+  #dragonBody.landed {
+    animation: none;
+    transform: translateY(6px) rotate(0deg);
+  }
+
+  /* The flying flap: bob up, tilt a little, bob back down — forever. */
+  @keyframes flap {
+    0%, 100% { transform: translateY(0)    rotate(-2deg); }
+    50%      { transform: translateY(-8px) rotate(2deg); }
+  }
+
+  /* Clara's pink wings, behind her, flapping gently from where they attach. */
+  #dragonWings {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  #dragonWings svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .wingL, .wingR { transform-box: fill-box; }
+  /* Pivot at the shoulder (where the wing meets the body) so it hinges naturally. */
+  .wingL { transform-origin: 100% 72%; animation: wingFlapL 1.6s ease-in-out infinite; }
+  .wingR { transform-origin: 0% 72%;   animation: wingFlapR 1.6s ease-in-out infinite; }
+  @keyframes wingFlapL { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(8deg); } }
+  @keyframes wingFlapR { 0%, 100% { transform: rotate(7deg); }  50% { transform: rotate(-8deg); } }
+
+  /* SPEED BONUS: shimmering silver-rainbow skin (cycles colors + silvery glow). */
+  #dragonBody.rainbow {
+    animation: flap 0.5s ease-in-out infinite, rainbow 1.4s linear infinite;
+  }
+  @keyframes rainbow {
+    0%   { filter: hue-rotate(0deg)   saturate(1.9) brightness(1.5) drop-shadow(0 0 16px rgba(255,255,255,0.95)); }
+    100% { filter: hue-rotate(360deg) saturate(1.9) brightness(1.5) drop-shadow(0 0 16px rgba(255,255,255,0.95)); }
+  }
+
+  /* A puff of fire the dragon breathes */
+  .fire {
+    position: absolute;
+    font-size: 40px;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .fire.tiny { font-size: 22px; opacity: 0.85; } /* the half-power shot */
+  .fire.big  { font-size: 66px; }                /* the magic-berry mega fire */
+
+  /* The magic berry — glows and pulses so it stands out as a power-up. */
+  .berry {
+    position: absolute;
+    font-size: 40px;
+    z-index: 3;
+    filter: drop-shadow(0 0 12px #c77dff) drop-shadow(0 0 6px #ff9ce6);
+    animation: berryPulse 1.1s ease-in-out infinite;
+  }
+  @keyframes berryPulse {
+    0%, 100% { transform: translateY(0)    scale(1); }
+    50%      { transform: translateY(-7px) scale(1.14); }
+  }
+
+  /* While a magic berry is active, the whole dragon grows to 3×. */
+  #dragon.boosted { transform: scale(3); }
+
+  /* Stars to collect */
+  .star {
+    position: absolute;
+    font-size: 38px;
+    z-index: 3;
+  }
+
+  /* Floating clouds for decoration */
+  .cloud {
+    position: absolute;
+    font-size: 56px;
+    opacity: 0.85;
+    z-index: 2;
+  }
+
+  /* Potions to drink — worth 5 points each! */
+  .potion {
+    position: absolute;
+    z-index: 3;
+    animation: bobble 1.2s ease-in-out infinite;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3));
+  }
+  .potion svg { display: block; width: 40px; height: auto; }
+  .potion.big { animation: none; filter: drop-shadow(0 0 11px #ffd76a) drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
+  .potion.big svg { width: 66px; }
+  @keyframes bobble {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+
+  /* The BOOM when a potion explodes (or a boss is beaten). */
+  .boom {
+    position: absolute;
+    font-size: 44px;
+    z-index: 6;
+    pointer-events: none;
+    animation: boom 0.6s ease-out forwards;
+  }
+  @keyframes boom {
+    0%   { transform: scale(0.4); opacity: 1; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  /* Bosses — big, glowing, and worth lots of points. Fire at them! */
+  .boss {
+    position: absolute;
+    font-size: 76px;
+    z-index: 4;
+    filter: drop-shadow(0 0 10px #ff3b3b);
+    animation: bossPulse 0.8s ease-in-out infinite;
+  }
+  @keyframes bossPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.14); }
+  }
+
+  /* A white flash when a weirdo blows up. */
+  .flash {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    background: #ffffff;
+    animation: flashFade 0.24s ease-out forwards;
+  }
+  @keyframes flashFade {
+    0%   { opacity: 0.7; }
+    100% { opacity: 0; }
+  }
+  /* A quick screen shake for big explosions. */
+  #game.shake { animation: shake 0.44s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-7px, 4px); }
+    40% { transform: translate(7px, -4px); }
+    60% { transform: translate(-5px, -3px); }
+    80% { transform: translate(5px, 3px); }
+  }
+
+  /* Twinkling magical particles in the background (fairies, sparkles, bubbles).
+     Each one floats upward and twinkles, then disappears. */
+  .fairy {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    font-size: 24px;
+    animation: fairy 6s ease-in-out forwards;
+  }
+  @keyframes fairy {
+    0%   { opacity: 0;   transform: translateY(0)      scale(0.6); }
+    20%  { opacity: 1;   transform: translateY(-30px)  scale(1.2); }
+    50%  { opacity: 0.4; transform: translateY(-80px)  scale(0.9); }
+    80%  { opacity: 1;   transform: translateY(-130px) scale(1.2); }
+    100% { opacity: 0;   transform: translateY(-180px) scale(0.6); }
+  }
+
+  /* A row of scenery along the bottom — trees, shells, mountains, etc. */
+  #sceneryRow {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    text-align: center;
+    font-size: 56px;
+    word-spacing: 22px;
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 1;
+    padding-bottom: 4px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Per-land silhouette scenes — only the current land's scene is shown. */
+  .landScene {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    display: none;
+  }
+  .landScene.show { display: block; }
+  .landScene svg { width: 100%; height: 100%; display: block; }
+  .landScene .ff { animation: fireflyTwinkle 3s ease-in-out infinite; }
+  @keyframes fireflyTwinkle {
+    0%, 100% { opacity: 0.15; }
+    50%      { opacity: 1; }
+  }
+  .landScene .bub { animation: bubbleRise 4s ease-in infinite; }
+  @keyframes bubbleRise {
+    0%   { opacity: 0; transform: translateY(20px); }
+    30%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-130px); }
+  }
+  /* Kelp sways gently from its base, like it's drifting in the current. */
+  .landScene .kelp {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: kelpSway 4.5s ease-in-out infinite;
+  }
+  @keyframes kelpSway {
+    0%, 100% { transform: rotate(-3.5deg); }
+    50%      { transform: rotate(3.5deg); }
+  }
+
+  /* The "Welcome to a new land!" banner that sparkles up when you arrive. */
+  #landBanner {
+    position: absolute;
+    left: 50%; top: 38%;
+    transform: translate(-50%, -50%);
+    z-index: 40;
+    font-size: 34px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 0 18px #ffe66d, 0 2px 6px rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.35);
+    padding: 18px 30px;
+    border-radius: 20px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #landBanner.show { animation: banner 2.8s ease-in-out; }
+  @keyframes banner {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    80%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  /* The SPINNING STAR hazard — it whirls around and glows red for "danger!"
+     Don't touch it or you'll get dizzy. */
+  .spinStar {
+    position: absolute;
+    font-size: 42px;
+    z-index: 3;
+    /* tint the golden star RED so it clearly reads as "danger!" */
+    filter: brightness(1.1) saturate(4) hue-rotate(-55deg) drop-shadow(0 0 10px #ff0000);
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* The dizzy stars that circle the dragon's head when it's stunned. */
+  #dizzyStars {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 0;
+    height: 0;
+    z-index: 10;
+    animation: dizzySpin 0.8s linear infinite;
+  }
+  #dizzyStars span { position: absolute; font-size: 22px; }
+  /* Place the three stars evenly around a circle (0°, 120°, 240°). */
+  #dizzyStars span:nth-child(1) { transform: rotate(0deg)   translateX(28px); }
+  #dizzyStars span:nth-child(2) { transform: rotate(120deg) translateX(28px); }
+  #dizzyStars span:nth-child(3) { transform: rotate(240deg) translateX(28px); }
+  @keyframes dizzySpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* While dizzy, the dragon wobbles instead of flapping. */
+  #dragonBody.dizzy { animation: wobble 0.5s ease-in-out infinite; }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(-12deg); }
+    50%      { transform: rotate(12deg); }
+  }
+
+  /* Frozen: the dragon stops flapping and is encased in an ice block. */
+  #dragonBody.frozen { animation: none; }
+  #iceBlock {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 92px; height: 84px;
+    z-index: 11;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    border-radius: 16px;
+    background: rgba(160, 228, 255, 0.38);
+    border: 2px solid rgba(210, 245, 255, 0.85);
+    box-shadow: 0 0 24px rgba(150, 225, 255, 0.75), inset 0 0 16px rgba(255,255,255,0.5);
+  }
+
+  /* A queen's ice bolt flying at the hero. */
+  .queenBolt {
+    position: absolute;
+    font-size: 30px;
+    z-index: 6;
+    pointer-events: none;
+    filter: drop-shadow(0 0 9px #8fe9ff);
+    animation: spin 0.8s linear infinite;
+  }
+  .queenBolt.fireBolt { filter: drop-shadow(0 0 11px #ff5a1a); } /* Queen Fire's burning bolt */
+
+  /* Clara flashes fiery when burned by Queen Fire. */
+  #dragonBody.burned { animation: burnFlash 0.6s ease; }
+  @keyframes burnFlash {
+    0%, 100% { filter: hue-rotate(230deg) saturate(1.8) brightness(1.05); }
+    50%      { filter: brightness(1.9) saturate(3) sepia(0.7) hue-rotate(-30deg); }
+  }
+
+  /* ---- The scoreboard and title ---- */
+  #hud {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 20;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  #hud h1 {
+    margin: 0 0 8px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 21px;
+    line-height: 1.1;
+    /* A soft rainbow-gradient title — gold to pink to lilac. */
+    background: linear-gradient(92deg, #ffd95a, #ff8fc7 55%, #b69cff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .scoreRow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    color: rgba(247, 244, 255, 0.85);
+  }
+  #score {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  /* The microphone status badge */
+  #mic {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 20;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    max-width: 270px;
+  }
+  .micStatus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  #micDot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #7b7898;
+    box-shadow: 0 0 0 4px rgba(123, 120, 152, 0.18);
+  }
+  #micDot.listening {
+    background: #57f08a;
+    box-shadow: 0 0 14px #57f08a, 0 0 0 4px rgba(87, 240, 138, 0.22);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 12px #57f08a, 0 0 0 3px rgba(87,240,138,0.18); }
+    50%      { box-shadow: 0 0 20px #57f08a, 0 0 0 7px rgba(87,240,138,0.30); }
+  }
+  #heard {
+    margin-top: 7px;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--gold);
+    min-height: 1.2em;
+    font-size: 14px;
+  }
+
+  /* The start screen — a centered column with the Play button and a hint. */
+  #startScreen {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: radial-gradient(circle at center, rgba(10, 6, 30, 0.35), rgba(10, 6, 30, 0) 62%);
+  }
+  #startBtn {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 27px;
+    padding: 20px 46px;
+    border: none;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    background: linear-gradient(180deg, #ff86c2 0%, #ff4d9d 55%, #e72f87 100%);
+    box-shadow: 0 10px 0 #b51e6e, 0 22px 38px rgba(8, 4, 26, 0.45);
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: transform 0.09s ease, box-shadow 0.09s ease, filter 0.15s ease;
+  }
+  #startBtn:hover { filter: brightness(1.06); transform: scale(1.03); }
+  #startBtn:active {
+    transform: translateY(6px);
+    box-shadow: 0 4px 0 #b51e6e, 0 10px 18px rgba(8, 4, 26, 0.4);
+  }
+  .btnHint {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    color: rgba(247, 244, 255, 0.92);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  /* The command + scoring help bar, shown as little rounded "chips". */
+  #help {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    max-width: min(94vw, 940px);
+    padding: 12px 16px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .chip {
+    background: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-pill);
+    padding: 7px 14px;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .chip.warn {
+    background: rgba(255, 80, 80, 0.18);
+    border-color: rgba(255, 120, 120, 0.5);
+  }
+  .chip.goal {
+    background: rgba(255, 217, 90, 0.18);
+    border-color: rgba(255, 217, 90, 0.6);
+  }
+  .chip b { color: var(--gold); }
+
+  /* Hide the instructions when collapsed. */
+  #help.collapsed { display: none; }
+  /* The ❔ button that shows/hides the instructions. */
+  #helpToggle {
+    position: absolute;
+    bottom: 18px; right: 18px;
+    z-index: 26;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* On-screen Fire + Spin buttons — only shown on touch devices. */
+  #touchControls { display: none; }
+  body.touch #touchControls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: absolute;
+    right: 20px;
+    bottom: 76px;
+    z-index: 26;
+  }
+  .touchBtn {
+    width: 78px; height: 78px;
+    border-radius: 50%;
+    border: 2px solid var(--glass-border);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+    font-size: 38px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+  .touchBtn:active { transform: scale(0.92); }
+
+  /* ---- The epic WIN screen ---- */
+  #winScreen {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(circle at center, rgba(40, 10, 70, 0.72), rgba(10, 4, 30, 0.93));
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  #winScreen.hidden { display: none; }
+  .winCard {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 28px 46px 34px;
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    animation: pop 0.6s cubic-bezier(.2, 1.4, .4, 1) both;
+  }
+  @keyframes pop {
+    from { transform: scale(0.6); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .winDragons { font-size: 58px; animation: bossPulse 1s ease-in-out infinite; }
+  .winTitle {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 64px;
+    margin: 4px 0;
+    background: linear-gradient(92deg, #ffd95a, #ff6fb5 45%, #8db4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 4px 14px rgba(255, 140, 200, 0.5));
+  }
+  .winSub { font-size: 20px; margin: 2px 0 6px; }
+  .winScore {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  #playAgainBtn {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 23px;
+    padding: 16px 40px;
+    border: none;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    background: linear-gradient(180deg, #8be0ff, #4d9dff 55%, #2f6fe7);
+    box-shadow: 0 8px 0 #1e4fb5, 0 18px 30px rgba(8, 4, 26, 0.45);
+    cursor: pointer;
+    transition: transform 0.09s ease, box-shadow 0.09s ease, filter 0.15s ease;
+  }
+  #playAgainBtn:hover { filter: brightness(1.06); }
+  #playAgainBtn:active { transform: translateY(5px); box-shadow: 0 3px 0 #1e4fb5; }
+
+  /* Confetti + fireworks raining over the win screen. */
+  .confetti {
+    position: absolute;
+    top: -30px;
+    z-index: 1;
+    pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-30px) rotate(0deg);   opacity: 1; }
+    100% { transform: translateY(106vh) rotate(720deg); opacity: 0.9; }
+  }
+  .firework {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    font-size: 50px;
+    animation: boom 0.7s ease-out forwards;
+  }
+
+  /* ---- The ending animation: dragons crowned, the forest growing ---- */
+  #endStage { position: relative; height: 150px; margin-bottom: 8px; }
+  #endStage span { position: absolute; }
+  /* Clara is pink, Shari is turquoise — same recolours as in the game. */
+  .endDragon.left  { left: 26%;  bottom: 30px; font-size: 58px; animation: endBobL 1.2s ease-in-out infinite; filter: hue-rotate(230deg) saturate(1.8) brightness(1.05); }
+  .endDragon.right { right: 26%; bottom: 30px; font-size: 58px; animation: endBobR 1.2s ease-in-out infinite; filter: hue-rotate(55deg) saturate(1.35); }
+  @keyframes endBobL { 0%,100% { transform: scaleX(-1) translateY(0); } 50% { transform: scaleX(-1) translateY(-10px); } }
+  @keyframes endBobR { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .endCrown { font-size: 30px; bottom: 80px; opacity: 0; }
+  #endStage.play .endCrown.left  { left: 28%;  animation: crownDrop 1s ease-out 0.6s forwards; }
+  #endStage.play .endCrown.right { right: 28%; animation: crownDrop 1s ease-out 1.0s forwards; }
+  @keyframes crownDrop {
+    0%   { opacity: 0; transform: translateY(-50px) rotate(-20deg); }
+    70%  { opacity: 1; transform: translateY(4px)  rotate(6deg); }
+    100% { opacity: 1; transform: translateY(0)    rotate(0deg); }
+  }
+
+  .endForest { font-size: 30px; bottom: 0; opacity: 0; }
+  #endStage.play .endForest { animation: forestGrow 0.6s ease-out forwards; }
+  #endStage.play .endForest.f1 { animation-delay: 1.2s; }
+  #endStage.play .endForest.f2 { animation-delay: 1.4s; }
+  #endStage.play .endForest.f3 { animation-delay: 1.6s; }
+  #endStage.play .endForest.f4 { animation-delay: 1.5s; }
+  #endStage.play .endForest.f5 { animation-delay: 1.7s; }
+  #endStage.play .endForest.f6 { animation-delay: 1.9s; }
+  .endForest.f1 { left: 3%; }
+  .endForest.f2 { left: 18%; font-size: 36px; }
+  .endForest.f3 { left: 40%; }
+  .endForest.f4 { left: 56%; }
+  .endForest.f5 { right: 18%; }
+  .endForest.f6 { right: 3%; font-size: 36px; }
+  @keyframes forestGrow {
+    0%   { opacity: 0; transform: translateY(22px) scale(0.2); }
+    100% { opacity: 1; transform: translateY(0)    scale(1); }
+  }
+
+  .endFairy { font-size: 22px; opacity: 0; }
+  .endFairy.g1 { top: 8px;  left: 16%; }
+  .endFairy.g2 { top: 2px;  right: 18%; }
+  #endStage.play .endFairy { animation: jewelTwinkle 1.4s ease-in-out 1.4s infinite; }
+
+  /* Win-screen time + record. */
+  #winRecord {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--gold);
+    min-height: 1em;
+    margin-bottom: 4px;
+  }
+  #winRecord.speedy {
+    color: #ffd23f;
+    text-shadow: 0 0 14px rgba(255, 210, 90, 0.85);
+    animation: bossPulse 0.7s ease-in-out infinite;
+  }
+  #winBest { font-size: 14px; opacity: 0.85; margin-bottom: 16px; }
+
+  /* ---- The intro story card ---- */
+  .storyCard {
+    max-width: min(90vw, 560px);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 26px;
+    box-shadow: var(--shadow);
+    padding: 26px 32px 30px;
+    text-align: center;
+    line-height: 1.5;
+    font-size: 17px;
+  }
+  .storyCard p { margin: 10px 0; }
+  .storyCard b { color: var(--gold); }
+  .storyTitle {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 28px;
+    margin: 0 0 12px;
+    line-height: 1.1;
+    background: linear-gradient(92deg, #ffd95a, #ff8fc7 55%, #b69cff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* One story panel at a time, with a big character "image". */
+  .storyPanel { display: none; }
+  .storyPanel.active { display: block; animation: panelIn 0.4s ease both; }
+  @keyframes panelIn {
+    0%   { opacity: 0; transform: translateX(18px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  .storyImg {
+    font-size: 70px;
+    line-height: 1.1;
+    margin-bottom: 10px;
+    min-height: 78px;
+  }
+  .imgShari { display: inline-block; filter: hue-rotate(55deg) saturate(1.35); }
+  .storyDots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 14px 0 4px;
+  }
+  .storyDots .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .storyDots .dot.active { background: var(--gold); }
+  #startBestTime { margin-top: 10px; font-size: 14px; font-weight: 800; color: var(--gold); }
+  .storyNav {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    padding: 14px 22px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.16);
+    cursor: pointer;
+    transition: transform 0.09s ease, filter 0.15s ease;
+  }
+  .storyNav:hover { filter: brightness(1.15); }
+  .storyNav:active { transform: translateY(3px); }
+  .storyButtons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  #skipBtn {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    padding: 14px 24px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: transform 0.09s ease, filter 0.15s ease;
+  }
+  #skipBtn:hover { filter: brightness(1.15); }
+  #skipBtn:active { transform: translateY(3px); }
+
+  /* ---- The queen tracker in the HUD ---- */
+  #queenTracker {
+    display: flex;
+    gap: 6px;
+    margin-top: 9px;
+    flex-wrap: wrap;
+  }
+  .qtag {
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 9px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    opacity: 0.8;
+  }
+  .qtag.done {
+    background: rgba(255, 217, 90, 0.25);
+    border-color: rgba(255, 217, 90, 0.7);
+    color: var(--gold);
+    opacity: 1;
+  }
+
+  /* ---- The evil queens ---- */
+  .queen {
+    position: absolute;
+    z-index: 5;
+    text-align: center;
+    pointer-events: none;
+    animation: queenFloat 2.4s ease-in-out infinite;
+  }
+  @keyframes queenFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-16px); }
+  }
+  .queenLabel {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    margin-bottom: 4px;
+    white-space: nowrap;
+  }
+  .queenHpBar {
+    width: 120px;
+    height: 10px;
+    margin: 0 auto 6px;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+  }
+  .queenHpFill {
+    width: 100%;
+    height: 100%;
+    background: #ff5a3c;
+    transition: width 0.2s ease;
+  }
+  .queenFace {
+    position: relative;
+    font-size: 96px;
+    line-height: 1;
+    display: inline-block;
+  }
+  .qFigure { display: inline-block; }
+  .queenImg { width: 1.5em; height: auto; vertical-align: middle; border-radius: 12px; }
+  /* golden crown floating on the queen's head */
+  .qCrown {
+    position: absolute;
+    top: -0.32em; left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.46em;
+    filter: drop-shadow(0 0 6px #ffd95a);
+    z-index: 2;
+    animation: crownBob 0.9s ease-in-out infinite;
+  }
+  /* her swirling magic aura */
+  .qAura { position: absolute; font-size: 0.32em; animation: queenAura 2.2s ease-in-out infinite; }
+  .qAura.a0 { top: 0.10em;  left: -0.34em; }
+  .qAura.a1 { top: 0.42em;  right: -0.34em; animation-delay: 0.6s; }
+  .qAura.a2 { bottom: 0;    left: 0.05em;   animation-delay: 1.0s; }
+  .qAura.a3 { top: -0.10em; right: 0.10em;  animation-delay: 1.5s; }
+  @keyframes queenAura {
+    0%, 100% { opacity: 0.3; transform: scale(0.7) translateY(0); }
+    50%      { opacity: 1;   transform: scale(1.25) translateY(-8px); }
+  }
+
+  /* ---- The music on/off button ---- */
+  #musicBtn {
+    position: absolute;
+    bottom: 18px;
+    left: 18px;
+    z-index: 25;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+    font-size: 22px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+  #musicBtn:hover { transform: scale(1.08); }
+  #musicBtn:active { transform: scale(0.94); }
+
+  /* Shari's Spin Fire cooldown badge (shows once she joins at level 3). */
+  #shariPower {
+    position: absolute;
+    bottom: 20px; left: 84px;
+    z-index: 25;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 10px 14px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    min-width: 150px;
+  }
+  #shariPowerBar {
+    height: 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    overflow: hidden;
+  }
+  #shariPowerFill {
+    width: 0%;
+    height: 100%;
+    background: #7bb0ff;
+    transition: width 0.3s linear;
+  }
+  #shariPower.ready #shariPowerLabel { color: #57f08a; }
+  #shariPower.ready #shariPowerFill { background: #57f08a; }
+
+  /* The spinning ring of fire from Shari's special attack. */
+  .spinFire {
+    position: absolute;
+    z-index: 7;
+    pointer-events: none;
+    animation: spinFireAnim 1.2s ease-out forwards;
+  }
+  .spinFire span { position: absolute; left: 0; top: 0; font-size: 30px; }
+  @keyframes spinFireAnim {
+    0%   { transform: translate(-50%, -50%) rotate(0deg)   scale(0.3); opacity: 1; }
+    100% { transform: translate(-50%, -50%) rotate(540deg) scale(4.6); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <div id="game">
+    <div id="sceneryRow"></div>
+
+    <!-- Per-land silhouette scenes; switchLand reveals the one for the current land. -->
+    <div class="landScene" data-land="0">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <!-- Sky Kingdom: rolling mountains (3 depth layers), a castle, birds -->
+        <path d="M0 600 Q120 560 200 585 Q300 500 400 580 Q500 522 600 586 Q712 506 820 580 Q920 532 1020 582 Q1110 548 1200 586 L1200 800 L0 800 Z" fill="#7d8cc4" opacity="0.3"/>
+        <path d="M0 662 Q90 624 162 582 Q244 540 300 602 Q384 512 470 596 Q552 544 630 602 Q722 516 820 596 Q902 548 1000 592 Q1092 556 1200 602 L1200 800 L0 800 Z" fill="#6678b4" opacity="0.5"/>
+        <path d="M0 800 L0 702 Q82 666 152 690 Q242 610 340 686 Q422 640 520 696 Q612 616 712 690 Q802 646 900 696 Q992 626 1090 690 Q1150 666 1200 686 L1200 800 Z" fill="#48568f"/>
+        <g fill="#39426e">
+          <rect x="980" y="560" width="120" height="150"/>
+          <rect x="978" y="540" width="22" height="26"/><rect x="1020" y="540" width="22" height="26"/><rect x="1062" y="540" width="22" height="26"/>
+          <rect x="1024" y="495" width="28" height="80"/>
+          <path d="M1038 462 l18 34 l-36 0 Z"/>
+          <rect x="940" y="600" width="24" height="110"/><path d="M952 576 l12 26 l-24 0 Z"/>
+        </g>
+        <g fill="none" stroke="#39426e" stroke-width="4" opacity="0.55">
+          <path d="M320 230 q16 -14 32 0 M352 230 q16 -14 32 0"/>
+          <path d="M470 190 q13 -11 26 0 M496 190 q13 -11 26 0"/>
+          <path d="M250 285 q12 -10 24 0 M274 285 q12 -10 24 0"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="landScene" data-land="2">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <!-- Mermaid Lagoon: kelp, coral, rocks, rising bubbles -->
+        <defs>
+          <radialGradient id="bubGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#bff3ff" stop-opacity="0.9"/><stop offset="100%" stop-color="#bff3ff" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <path d="M0 800 L0 680 Q150 650 300 678 Q480 640 660 680 Q840 645 1020 682 Q1120 665 1200 685 L1200 800 Z" fill="#05303a"/>
+        <g fill="#04272f">
+          <ellipse cx="180" cy="720" rx="120" ry="60"/><ellipse cx="1000" cy="730" rx="140" ry="64"/><ellipse cx="600" cy="748" rx="100" ry="46"/>
+        </g>
+        <g fill="#063e44">
+          <path class="kelp" style="animation-delay:0s"   d="M110 800 C92 680 140 600 104 470 C84 600 76 700 92 800 Z"/>
+          <path class="kelp" style="animation-delay:0.6s" d="M150 800 C140 700 168 640 150 560 C130 640 132 720 134 800 Z"/>
+          <path class="kelp" style="animation-delay:1.1s" d="M210 800 C196 700 228 630 206 520 C188 630 184 720 190 800 Z"/>
+          <path class="kelp" style="animation-delay:0.3s" d="M350 800 C334 690 372 620 344 500 C322 620 326 720 330 800 Z"/>
+          <path class="kelp" style="animation-delay:1.4s" d="M500 800 C486 700 520 640 498 540 C480 640 482 720 484 800 Z"/>
+          <path class="kelp" style="animation-delay:0.8s" d="M640 800 C620 690 660 620 630 520 C610 620 612 720 614 800 Z"/>
+          <path class="kelp" style="animation-delay:1.6s" d="M770 800 C756 700 790 630 766 540 C748 630 750 720 752 800 Z"/>
+          <path class="kelp" style="animation-delay:0.5s" d="M900 800 C886 695 920 625 896 515 C878 625 880 720 884 800 Z"/>
+          <path class="kelp" style="animation-delay:1.2s" d="M1050 800 C1062 700 1030 640 1050 560 C1070 640 1068 720 1066 800 Z"/>
+          <path class="kelp" style="animation-delay:0.2s" d="M1090 800 C1108 680 1058 600 1096 470 C1116 600 1124 700 1104 800 Z"/>
+        </g>
+        <g fill="#0a4a52">
+          <path d="M300 800 C298 758 284 740 290 710 C294 726 304 728 304 704 C312 718 310 740 312 758 C318 738 330 728 328 704 C338 722 332 752 332 800 Z"/>
+          <path d="M860 800 C858 760 846 742 852 714 C856 728 866 730 866 708 C874 722 872 742 874 760 C880 742 892 732 890 710 C900 726 894 754 894 800 Z"/>
+          <path d="M470 800 C468 766 458 750 464 728 C468 742 478 744 478 724 C486 738 482 764 484 800 Z"/>
+          <path d="M1000 800 C998 770 990 756 995 736 C999 748 1008 750 1008 732 C1015 746 1011 770 1013 800 Z"/>
+        </g>
+        <g>
+          <circle class="bub" cx="250" cy="500" r="9" fill="url(#bubGlow)" style="animation-delay:0s"/>
+          <circle class="bub" cx="480" cy="420" r="6" fill="url(#bubGlow)" style="animation-delay:1s"/>
+          <circle class="bub" cx="720" cy="460" r="11" fill="url(#bubGlow)" style="animation-delay:2s"/>
+          <circle class="bub" cx="920" cy="400" r="7" fill="url(#bubGlow)" style="animation-delay:0.6s"/>
+          <circle class="bub" cx="600" cy="540" r="8" fill="url(#bubGlow)" style="animation-delay:1.5s"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="landScene" data-land="3">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <!-- Aurora Peaks: complex jagged snowy mountains and pine trees -->
+        <path d="M0 560 L110 430 L175 505 L250 360 L300 440 L370 330 L440 455 L520 380 L585 300 L660 455 L735 395 L810 470 L880 320 L955 450 L1030 370 L1100 470 L1170 410 L1200 460 L1200 800 L0 800 Z" fill="#1a2a55" opacity="0.6"/>
+        <g fill="#cdd9f4" opacity="0.55">
+          <path d="M585 300 l30 60 l-19 6 l-11 -16 l-12 18 l-16 -8 Z"/>
+          <path d="M370 330 l26 54 l-16 6 l-10 -14 l-10 16 l-14 -8 Z"/>
+          <path d="M880 320 l28 56 l-17 6 l-11 -15 l-11 17 l-15 -8 Z"/>
+          <path d="M250 360 l24 50 l-15 6 l-9 -13 l-10 15 l-13 -7 Z"/>
+        </g>
+        <path d="M0 800 L0 600 L130 460 L210 545 L300 410 L370 510 L450 430 L540 555 L640 400 L720 500 L800 540 L890 430 L980 555 L1070 445 L1150 540 L1200 480 L1200 800 Z" fill="#0e1a3e"/>
+        <g fill="#091530">
+          <rect x="116" y="742" width="8" height="40"/><path d="M120 654 l26 50 l-52 0 Z"/><path d="M120 692 l30 50 l-60 0 Z"/><path d="M120 726 l34 46 l-68 0 Z"/>
+          <rect x="1076" y="742" width="8" height="40"/><path d="M1080 654 l26 50 l-52 0 Z"/><path d="M1080 692 l30 50 l-60 0 Z"/><path d="M1080 726 l34 46 l-68 0 Z"/>
+          <rect x="296" y="752" width="7" height="34"/><path d="M300 680 l22 44 l-44 0 Z"/><path d="M300 712 l26 44 l-52 0 Z"/><path d="M300 742 l30 40 l-60 0 Z"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="landScene" data-land="4">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <!-- Rainbow Castle: keep, wall, towers and spires -->
+        <path d="M0 800 L0 700 Q300 660 600 700 Q900 740 1200 690 L1200 800 Z" fill="#34205c"/>
+        <g fill="#2a1a4e">
+          <rect x="330" y="560" width="540" height="160"/>
+          <rect x="330" y="544" width="26" height="20"/><rect x="376" y="544" width="26" height="20"/><rect x="422" y="544" width="26" height="20"/><rect x="468" y="544" width="26" height="20"/><rect x="514" y="544" width="26" height="20"/><rect x="560" y="544" width="26" height="20"/><rect x="606" y="544" width="26" height="20"/><rect x="652" y="544" width="26" height="20"/><rect x="698" y="544" width="26" height="20"/><rect x="744" y="544" width="26" height="20"/><rect x="790" y="544" width="26" height="20"/><rect x="836" y="544" width="26" height="20"/>
+          <rect x="470" y="470" width="260" height="250"/>
+          <rect x="470" y="452" width="28" height="22"/><rect x="516" y="452" width="28" height="22"/><rect x="562" y="452" width="28" height="22"/><rect x="608" y="452" width="28" height="22"/><rect x="654" y="452" width="28" height="22"/><rect x="700" y="452" width="28" height="22"/>
+          <rect x="430" y="410" width="56" height="310"/><rect x="714" y="410" width="56" height="310"/>
+          <rect x="310" y="470" width="48" height="250"/><rect x="842" y="470" width="48" height="250"/>
+          <rect x="562" y="350" width="76" height="370"/>
+          <path d="M430 410 L458 350 L486 410 Z"/><path d="M714 410 L742 350 L770 410 Z"/>
+          <path d="M310 470 L334 416 L358 470 Z"/><path d="M842 470 L866 416 L890 470 Z"/>
+          <path d="M562 350 L600 274 L638 350 Z"/>
+        </g>
+        <g fill="#1f1340">
+          <rect x="582" y="600" width="36" height="120" rx="18"/>
+          <rect x="448" y="468" width="14" height="32" rx="7"/><rect x="738" y="468" width="14" height="32" rx="7"/>
+          <rect x="592" y="418" width="16" height="34" rx="8"/>
+        </g>
+        <g fill="#ff6fc4"><rect x="599" y="254" width="3" height="26"/><path d="M602 256 l22 8 l-22 8 Z"/></g>
+      </svg>
+    </div>
+
+    <!-- Midsummer Forest: layered tree silhouettes + fireflies -->
+    <div id="forestOverlay" class="landScene" data-land="1">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="ffGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff7c8" stop-opacity="1"/>
+            <stop offset="45%" stop-color="#ffd765" stop-opacity="0.75"/>
+            <stop offset="100%" stop-color="#ffd765" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- distant hazy tree line -->
+        <g fill="#16304a" opacity="0.55">
+          <path d="M0 560 Q120 470 240 540 Q360 460 480 535 Q620 470 760 540 Q900 470 1040 535 Q1140 490 1200 540 L1200 800 L0 800 Z"/>
+          <rect x="300" y="380" width="10" height="200"/><ellipse cx="305" cy="380" rx="46" ry="40"/>
+          <rect x="700" y="360" width="10" height="220"/><ellipse cx="705" cy="360" rx="52" ry="44"/>
+          <rect x="930" y="400" width="9" height="190"/><ellipse cx="934" cy="400" rx="40" ry="36"/>
+        </g>
+        <!-- near forest ridge -->
+        <path d="M0 800 L0 600 Q80 560 150 585 Q230 545 320 580 Q420 540 520 580 Q630 545 740 585 Q850 548 960 586 Q1070 552 1160 585 Q1185 575 1200 590 L1200 800 Z" fill="#0a1827"/>
+        <!-- left framing tree -->
+        <g fill="#050e1a">
+          <path d="M150 800 C140 600 124 430 116 280 C114 250 120 224 132 212 C144 224 150 250 152 282 C160 440 178 620 196 800 Z"/>
+          <path d="M126 360 C96 338 66 322 36 330 C66 342 96 360 124 384 Z"/>
+          <path d="M134 300 C112 268 86 244 56 242 C84 260 108 290 130 330 Z"/>
+          <path d="M138 330 C166 314 196 300 226 306 C198 318 168 338 142 358 Z"/>
+          <ellipse cx="110" cy="220" rx="70" ry="50"/>
+          <ellipse cx="170" cy="250" rx="58" ry="42"/>
+          <ellipse cx="64" cy="270" rx="50" ry="38"/>
+          <ellipse cx="140" cy="186" rx="46" ry="36"/>
+        </g>
+        <!-- right framing tree -->
+        <g fill="#050e1a">
+          <path d="M1050 800 C1060 600 1076 430 1084 280 C1086 250 1080 224 1068 212 C1056 224 1050 250 1048 282 C1040 440 1022 620 1004 800 Z"/>
+          <path d="M1074 360 C1104 338 1134 322 1164 330 C1134 342 1104 360 1076 384 Z"/>
+          <path d="M1066 300 C1088 268 1114 244 1144 242 C1116 260 1092 290 1070 330 Z"/>
+          <path d="M1062 330 C1034 314 1004 300 974 306 C1002 318 1032 338 1058 358 Z"/>
+          <ellipse cx="1090" cy="220" rx="70" ry="50"/>
+          <ellipse cx="1030" cy="250" rx="58" ry="42"/>
+          <ellipse cx="1136" cy="270" rx="50" ry="38"/>
+          <ellipse cx="1060" cy="186" rx="46" ry="36"/>
+        </g>
+        <!-- slim mid trees -->
+        <g fill="#081320">
+          <path d="M380 800 C374 660 366 540 362 440 C361 418 366 404 374 398 C382 404 386 418 387 442 C392 560 402 680 412 800 Z"/>
+          <ellipse cx="360" cy="410" rx="40" ry="32"/><ellipse cx="396" cy="430" rx="34" ry="28"/>
+          <path d="M820 800 C826 660 834 540 838 440 C839 418 834 404 826 398 C818 404 814 418 813 442 C808 560 798 680 788 800 Z"/>
+          <ellipse cx="840" cy="410" rx="40" ry="32"/><ellipse cx="804" cy="430" rx="34" ry="28"/>
+        </g>
+        <!-- foreground reeds -->
+        <g fill="#03080e">
+          <path d="M40 800 C36 730 30 690 40 640 C48 690 50 730 54 800 Z"/>
+          <path d="M70 800 C68 745 64 710 72 675 C78 712 80 748 84 800 Z"/>
+          <path d="M1140 800 C1144 730 1150 690 1140 640 C1132 690 1130 730 1126 800 Z"/>
+          <path d="M1110 800 C1112 745 1116 710 1108 675 C1102 712 1100 748 1096 800 Z"/>
+          <path d="M560 800 C556 752 552 720 560 690 C566 720 568 752 572 800 Z"/>
+          <path d="M620 800 C622 756 626 726 618 700 C612 726 610 756 606 800 Z"/>
+        </g>
+        <!-- fireflies -->
+        <g>
+          <circle class="ff" cx="300" cy="300" r="7" fill="url(#ffGlow)" style="animation-delay:0s"/>
+          <circle class="ff" cx="520" cy="240" r="6" fill="url(#ffGlow)" style="animation-delay:0.7s"/>
+          <circle class="ff" cx="680" cy="330" r="8" fill="url(#ffGlow)" style="animation-delay:1.3s"/>
+          <circle class="ff" cx="900" cy="280" r="6" fill="url(#ffGlow)" style="animation-delay:0.4s"/>
+          <circle class="ff" cx="430" cy="400" r="5" fill="url(#ffGlow)" style="animation-delay:1.8s"/>
+          <circle class="ff" cx="760" cy="420" r="7" fill="url(#ffGlow)" style="animation-delay:2.2s"/>
+          <circle class="ff" cx="250" cy="430" r="5" fill="url(#ffGlow)" style="animation-delay:1.1s"/>
+          <circle class="ff" cx="980" cy="420" r="6" fill="url(#ffGlow)" style="animation-delay:0.9s"/>
+        </g>
+      </svg>
+    </div>
+    <div id="landBanner"></div>
+    <div id="hud">
+      <h1>🐉 Clara, Shari &amp; the Dragons</h1>
+      <div class="scoreRow">Score <span id="score">0</span> · ⏱️ <span id="timer">0:00</span></div>
+      <div id="queenTracker">
+        <span class="qtag" data-q="chaos">👑 Chaos</span>
+        <span class="qtag" data-q="fire">👑 Fire</span>
+        <span class="qtag" data-q="shadow">👑 Shadow</span>
+      </div>
+    </div>
+
+    <div id="mic">
+      <div class="micStatus"><span id="micDot"></span><span id="micLabel">Mic off</span></div>
+      <div id="heard">say a command…</div>
+    </div>
+
+    <div id="dragon"><div id="dragonWings"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="wg" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ffb0e0" stop-opacity="0.96"/><stop offset="1" stop-color="#d44fa6" stop-opacity="0.92"/></linearGradient></defs><g class="wingL"><path d="M62 60 C50 49 39 43 30 41 L7 37 C12 47 11 52 18 57 C13 60 12 63 19 66 C15 69 15 71 23 72 C20 75 22 77 30 76 C40 76 52 70 62 64 Z" fill="url(#wg)" stroke="#ffcf6a" stroke-width="2" stroke-linejoin="round"/><path d="M30 41 L7 37 M30 41 L18 57 M30 41 L23 72 M30 41 L48 73" stroke="#bd4496" stroke-width="1.5" fill="none" opacity="0.75"/><path d="M48 73 C52 70 58 69 62 64" fill="none" stroke="#bd4496" stroke-width="1.5" opacity="0.6"/><path d="M7 37 l-6 -3 l4 7 Z" fill="#ffcf6a"/></g><g class="wingR"><path d="M58 60 C70 49 81 43 90 41 L113 37 C108 47 109 52 102 57 C107 60 108 63 101 66 C105 69 105 71 97 72 C100 75 98 77 90 76 C80 76 68 70 58 64 Z" fill="url(#wg)" stroke="#ffcf6a" stroke-width="2" stroke-linejoin="round"/><path d="M90 41 L113 37 M90 41 L102 57 M90 41 L97 72 M90 41 L72 73" stroke="#bd4496" stroke-width="1.5" fill="none" opacity="0.75"/><path d="M72 73 C68 70 62 69 58 64" fill="none" stroke="#bd4496" stroke-width="1.5" opacity="0.6"/><path d="M113 37 l6 -3 l-4 7 Z" fill="#ffcf6a"/></g></svg></div><div id="dragonFlip"><div id="dragonBody">🐉</div></div><div id="dragonDecor"><span class="dJewel dCrown hidden" data-level="1">👑</span><span class="dJewel dGem hidden" data-level="2">💎</span><span class="dJewel dSpark hidden" data-level="3">✨</span><span class="dJewel dHeart hidden" data-level="4">💖</span></div></div>
+
+    <div id="startScreen">
+      <div class="storyCard">
+        <div class="storyPanels">
+          <div class="storyPanel active">
+            <div class="storyImg">🌙🌲🧚</div>
+            <h1 class="storyTitle">The Midsummer Forest</h1>
+            <p>Deep in a forest where the moonlight <i>sings</i> and the fairies
+              dance, an old magic stirs… and tonight, it will change two best
+              friends forever.</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg">👑🐉</div>
+            <h1 class="storyTitle">Meet Clara</h1>
+            <p>Brave and true, <b>Clara</b> was touched by fairy magic and became a
+              <b>pink dragon</b>. Her fire can burn away any darkness — and her
+              heart never gives up.</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg"><span class="imgShari">🐉</span>💙</div>
+            <h1 class="storyTitle">Meet Shari</h1>
+            <p>Clever and loyal, <b>Shari</b> becomes a <b>turquoise dragon</b>. She
+              soars to your side and unleashes a whirling <b>Spin Fire</b> that
+              clears the skies!</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg">🧝‍♀️ 👸 🧛‍♀️</div>
+            <h1 class="storyTitle">The Three Evil Queens</h1>
+            <p>Queens <b>Chaos</b>, <b>Fire</b>, and <b>Shadow</b> have cursed the
+              forest. They hurl freezing ice bolts and command armies of
+              <b>weirdos</b>. The trees are fading…</p>
+          </div>
+          <div class="storyPanel">
+            <div class="storyImg">⭐ 🧪 🔥 👑</div>
+            <h1 class="storyTitle">Your Quest</h1>
+            <p>Soar through <b>five magical lands</b>, grow new powers, and defeat all
+              <b>three queens</b> to save the forest. Destiny is calling, Guardian —
+              will you answer?</p>
+            <p class="btnHint">🎤 Say up · down · left · right · fire — or drag &amp; tap 🔥 / 🌀</p>
+            <div id="startBestTime"></div>
+          </div>
+        </div>
+        <div class="storyDots">
+          <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="storyButtons">
+          <button id="storyBack" class="storyNav">◀ Back</button>
+          <button id="storyNext" class="storyNav">Next ▶</button>
+          <button id="startBtn">▶ Start the Adventure!</button>
+          <button id="skipBtn">Skip ⏭</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="musicBtn" title="Music on/off">🎵</button>
+
+    <div id="shariPower">
+      <span id="shariPowerLabel">🌀 Spin Fire (S)</span>
+      <div id="shariPowerBar"><div id="shariPowerFill"></div></div>
+    </div>
+
+    <button id="helpToggle" title="Show/hide instructions">❔</button>
+    <div id="touchControls">
+      <button id="spinTouchBtn" class="touchBtn" title="Shari's Spin Fire">🌀</button>
+      <button id="fireTouchBtn" class="touchBtn" title="Fire">🔥</button>
+    </div>
+
+    <div id="help">
+      <span class="chip">🎤 <b>up · down · left · right · fire · go · land</b></span>
+      <span class="chip">⭐ <b>1</b></span>
+      <span class="chip">🧪 potion <b>5</b> 💥</span>
+      <span class="chip">👾 weirdo <b>20+</b> 🔥</span>
+      <span class="chip warn">🌟 spinning star = dizzy — dodge it!</span>
+      <span class="chip warn">🧊 ice bolt = frozen 6s · 🔥 Queen Fire's bolt = −1 &amp; knocked away — dodge!</span>
+      <span class="chip">🌀 press <b>S</b> = Shari's Spin Fire — hits enemies & melts ❄️ ice bolts (lvl 3+)</span>
+      <span class="chip goal">👑 beat the <b>3 queens</b> to WIN!</span>
+    </div>
+
+    <div id="winScreen" class="hidden">
+      <div class="winCard">
+        <div id="endStage">
+          <span class="endDragon left">🐉</span>
+          <span class="endCrown left">👑</span>
+          <span class="endDragon right">🐉</span>
+          <span class="endCrown right">👑</span>
+          <span class="endForest f1">🌲</span>
+          <span class="endForest f2">🌳</span>
+          <span class="endForest f3">🌸</span>
+          <span class="endForest f4">🍄</span>
+          <span class="endForest f5">🌷</span>
+          <span class="endForest f6">🦋</span>
+          <span class="endFairy g1">🧚</span>
+          <span class="endFairy g2">✨</span>
+        </div>
+        <h1 class="winTitle">YOU SAVED THE FOREST!</h1>
+        <p class="winSub">The three queens are beaten, and the fairy queen crowns
+          Clara &amp; Shari as the true Guardians of the Forest. 👑💖</p>
+        <p class="winSub">All around them, the Midsummer Forest bursts back to
+          life — stronger, greener, and more magical than ever. 🌲🌸🧚✨</p>
+        <div class="winScore">Final score: <b id="finalScore">0</b> · ⏱️ Time: <b id="winTime">0:00</b></div>
+        <div id="winRecord"></div>
+        <div id="winBest"></div>
+        <button id="playAgainBtn">▶ Play Again</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  Clara, Shari, and the Dragons
+  ------------------------------
+  A voice-controlled flying game.
+
+  The big idea: the browser listens to your voice with the Web Speech API,
+  turns what you say into text, and we look for command words inside that text.
+  Each command word moves the dragon or makes it breathe fire.
+*/
+
+// Grab the things on the page we want to control.
+const game       = document.getElementById("game");
+const dragon     = document.getElementById("dragon");
+const dragonBody = document.getElementById("dragonBody");
+const bosses     = []; // all the bosses currently on screen
+const bigPotions = []; // golden big potions on screen (catchable by fire too)
+const queenBolts = []; // queens' ice bolts in flight (Spin Fire can melt them)
+const scoreEl  = document.getElementById("score");
+const startBtn = document.getElementById("startBtn");
+const musicBtn = document.getElementById("musicBtn");
+const shariPower = document.getElementById("shariPower");
+const shariPowerLabel = document.getElementById("shariPowerLabel");
+const shariPowerFill = document.getElementById("shariPowerFill");
+const micDot   = document.getElementById("micDot");
+const micLabel = document.getElementById("micLabel");
+const heardEl    = document.getElementById("heard");
+const sceneryRow = document.getElementById("sceneryRow");
+const forestOverlay = document.getElementById("forestOverlay");
+const landBanner = document.getElementById("landBanner");
+
+// ---- The five magical lands ----
+// Each land is just a "recipe card": its sky, its sparkle, its scenery.
+// The dragon flies to the next land every 200 points.
+const LANDS = [
+  {
+    name: "🏰 the Sky Kingdom",
+    background: "radial-gradient(circle at 80% 16%, rgba(255,243,190,0.95) 0%, rgba(255,221,150,0.5) 8%, rgba(255,221,150,0) 20%), radial-gradient(circle at 20% 82%, rgba(255,180,150,0.35), rgba(255,180,150,0) 40%), linear-gradient(180deg, #244aa8 0%, #5f7fd0 35%, #9fb6ef 60%, #ffd1a3 100%)",
+    fairy: "✨",
+    glow: "#fff6b0",
+    scenery: "☁️ ☁️ ☁️ ☁️ ☁️",
+  },
+  {
+    name: "🧚 the Midsummer Forest",
+    background: "linear-gradient(180deg, #1a1452 0%, #3a2c80 45%, #6a5bb0 80%, #c9b6e8 100%)",
+    image: "assets/midsummer-forest.png", // the magical moonlit fairy-forest picture
+    fairy: "🧚",
+    glow: "#e7c8ff",
+    scenery: "", // the picture already has its own scenery, so no emoji row
+  },
+  {
+    name: "🧜 the Mermaid Lagoon",
+    background: "repeating-linear-gradient(115deg, rgba(255,255,255,0.10) 0px, rgba(255,255,255,0.10) 14px, rgba(255,255,255,0) 14px, rgba(255,255,255,0) 72px), radial-gradient(ellipse at 50% -10%, rgba(190,255,250,0.6), rgba(190,255,250,0) 45%), linear-gradient(180deg, #00224e 0%, #0a4f8a 45%, #1f9fb8 80%, #8fe9e0 100%)",
+    fairy: "🫧",
+    glow: "#9af0ff",
+    scenery: "🐚 🪸 🐠 🌊 🪸 🐡 🐚 🌊 🪸",
+  },
+  {
+    name: "❄️ the Aurora Peaks",
+    background: "radial-gradient(ellipse 60% 40% at 30% 30%, rgba(80,255,180,0.40), rgba(80,255,180,0) 60%), radial-gradient(ellipse 55% 45% at 68% 26%, rgba(150,110,255,0.38), rgba(150,110,255,0) 60%), radial-gradient(ellipse 50% 30% at 50% 42%, rgba(120,200,255,0.30), rgba(120,200,255,0) 65%), linear-gradient(180deg, #050024 0%, #0c1747 45%, #123a5a 78%, #bfe8ff 100%)",
+    fairy: "🌟",
+    glow: "#aeffe9",
+    scenery: "🏔️ ⛰️ 🗻 ⛰️ 🏔️ 🗻 ⛰️",
+  },
+  {
+    name: "🌈 the Rainbow Castle",
+    background: "radial-gradient(circle at 50% 125%, rgba(255,0,0,0) 28%, rgba(255,90,90,0.55) 30%, rgba(255,170,70,0.55) 33%, rgba(255,235,80,0.55) 36%, rgba(90,220,120,0.55) 39%, rgba(90,170,255,0.55) 42%, rgba(170,110,255,0.55) 45%, rgba(170,110,255,0) 48%), linear-gradient(180deg, #ff9ec9 0%, #c9a7ff 50%, #a7d8ff 100%)",
+    fairy: "🌈",
+    glow: "#fff0fb",
+    scenery: "🏰 ☁️ 🌈 ☁️ 🏰 🌈 ☁️",
+  },
+];
+
+let currentLand = 0;
+
+// Each new level grants Clara a new power (a jewel that appears on her).
+const LEVEL_POWERS = {
+  1: "👑 the Crown of Courage",
+  2: "💎 the Gem of the Sea",
+  3: "✨ the Sparkle of Light",
+  4: "💖 the Heart of the Dragon",
+};
+
+// Add points, update the scoreboard, and check if it's time for a new land.
+function addScore(points) {
+  score += points;
+  scoreEl.textContent = score;
+  const idx = Math.min(LANDS.length - 1, Math.floor(score / 200));
+  if (idx !== currentLand) switchLand(idx);
+  // (You win by defeating all three queens, not by score — see defeatQueenWave.)
+}
+
+// Fly to a new land: change the sky, the scenery, and announce it.
+function switchLand(idx) {
+  currentLand = idx;
+  const land = LANDS[idx];
+  soundLand();
+  // Use a picture if this land has one; the gradient stays underneath as a
+  // safety net in case the image file hasn't been added yet.
+  game.style.background = land.image
+    ? "url('" + land.image + "') center / cover no-repeat, " + land.background
+    : land.background;
+  sceneryRow.textContent = land.scenery || "";
+  // Show only this land's silhouette scene (hide all the others).
+  document.querySelectorAll(".landScene").forEach((s) => {
+    s.classList.toggle("show", Number(s.dataset.land) === idx);
+  });
+
+  // Reaching a new level earns Clara a new power (reveal her next jewel).
+  const power = LEVEL_POWERS[idx];
+  if (power) {
+    const jewel = document.querySelector('#dragonDecor [data-level="' + idx + '"]');
+    if (jewel) jewel.classList.remove("hidden");
+    banner("✨ Welcome to " + land.name + " — Clara earns " + power + "! ✨");
+  } else {
+    banner("✨ Welcome to " + land.name + "! ✨");
+  }
+
+  // If an evil queen rules this land, she appears after a dramatic pause.
+  const q = QUEENS.find((qq) => qq.land === idx);
+  if (q && !queenState[q.key].defeated && !queenState[q.key].active) {
+    setTimeout(() => { if (!won) spawnQueen(q); }, 2600);
+  }
+
+  // Shari joins for the Mermaid Lagoon (level 3) and stays for the rest.
+  if (idx === 2) spawnShari();
+
+  // SPEED BONUS: cleared the previous level in under a minute? Rainbow skin!
+  const nowMs = Date.now();
+  if (idx > 0 && levelStartMs && nowMs - levelStartMs < 60000) {
+    setTimeout(awardRainbow, 1500); // after the welcome banner
+  }
+  levelStartMs = nowMs; // start the clock for this new level
+}
+
+// Grant the shimmering silver-rainbow skin (and double fire) as a speed reward.
+function awardRainbow() {
+  if (won) return;
+  rainbow = true;
+  dragonBody.classList.add("rainbow");
+  flashScreen();
+  soundLand();
+  banner("⚡ SPEED BONUS! 🌈 Silver Rainbow Skin + DOUBLE FIRE! ✨");
+}
+
+// Show a big sparkly banner message (reused for lands, queens, etc.).
+function banner(msg) {
+  landBanner.textContent = msg;
+  landBanner.classList.remove("show");
+  void landBanner.offsetWidth; // a trick that restarts the animation
+  landBanner.classList.add("show");
+}
+
+// Make one twinkling magical sparkle for whichever land we're in.
+function spawnFairy() {
+  const land = LANDS[currentLand];
+  const f = document.createElement("div");
+  f.className = "fairy";
+  f.textContent = land.fairy;
+  f.style.left = (Math.random() * window.innerWidth) + "px";
+  f.style.top  = (Math.random() * window.innerHeight) + "px";
+  f.style.textShadow = "0 0 10px " + land.glow;
+  game.appendChild(f);
+  setTimeout(() => f.remove(), 6000); // matches the animation length
+}
+
+// ---- Getting dizzy ----
+// Put spinning stars around the dragon's head and freeze it for a moment.
+function makeDizzy() {
+  if (dizzy || won || frozen) return; // already stunned, frozen, or the game is won
+  dizzy = true;
+  soundDizzy();
+
+  const ring = document.createElement("div");
+  ring.id = "dizzyStars";
+  ring.innerHTML = "<span>💫</span><span>💫</span><span>💫</span>";
+  dragon.appendChild(ring);   // attach to the dragon so it follows along
+  dragonBody.classList.add("dizzy");
+  heardEl.textContent = "😵 Dizzy! Wait for the stars to stop…";
+
+  // After 3 seconds the dizziness wears off and everything works again.
+  setTimeout(() => {
+    ring.remove();
+    dragonBody.classList.remove("dizzy");
+    dizzy = false;
+    soundRecover();
+    heardEl.textContent = "✨ All better! Say a command…";
+  }, 3000);
+}
+
+// ---- The spinning-star hazard ----
+// A red, whirling star flies across the screen. Touch it and you get dizzy!
+function spawnSpinStar() {
+  const s = document.createElement("div");
+  s.className = "spinStar";
+  s.textContent = "🌟";
+  let sx = window.innerWidth + 60;
+  const sy = Math.random() * (window.innerHeight - 220) + 40;
+  s.style.left = sx + "px";
+  s.style.top  = sy + "px";
+  game.appendChild(s);
+
+  const move = setInterval(() => {
+    sx -= 5; // faster than clouds — it's a hazard
+    s.style.left = sx + "px";
+
+    // Only check for a hit if we're not already dizzy (grace period).
+    if (!dizzy) {
+      const a = dragon.getBoundingClientRect();
+      const b = s.getBoundingClientRect();
+      const hit = !(a.right < b.left || a.left > b.right ||
+                    a.bottom < b.top || a.top > b.bottom);
+      if (hit) {
+        makeDizzy();
+        clearInterval(move);
+        s.remove();
+        return;
+      }
+    }
+
+    if (sx < -80) { clearInterval(move); s.remove(); } // left the screen
+  }, 30);
+}
+
+// ---- Sounds ----
+// We MAKE the sounds right here in the browser (no sound files needed!) using
+// the Web Audio API. Each effect is just a quick beep at a chosen pitch.
+let audioCtx = null;
+
+// Wake up the sound. Browsers only allow this after a real click (the Play button).
+function initAudio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (AC && !audioCtx) audioCtx = new AC();
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+}
+
+// Play one tone: freq = pitch, dur = length, type = the "shape" of the sound.
+function tone(freq, dur, type, volume) {
+  if (!audioCtx) return;
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || "sine";
+  osc.frequency.value = freq;
+  osc.connect(gain).connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(volume || 0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + dur); // fade out smoothly
+  osc.start(now);
+  osc.stop(now + dur);
+}
+
+// Play several tones in a row to make a little tune.
+function tune(notes) {
+  let when = 0;
+  for (const n of notes) {
+    setTimeout(() => tone(n.f, n.d || 0.15, n.t || "triangle", n.v || 0.2), when);
+    when += (n.gap || 120);
+  }
+}
+
+// The sound for each thing that happens in the game.
+const soundStar    = () => tone(880, 0.12, "triangle", 0.2);            // catch a star
+const soundFire    = () => tone(300, 0.08, "square", 0.12);            // breathe fire
+const soundPotion  = () => tune([{ f: 660 }, { f: 990 }]);             // drink a potion
+const soundExplode = () => tone(110, 0.30, "sawtooth", 0.3);          // BOOM
+const soundBoss    = () => tune([{ f: 523 }, { f: 659 }, { f: 784 }, { f: 1047, d: 0.3 }]); // beat a boss
+const soundFlap    = () => tone(200, 0.06, "sine", 0.05);             // a soft wing flap
+const soundRecover = () => tune([{ f: 440 }, { f: 660 }, { f: 880, d: 0.2 }]); // dizziness wears off
+const soundFreeze  = () => tune([{ f: 1175 }, { f: 880 }, { f: 587 }, { f: 392, d: 0.4 }]); // icy slide down
+const soundBurn    = () => tune([{ f: 300, t: "sawtooth" }, { f: 200, t: "sawtooth" }, { f: 120, t: "sawtooth", d: 0.35 }]); // harsh sizzle
+// A happy "ta-da!" fanfare when you fly into a new land.
+const soundLand    = () => tune([
+  { f: 659 }, { f: 880 }, { f: 1047 }, { f: 1319, d: 0.32 }, { f: 1047, gap: 90, d: 0.3 },
+]);
+// A big triumphant fanfare for winning the whole game.
+const soundWin = () => tune([
+  { f: 523 }, { f: 659 }, { f: 784 }, { f: 1047, d: 0.25 },
+  { f: 784, gap: 90 }, { f: 1047 }, { f: 1319, d: 0.6 },
+]);
+
+// ---- Winning the game ----
+function winGame() {
+  won = true;
+  clearInterval(timerInterval);
+  const finishSec = elapsedSec();
+
+  // Compare against the saved best time and update it if this run is faster.
+  const prevBest = getBestTime();
+  const isRecord = prevBest === null || finishSec < prevBest;
+  if (isRecord) saveBestTime(finishSec);
+
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("winTime").textContent = fmtTime(finishSec);
+  let recordMsg = "";
+  if (isRecord) recordMsg = "🏆 NEW BEST TIME!";
+  else recordMsg = "Best: " + fmtTime(prevBest);
+  if (finishSec <= FAST_TIME) recordMsg = "⚡ SPEED CHAMPION! ⚡ " + recordMsg;
+  const recEl = document.getElementById("winRecord");
+  recEl.textContent = recordMsg;
+  recEl.classList.toggle("speedy", finishSec <= FAST_TIME || isRecord);
+  const savedBest = getBestTime();
+  document.getElementById("winBest").textContent =
+    "⏱️ Best time: " + (savedBest !== null ? fmtTime(savedBest) : "—");
+
+  document.getElementById("winScreen").classList.remove("hidden");
+  soundWin();
+  launchConfetti(90);
+  playEndAnimation();
+
+  // Fire off bursts of fireworks for a few seconds.
+  let bursts = 0;
+  const show = setInterval(() => {
+    firework();
+    if (++bursts > 14) clearInterval(show);
+  }, 320);
+}
+
+// Kick off the ending animation (crowns drop, the forest grows).
+function playEndAnimation() {
+  const stage = document.getElementById("endStage");
+  stage.classList.remove("play");
+  void stage.offsetWidth; // restart the animations
+  stage.classList.add("play");
+}
+
+// Rain colourful confetti down the win screen.
+function launchConfetti(count) {
+  const winScreen = document.getElementById("winScreen");
+  const emojis = ["🎉", "✨", "⭐", "🌈", "💖", "🎊", "💫", "🩷"];
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.textContent = emojis[i % emojis.length];
+    c.style.left = (Math.random() * 100) + "vw";
+    c.style.fontSize = (18 + Math.random() * 22) + "px";
+    const dur = 2.5 + Math.random() * 2.8;
+    c.style.animationDuration = dur + "s";
+    c.style.animationDelay = (Math.random() * 1.6) + "s";
+    winScreen.appendChild(c);
+    setTimeout(() => c.remove(), (dur + 2) * 1000);
+  }
+}
+
+// One firework burst at a random spot.
+function firework() {
+  const winScreen = document.getElementById("winScreen");
+  const f = document.createElement("div");
+  f.className = "firework";
+  f.textContent = Math.random() < 0.5 ? "🎆" : "🎇";
+  f.style.left = (Math.random() * 86 + 7) + "vw";
+  f.style.top  = (Math.random() * 56 + 10) + "vh";
+  winScreen.appendChild(f);
+  if (audioCtx) tone(660 + Math.random() * 400, 0.12, "triangle", 0.12);
+  setTimeout(() => f.remove(), 700);
+}
+function soundDizzy() {
+  // A woozy slide from high down to low.
+  if (!audioCtx) return;
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "sine";
+  const now = audioCtx.currentTime;
+  osc.frequency.setValueAtTime(700, now);
+  osc.frequency.exponentialRampToValueAtTime(160, now + 0.6);
+  gain.gain.setValueAtTime(0.25, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.6);
+}
+
+// Game state — the numbers we keep track of while playing.
+let score = 0;
+let dragonY = window.innerHeight / 2; // up/down position (pixels from top)
+let dragonX = 120;                    // left/right position
+const STEP = 80;                      // how far the dragon moves per command
+let dizzy = false;                    // true while the dragon is stunned by a spinning star
+let frozen = false;                   // true while a queen's ice bolt has frozen her (6s)
+let rainbow = false;                  // true once the speed-bonus rainbow skin is earned
+let berryBoost = false;               // true while a magic berry's 3×/3× boost is active
+let berryTimer = null;
+let levelStartMs = 0;                 // when the current level started (for the < 1 min bonus)
+let won = false;                      // true once the player reaches the goal
+const WIN_SCORE = 1000;               // reach this to win the whole game!
+
+// ---- Moving the dragon ----
+// We keep the dragon inside the window so it never flies off-screen.
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function placeDragon() {
+  dragonY = clamp(dragonY, 40, window.innerHeight - 100);
+  dragonX = clamp(dragonX, 20, window.innerWidth - 120);
+  dragon.style.top  = dragonY + "px";
+  dragon.style.left = dragonX + "px";
+}
+
+// Flying = flapping. Landing = settle down and stop flapping.
+function setFlying() { dragonBody.classList.remove("landed"); soundFlap(); }
+function land() {
+  dragonBody.classList.add("landed");
+  dragonY = window.innerHeight - 100; // drop down to the ground
+  placeDragon();
+}
+
+// Every move makes the dragon take off (start flapping) first.
+function moveUp()    { setFlying(); dragonY -= STEP; placeDragon(); }
+function moveDown()  { setFlying(); dragonY += STEP; placeDragon(); }
+function moveLeft()  { setFlying(); dragonX -= STEP; placeDragon(); }
+function moveRight() { setFlying(); dragonX += STEP; placeDragon(); }
+
+// ---- Breathing fire ----
+// A fire emoji shoots to the right from the dragon's mouth, then disappears.
+function breatheFire() {
+  soundFire();
+  // rainbow skin = 2×, magic berry = 3×, and they stack.
+  const power = (rainbow ? 2 : 1) * (berryBoost ? 3 : 1);
+  shootFire(dragonX + 60, dragonY + 10, power, false, berryBoost);
+}
+
+// Spawn a fireball at (x, y) that flies right and can hit weirdos/queens.
+// Used by the player AND by Shari. power = damage; tiny/big = the fire's size.
+function shootFire(x, y, power, tiny, big) {
+  power = power || 1;
+  const fire = document.createElement("div");
+  fire.className = "fire" + (tiny ? " tiny" : "") + (big ? " big" : "");
+  fire.textContent = "🔥";
+  let fx = x;
+  const fy = y;
+  fire.style.left = fx + "px";
+  fire.style.top  = fy + "px";
+  game.appendChild(fire);
+
+  // Move the fire across the screen a little at a time.
+  const flight = setInterval(() => {
+    fx += 18;
+    fire.style.left = fx + "px";
+
+    // Did this fire hit a boss? Check every boss on screen.
+    const fr = fire.getBoundingClientRect();
+    for (const boss of bosses.slice()) {
+      const br = (boss.hitEl || boss.el).getBoundingClientRect();
+      const hit = !(fr.right < br.left || fr.left > br.right ||
+                    fr.bottom < br.top || fr.top > br.bottom);
+      if (hit) {
+        boss.hp -= power;      // knock down its health (tiny shots do less)
+        explode(fx, fy);       // little sparks where it was struck
+        clearInterval(flight);
+        fire.remove();
+        if (boss.isQueen) updateQueenBar(boss);
+        if (boss.hp <= 0) {
+          if (boss.isQueen) defeatQueenWave(boss); // a queen loses this round
+          else defeatBoss(boss);                   // a weirdo is beaten
+        }
+        return;
+      }
+    }
+
+    // Did this fire hit a golden big potion? Collect it!
+    for (const bp of bigPotions.slice()) {
+      const pr = bp.el.getBoundingClientRect();
+      const hit = !(fr.right < pr.left || fr.left > pr.right ||
+                    fr.bottom < pr.top || fr.top > pr.bottom);
+      if (hit) {
+        collectBigPotion(bp);
+        clearInterval(flight);
+        fire.remove();
+        return;
+      }
+    }
+
+    if (fx > window.innerWidth) {
+      clearInterval(flight);
+      fire.remove();
+    }
+  }, 30);
+}
+
+// A burst of explosion at a spot on the screen.
+function explode(x, y) {
+  soundExplode();
+  const boom = document.createElement("div");
+  boom.className = "boom";
+  boom.textContent = "💥";
+  boom.style.left = x + "px";
+  boom.style.top  = y + "px";
+  game.appendChild(boom);
+  setTimeout(() => boom.remove(), 600);
+}
+
+// A DRAMATIC, screen-shaking explosion — used when a weirdo or queen is beaten.
+function bigExplosion(x, y, scale) {
+  scale = scale || 1;
+  flashScreen();
+  shakeScreen();
+  soundExplode();
+  if (audioCtx) tone(70, 0.5, "sawtooth", 0.3); // deep boom under it
+  const bits = ["💥", "✨", "🌟", "💫", "🔥", "⭐"];
+  const count = Math.round(12 + currentLand * 4); // more bits in later lands
+  for (let i = 0; i < count; i++) {
+    const b = document.createElement("div");
+    b.className = "boom";
+    b.textContent = bits[i % bits.length];
+    const ang = Math.random() * Math.PI * 2;
+    const dist = Math.random() * 60 * scale;
+    b.style.left = (x + Math.cos(ang) * dist) + "px";
+    b.style.top  = (y + Math.sin(ang) * dist) + "px";
+    b.style.fontSize = (28 + Math.random() * 40 * scale) + "px";
+    game.appendChild(b);
+    setTimeout(() => b.remove(), 750);
+  }
+}
+
+// A quick white flash over the whole screen.
+function flashScreen() {
+  const fl = document.createElement("div");
+  fl.className = "flash";
+  game.appendChild(fl);
+  setTimeout(() => fl.remove(), 240);
+}
+
+// Shake the screen briefly (remove + re-add so it always replays).
+function shakeScreen() {
+  game.classList.remove("shake");
+  void game.offsetWidth;
+  game.classList.add("shake");
+  setTimeout(() => game.classList.remove("shake"), 440);
+}
+
+// ---- Stars to catch ----
+// Every couple of seconds a new star pops up somewhere random.
+function spawnStar() {
+  const star = document.createElement("div");
+  star.className = "star";
+  star.textContent = "⭐";
+  star.style.left = (Math.random() * (window.innerWidth - 120) + 40) + "px";
+  star.style.top  = (Math.random() * (window.innerHeight - 160) + 60) + "px";
+  game.appendChild(star);
+
+  // Check if the dragon is touching the star a few times per second.
+  const check = setInterval(() => {
+    const a = dragon.getBoundingClientRect();
+    const b = star.getBoundingClientRect();
+    const touching = !(a.right < b.left || a.left > b.right ||
+                       a.bottom < b.top || a.top > b.bottom);
+    if (touching) {
+      soundStar();
+      addScore(1);
+      star.remove();
+      clearInterval(check);
+    }
+  }, 150);
+
+  // If nobody catches it, the star fades away after a while.
+  setTimeout(() => { star.remove(); clearInterval(check); }, 7000);
+}
+
+// A few decorative clouds drifting in the background.
+// What drifts across the sky depends on the land (fish underwater, etc.).
+const DRIFTERS = {
+  0: ["☁️", "☁️", "☁️"],
+  1: ["☁️", "🍃", "🦋"],
+  2: ["🐠", "🐟", "🪼", "🐡", "🐙"], // Mermaid Lagoon — sea creatures, not clouds
+  3: ["☁️", "❄️", "☁️"],
+  4: ["☁️", "🌈", "☁️"],
+};
+function spawnCloud() {
+  const opts = DRIFTERS[currentLand] || ["☁️"];
+  const cloud = document.createElement("div");
+  cloud.className = "cloud";
+  cloud.textContent = opts[Math.floor(Math.random() * opts.length)];
+  let cx = window.innerWidth + 60;
+  const tallSpread = currentLand === 2 ? 0.8 : 0.6; // fish roam more of the screen
+  cloud.style.top = (Math.random() * window.innerHeight * tallSpread) + "px";
+  cloud.style.left = cx + "px";
+  game.appendChild(cloud);
+  const drift = setInterval(() => {
+    cx -= 2;
+    cloud.style.left = cx + "px";
+    if (cx < -80) { clearInterval(drift); cloud.remove(); }
+  }, 40);
+}
+
+// ---- Potions (worth 5 points and they EXPLODE when eaten) ----
+// A magic-potion bottle: round flask, cork, glowing liquid, bubbles, sparkle.
+const POTION_SVG =
+  '<svg viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">' +
+  '<defs><linearGradient id="pLiq" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#ff8fe0"/><stop offset="1" stop-color="#a05bff"/>' +
+  '</linearGradient></defs>' +
+  '<rect x="15" y="3" width="10" height="7" rx="2" fill="#c98a5a"/>' +              // cork
+  '<rect x="16" y="9" width="8" height="7" fill="#e7f3ff" opacity="0.5"/>' +        // neck
+  '<path d="M14 16 q-9 6 -9 18 a15 15 0 0 0 30 0 q0 -12 -9 -18 Z" fill="#e7f4ff" opacity="0.35" stroke="#bfe4ff" stroke-width="1"/>' + // glass
+  '<path d="M14 23 q-6 4 -6 11 a12 12 0 0 0 24 0 q0 -7 -6 -11 Z" fill="url(#pLiq)"/>' + // liquid
+  '<circle cx="16" cy="33" r="2" fill="#fff" opacity="0.7"/>' +
+  '<circle cx="24" cy="37" r="1.5" fill="#fff" opacity="0.6"/>' +
+  '<circle cx="20" cy="31" r="1" fill="#fff" opacity="0.6"/>' +
+  '<path d="M12 25 q-3 4 -2 9" stroke="#fff" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>' + // shine
+  '<path d="M31 13 l1 2.5 l2.5 1 l-2.5 1 l-1 2.5 l-1 -2.5 l-2.5 -1 l2.5 -1 Z" fill="#fff"/>' + // sparkle
+  "</svg>";
+
+function spawnPotion() {
+  const potion = document.createElement("div");
+  potion.className = "potion";
+  potion.innerHTML = POTION_SVG;
+  const px = Math.random() * (window.innerWidth - 120) + 40;
+  const py = Math.random() * (window.innerHeight - 200) + 60;
+  potion.style.left = px + "px";
+  potion.style.top  = py + "px";
+  game.appendChild(potion);
+
+  // Keep checking if the dragon has reached the potion.
+  const check = setInterval(() => {
+    const a = dragon.getBoundingClientRect();
+    const b = potion.getBoundingClientRect();
+    const touching = !(a.right < b.left || a.left > b.right ||
+                       a.bottom < b.top || a.top > b.bottom);
+    if (touching) {
+      soundPotion();
+      addScore(5);                // potions are worth 5!
+      explode(b.left, b.top);     // BOOM when eaten
+      potion.remove();
+      clearInterval(check);
+    }
+  }, 150);
+
+  // If nobody drinks it, it fades away.
+  setTimeout(() => { potion.remove(); clearInterval(check); }, 8000);
+}
+
+// A golden "big potion" — worth more points. It drifts around and bounces off
+// the edges, and it gets faster (harder to catch) in later lands.
+const POTION_SVG_BIG =
+  '<svg viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">' +
+  '<defs><linearGradient id="pLiqG" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#ff8a3c"/>' +
+  '</linearGradient></defs>' +
+  '<rect x="15" y="3" width="10" height="7" rx="2" fill="#c98a5a"/>' +
+  '<rect x="16" y="9" width="8" height="7" fill="#fff6e0" opacity="0.5"/>' +
+  '<path d="M14 16 q-9 6 -9 18 a15 15 0 0 0 30 0 q0 -12 -9 -18 Z" fill="#fff6e0" opacity="0.35" stroke="#ffd98a" stroke-width="1"/>' +
+  '<path d="M14 23 q-6 4 -6 11 a12 12 0 0 0 24 0 q0 -7 -6 -11 Z" fill="url(#pLiqG)"/>' +
+  '<path d="M20 27 l1.6 3.4 l3.7 0.3 l-2.8 2.4 l0.9 3.6 l-3.4 -1.9 l-3.4 1.9 l0.9 -3.6 l-2.8 -2.4 l3.7 -0.3 Z" fill="#fff7d6"/>' +
+  '<path d="M12 25 q-3 4 -2 9" stroke="#fff" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>' +
+  '<path d="M31 12 l1.2 3 l3 1.2 l-3 1.2 l-1.2 3 l-1.2 -3 l-3 -1.2 l3 -1.2 Z" fill="#fff"/>' +
+  "</svg>";
+
+function spawnBigPotion() {
+  if (won) return;
+  const potion = document.createElement("div");
+  potion.className = "potion big";
+  potion.innerHTML = POTION_SVG_BIG;
+  let px = Math.random() * (window.innerWidth - 160) + 40;
+  let py = Math.random() * (window.innerHeight - 260) + 60;
+  potion.style.left = px + "px";
+  potion.style.top  = py + "px";
+  game.appendChild(potion);
+
+  const value = 10 + currentLand * 5;   // worth more in later lands (20/25/30…)
+  const speed = 2.2 + currentLand * 0.9; // faster = harder to catch in later lands
+  const ang = Math.random() * Math.PI * 2;
+  let vx = Math.cos(ang) * speed;
+  let vy = Math.sin(ang) * speed;
+
+  const bp = { el: potion, value }; // track it so FIRE can hit it too
+  bigPotions.push(bp);
+
+  bp.move = setInterval(() => {
+    px += vx; py += vy;
+    // bounce off the edges of the screen
+    if (px < 10 || px > window.innerWidth - 70) { vx = -vx; px = clamp(px, 10, window.innerWidth - 70); }
+    if (py < 50 || py > window.innerHeight - 130) { vy = -vy; py = clamp(py, 50, window.innerHeight - 130); }
+    potion.style.left = px + "px";
+    potion.style.top  = py + "px";
+
+    // Caught by flying into it?
+    const a = dragon.getBoundingClientRect();
+    const b = potion.getBoundingClientRect();
+    const touching = !(a.right < b.left || a.left > b.right ||
+                       a.bottom < b.top || a.top > b.bottom);
+    if (touching) collectBigPotion(bp);
+  }, 30);
+
+  bp.timeout = setTimeout(() => removeBigPotion(bp), 12000);
+}
+
+// Award + celebrate a big potion — used by flying into it AND by shooting it.
+function collectBigPotion(bp) {
+  if (bp.done) return;
+  const b = bp.el.getBoundingClientRect();
+  soundPotion();
+  addScore(bp.value);
+  bigExplosion(b.left + b.width / 2, b.top + b.height / 2, 1.4);
+  removeBigPotion(bp);
+}
+
+function removeBigPotion(bp) {
+  if (bp.done) return;
+  bp.done = true;
+  clearInterval(bp.move);
+  clearTimeout(bp.timeout);
+  bp.el.remove();
+  const i = bigPotions.indexOf(bp);
+  if (i >= 0) bigPotions.splice(i, 1);
+}
+
+// ---- Magic berries: eat one for 3× SIZE + 3× FIRE for 20 seconds ----
+function spawnBerry() {
+  if (won) return;
+  const berry = document.createElement("div");
+  berry.className = "berry";
+  berry.textContent = "🫐";
+  berry.style.left = (Math.random() * (window.innerWidth - 160) + 60) + "px";
+  berry.style.top  = (Math.random() * (window.innerHeight - 240) + 60) + "px";
+  game.appendChild(berry);
+
+  const check = setInterval(() => {
+    const a = dragon.getBoundingClientRect();
+    const b = berry.getBoundingClientRect();
+    const touching = !(a.right < b.left || a.left > b.right ||
+                       a.bottom < b.top || a.top > b.bottom);
+    if (touching) {
+      activateBerryBoost();
+      explode(b.left, b.top);
+      berry.remove();
+      clearInterval(check);
+    }
+  }, 120);
+  setTimeout(() => { berry.remove(); clearInterval(check); }, 11000);
+}
+
+function activateBerryBoost() {
+  berryBoost = true;
+  dragon.classList.add("boosted");
+  soundBoss();
+  banner("🫐 MAGIC BERRY! 3× SIZE + 3× FIRE for 20s! 🔥");
+  clearTimeout(berryTimer);
+  berryTimer = setTimeout(() => {
+    berryBoost = false;
+    dragon.classList.remove("boosted");
+    banner("✨ The magic berry fades away…");
+  }, 20000);
+}
+
+// ---- Bosses (worth 20 points — fire at them to beat them!) ----
+// The weirdos — minions of the evil queens. Bigger & tougher each land.
+const WEIRDOS = ["👾", "🧌", "🦑", "👽", "👹"];
+function spawnBoss() {
+  if (won) return;
+  const el = document.createElement("div");
+  el.className = "boss";
+  el.textContent = WEIRDOS[currentLand] || "👾";
+  el.style.fontSize = (64 + currentLand * 18) + "px"; // BIGGER each land
+  let bx = window.innerWidth + 80;
+  const by = Math.random() * (window.innerHeight * 0.45) + 50;
+  el.style.left = bx + "px";
+  el.style.top  = by + "px";
+  game.appendChild(el);
+
+  // Tougher and worth more in later lands (hp: 3, 5, 6, 8, 9).
+  const boss = { el, hp: 3 + Math.ceil(currentLand * 1.5), points: 20 + currentLand * 10 };
+  bosses.push(boss);
+
+  // The weirdo drifts slowly across the sky.
+  boss.move = setInterval(() => {
+    bx -= 1.4;
+    el.style.left = bx + "px";
+    if (bx < -180) removeBoss(boss); // left the screen, give up the chase
+  }, 30);
+}
+
+function removeBoss(boss) {
+  clearInterval(boss.move);
+  clearInterval(boss.attack); // queens have an attack timer too
+  boss.el.remove();
+  const i = bosses.indexOf(boss);
+  if (i >= 0) bosses.splice(i, 1);
+}
+
+function defeatBoss(boss) {
+  const br = boss.el.getBoundingClientRect();
+  bigExplosion(br.left + br.width / 2, br.top + br.height / 2, 1 + currentLand * 0.4);
+  soundBoss();
+  addScore(boss.points);           // weirdos are worth more in later lands!
+  removeBoss(boss);
+}
+
+// ---- Turning words into actions ----
+// This is the heart of the voice control. We get a sentence of text,
+// make it lowercase, and look for command words inside it.
+function handleCommand(text) {
+  if (dizzy || won || frozen) return; // can't act while dizzy, frozen, or after winning
+  const said = text.toLowerCase();
+  heardEl.textContent = "🗣️ " + text;
+
+  if (said.includes("up"))           moveUp();
+  if (said.includes("down"))         moveDown();
+  if (said.includes("left"))         moveLeft();
+  if (said.includes("right"))        moveRight();
+  if (said.includes("fire") ||
+      said.includes("burn")  ||
+      said.includes("flame")) breatheFire();
+  if (said.includes("go") || said.includes("fly")) moveRight();
+  if (said.includes("land")) land();           // come down and rest
+  if (said.includes("stop")) { /* just hover in place */ }
+}
+
+// ---- The voice (speech recognition) ----
+// Not every browser has this. Chrome does. We check first so the game
+// still loads (just without voice) on browsers that don't support it.
+// ---- Shari, the turquoise dragon friend (joins at level 3) ----
+let shari = null;
+function spawnShari() {
+  if (shari) return;
+  const el = document.createElement("div");
+  el.id = "shari";
+  el.innerHTML = '<div id="shariBody">' + document.getElementById("dragonBody").innerHTML + "</div>";
+  game.appendChild(el);
+  shari = {
+    el,
+    x: -120,
+    y: window.innerHeight * 0.4,
+    tx: window.innerWidth * 0.4,
+    ty: window.innerHeight * 0.4,
+  };
+  banner("💙 Shari joins! Press S for her Spin Fire! 🌀🔥");
+
+  // Show her Spin Fire power badge, ready to use.
+  shariReady = true;
+  shariPower.style.display = "flex";
+  shariPower.classList.add("ready");
+  shariPowerLabel.textContent = "🌀 Spin Fire: Ready!";
+  shariPowerFill.style.width = "100%";
+
+  // Drift smoothly toward a target, picking a fresh target now and then.
+  shari.move = setInterval(moveShari, 30);
+  shari.retarget = setInterval(() => {
+    shari.tx = 80 + Math.random() * (window.innerWidth - 220);
+    shari.ty = 60 + Math.random() * (window.innerHeight - 240);
+  }, 2600);
+  // She helps out by breathing fire to the right every few seconds.
+  shari.fire = setInterval(() => { if (!won) shootFire(shari.x + 80, shari.y + 24); }, 3000);
+}
+
+function moveShari() {
+  shari.x += (shari.tx - shari.x) * 0.04; // ease toward the target
+  shari.y += (shari.ty - shari.y) * 0.04;
+  shari.el.style.left = shari.x + "px";
+  shari.el.style.top  = shari.y + "px";
+  // The 🐉 emoji faces left, so flip it when she's heading right.
+  shari.el.style.transform = shari.tx > shari.x ? "scaleX(-1)" : "none";
+}
+
+// ---- Shari's special: SPIN FIRE (press S, once every 30 seconds) ----
+// A ring of fire whirls out from Shari and hits everything around her.
+let shariReady = false;
+let shariCdTimer = null;
+const SPIN_FIRE_RADIUS = 340; // reaches further out
+
+function shariSpinFire() {
+  if (won || !shari) return;
+  const sr = shari.el.getBoundingClientRect();
+  const cx = sr.left + sr.width / 2;
+  const cy = sr.top + sr.height / 2;
+
+  // Not charged yet? Still fire a tiny half-power shot instead of nothing.
+  if (!shariReady) {
+    soundFire();
+    shootFire(sr.right, cy, 0.5, true);
+    return;
+  }
+
+  shariReady = false;
+  banner("🌀 Shari unleashes SPIN FIRE! 🔥");
+  soundBoss();
+  spinFireVisual(cx, cy);
+
+  // Hit every weirdo/queen within the radius.
+  for (const boss of bosses.slice()) {
+    const br = (boss.hitEl || boss.el).getBoundingClientRect();
+    const bx = br.left + br.width / 2;
+    const by = br.top + br.height / 2;
+    if (Math.hypot(bx - cx, by - cy) < SPIN_FIRE_RADIUS) {
+      if (boss.isQueen) {
+        boss.hp -= 3;
+        updateQueenBar(boss);
+        if (boss.hp <= 0) defeatQueenWave(boss);
+      } else {
+        defeatBoss(boss);
+      }
+    }
+  }
+  // Scoop up any big potions in the area too.
+  for (const bp of bigPotions.slice()) {
+    const pr = bp.el.getBoundingClientRect();
+    if (Math.hypot(pr.left + pr.width / 2 - cx, pr.top + pr.height / 2 - cy) < SPIN_FIRE_RADIUS) {
+      collectBigPotion(bp);
+    }
+  }
+  // Melt any queen ice bolts in the area — this shields Clara!
+  for (const bolt of queenBolts.slice()) {
+    const r = bolt.el.getBoundingClientRect();
+    if (Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy) < SPIN_FIRE_RADIUS) {
+      explode(r.left, r.top);
+      removeBolt(bolt);
+    }
+  }
+
+  startShariCooldown(30);
+}
+
+// Draw the whirling ring of fire that spins out and grows.
+function spinFireVisual(cx, cy) {
+  const ring = document.createElement("div");
+  ring.className = "spinFire";
+  ring.style.left = cx + "px";
+  ring.style.top  = cy + "px";
+  let html = "";
+  const N = 10;
+  for (let i = 0; i < N; i++) {
+    const ang = (i / N) * 360;
+    html += '<span style="transform:rotate(' + ang + 'deg) translateX(70px)">🔥</span>';
+  }
+  ring.innerHTML = html;
+  game.appendChild(ring);
+  setTimeout(() => ring.remove(), 1200);
+}
+
+// Count down the 30-second cooldown on the badge.
+function startShariCooldown(seconds) {
+  clearInterval(shariCdTimer);
+  let left = seconds;
+  shariPower.classList.remove("ready");
+  shariPowerLabel.textContent = "🌀 Spin Fire: " + left + "s";
+  shariPowerFill.style.width = "0%";
+  shariCdTimer = setInterval(() => {
+    left--;
+    shariPowerFill.style.width = ((seconds - left) / seconds) * 100 + "%"; // bar fills up
+    if (left <= 0) {
+      clearInterval(shariCdTimer);
+      shariReady = true;
+      shariPower.classList.add("ready");
+      shariPowerLabel.textContent = "🌀 Spin Fire: Ready!";
+      shariPowerFill.style.width = "100%";
+    } else {
+      shariPowerLabel.textContent = "🌀 Spin Fire: " + left + "s";
+    }
+  }, 1000);
+}
+
+// ---- The three evil queens ----
+// Each queen rules a land (levels 3, 4, 5) and must be beaten a few times.
+// Each queen has her OWN look (emoji, size, glow) and her OWN difficulty —
+// later queens have more health and more comebacks.
+// Each queen is a composed character: a figure + crown + magic aura + her colour.
+// If a painting exists at her `img` path, the game upgrades her to it automatically.
+const QUEENS = [
+  { key: "chaos",  name: "Queen Chaos",  figure: "🧝‍♀️", tint: "saturate(1.4)",                   glow: "#e05bff", aura: ["🌀", "🔮", "💫", "✨"], img: "assets/queen-chaos.png",  land: 2, waves: 2, waveHp: 4, size: 110 },
+  { key: "fire",   name: "Queen Fire",   figure: "👸",   tint: "hue-rotate(-35deg) saturate(1.6)", glow: "#ff5a3c", aura: ["🔥", "💥", "🔥", "✨"], img: "assets/queen-fire.png",   land: 3, waves: 2, waveHp: 6, size: 122 },
+  { key: "shadow", name: "Queen Shadow", figure: "🧛‍♀️", tint: "brightness(0.92) saturate(1.2)",   glow: "#8a5cff", aura: ["🦇", "🌑", "💜", "✨"], img: "assets/queen-shadow.png", land: 4, waves: 3, waveHp: 7, size: 134 },
+];
+const queenState = {};
+QUEENS.forEach((q) => (queenState[q.key] = { wavesDone: 0, active: false, defeated: false }));
+
+// A queen flies in, hovers, and has a name + health bar above her.
+function spawnQueen(qDef) {
+  const st = queenState[qDef.key];
+  if (st.defeated || st.active || won) return;
+  st.active = true;
+  banner("👑 " + qDef.name + " appears!");
+
+  const el = document.createElement("div");
+  el.className = "queen";
+  let qx = window.innerWidth + 140;
+  el.style.left = qx + "px";
+  el.style.top  = (window.innerHeight * 0.16 + Math.random() * window.innerHeight * 0.16) + "px";
+  const auraSpans = qDef.aura
+    .map((em, i) => '<span class="qAura a' + i + '">' + em + "</span>")
+    .join("");
+  el.innerHTML =
+    '<div class="queenLabel">👑 ' + qDef.name + '</div>' +
+    '<div class="queenHpBar"><div class="queenHpFill"></div></div>' +
+    '<div class="queenFace">' +
+      '<span class="qCrown">👑</span>' +
+      '<span class="qFigure">' + qDef.figure + "</span>" +
+      auraSpans +
+    "</div>";
+  game.appendChild(el);
+
+  const face = el.querySelector(".queenFace");
+  face.style.filter = "drop-shadow(0 0 20px " + qDef.glow + ")";
+  face.style.fontSize = qDef.size + "px"; // each queen is a different size
+  const figure = el.querySelector(".qFigure");
+  if (qDef.tint) figure.style.filter = qDef.tint;
+  const fill = el.querySelector(".queenHpFill");
+  fill.style.background = qDef.glow;
+
+  // If a painted portrait exists at her img path, upgrade her to it (else stay emoji).
+  if (qDef.img) {
+    const test = new Image();
+    test.onload = () => {
+      figure.style.filter = "none";
+      figure.innerHTML = '<img class="queenImg" src="' + qDef.img + '" alt="">';
+    };
+    test.src = qDef.img;
+  }
+
+  const boss = {
+    el, hitEl: face, isQueen: true, qKey: qDef.key,
+    hp: qDef.waveHp, maxHp: qDef.waveHp, barFill: fill,
+  };
+  bosses.push(boss);
+
+  // Glide in from the right, then hover and drift gently.
+  const hoverX = window.innerWidth * 0.56;
+  boss.move = setInterval(() => {
+    if (qx > hoverX) qx -= 6;
+    el.style.left = qx + "px";
+  }, 30);
+
+  // The queen fires an ice bolt at our hero every few seconds.
+  boss.attack = setInterval(() => { if (!won) queenShoot(boss); }, 3500);
+}
+
+function updateQueenBar(boss) {
+  if (boss.barFill) boss.barFill.style.width = Math.max(0, boss.hp / boss.maxHp) * 100 + "%";
+}
+
+// A queen loses one appearance. After enough waves she's defeated for good.
+function defeatQueenWave(boss) {
+  const qDef = QUEENS.find((q) => q.key === boss.qKey);
+  const st = queenState[boss.qKey];
+  const br = boss.hitEl.getBoundingClientRect();
+  bigExplosion(br.left + br.width / 2, br.top + br.height / 2, 2.4); // HUGE
+  soundBoss();
+  removeBoss(boss);
+  st.active = false;
+  st.wavesDone++;
+
+  if (st.wavesDone >= qDef.waves) {
+    st.defeated = true;
+    banner("✨ " + qDef.name + " is DEFEATED! ✨");
+    updateQueenTracker();
+    if (QUEENS.every((q) => queenState[q.key].defeated)) winGame();
+  } else {
+    banner(qDef.name + " flees… but she'll be back! 😱");
+    setTimeout(() => { if (!won) spawnQueen(qDef); }, 12000); // she returns
+  }
+}
+
+// Update the crown tracker in the top-left as queens fall.
+function updateQueenTracker() {
+  QUEENS.forEach((q) => {
+    const tag = document.querySelector('.qtag[data-q="' + q.key + '"]');
+    if (tag && queenState[q.key].defeated) {
+      tag.classList.add("done");
+      tag.textContent = "👑 " + q.name.replace("Queen ", "") + " ✓";
+    }
+  });
+}
+
+// A queen fires an ice bolt aimed at the hero's current position.
+function queenShoot(boss) {
+  if (won || frozen || !boss.hitEl) return;
+  const qr = boss.hitEl.getBoundingClientRect();
+  const dr = dragon.getBoundingClientRect();
+  let dx = dr.left + dr.width / 2 - qr.left;
+  let dy = dr.top + dr.height / 2 - (qr.top + qr.height / 2);
+  const dist = Math.hypot(dx, dy) || 1;
+  const speed = 7;
+  dx = (dx / dist) * speed;
+  dy = (dy / dist) * speed;
+  let px = qr.left;
+  let py = qr.top + qr.height / 2;
+
+  // Queen Fire shoots a BURNING bolt (−1 point + knockback); the others freeze.
+  const isFire = boss.qKey === "fire";
+
+  const el = document.createElement("div");
+  el.className = "queenBolt" + (isFire ? " fireBolt" : "");
+  el.textContent = isFire ? "🔥" : "❄️";
+  el.style.left = px + "px";
+  el.style.top  = py + "px";
+  game.appendChild(el);
+
+  const bolt = { el }; // track it so Shari's Spin Fire can melt it
+  queenBolts.push(bolt);
+
+  bolt.fly = setInterval(() => {
+    px += dx; py += dy;
+    el.style.left = px + "px";
+    el.style.top  = py + "px";
+    // Did it hit our hero?
+    const a = dragon.getBoundingClientRect();
+    const b = el.getBoundingClientRect();
+    const hit = !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+    if (hit) {
+      if (isFire) burnDragon();
+      else if (!frozen) freezeDragon();
+      removeBolt(bolt);
+      return;
+    }
+    if (px < -40 || px > window.innerWidth + 40 || py < -40 || py > window.innerHeight + 40) {
+      removeBolt(bolt);
+    }
+  }, 30);
+}
+
+// Queen Fire's burn: lose one point and get knocked to a random corner.
+function burnDragon() {
+  if (won) return;
+  score = Math.max(0, score - 1); // lose exactly one point
+  scoreEl.textContent = score;
+
+  const dr = dragon.getBoundingClientRect();
+  explode(dr.left + dr.width / 2, dr.top + dr.height / 2);
+  soundBurn();
+  dragonBody.classList.add("burned");
+  setTimeout(() => dragonBody.classList.remove("burned"), 600);
+  banner("🔥 Burned! −1 point and knocked away!");
+
+  // Fling her to a random corner (she slides there via her CSS transition).
+  const corners = [
+    [30, 50],
+    [window.innerWidth - 140, 50],
+    [30, window.innerHeight - 120],
+    [window.innerWidth - 140, window.innerHeight - 120],
+  ];
+  const c = corners[Math.floor(Math.random() * corners.length)];
+  dragonX = c[0];
+  dragonY = c[1];
+  placeDragon();
+}
+
+function removeBolt(bolt) {
+  if (bolt.done) return;
+  bolt.done = true;
+  clearInterval(bolt.fly);
+  bolt.el.remove();
+  const i = queenBolts.indexOf(bolt);
+  if (i >= 0) queenBolts.splice(i, 1);
+}
+
+// The hero is frozen in ice for 6 seconds — she can't do anything.
+function freezeDragon() {
+  if (frozen || won) return;
+  frozen = true;
+  dragonBody.classList.add("frozen");
+  const ice = document.createElement("div");
+  ice.id = "iceBlock";
+  ice.textContent = "❄️";
+  dragon.appendChild(ice);
+  soundFreeze();
+  heardEl.textContent = "🧊 Frozen! Wait 6 seconds…";
+  setTimeout(() => {
+    dragonBody.classList.remove("frozen");
+    ice.remove();
+    frozen = false;
+    soundRecover();
+    heardEl.textContent = "✨ Thawed out! Say a command…";
+  }, 6000);
+}
+
+// ---- Magical background music ----
+// A gentle looping arpeggio (a I–V–vi–IV chord pattern) on soft synth tones,
+// quiet enough to sit under the sound effects.
+let musicOn = true;
+let musicTimer = null;
+let musicStep = 0;
+const MUSIC_MELODY = [
+  523, 659, 784, 1047, // C major sparkle
+  494, 587, 784, 988,  // G major
+  440, 523, 659, 880,  // A minor
+  392, 523, 698, 880,  // F major
+];
+const MUSIC_BASS = [131, 98, 110, 87]; // low C, G, A, F — one per bar
+
+function musicTick() {
+  if (!audioCtx || !musicOn) return;
+  const i = musicStep % MUSIC_MELODY.length;
+  tone(MUSIC_MELODY[i], 0.24, "triangle", 0.05);                     // twinkly melody
+  if (i % 4 === 0) tone(MUSIC_BASS[(i / 4) % 4], 0.6, "sine", 0.05); // soft bass
+  if (i % 8 === 2) tone(MUSIC_MELODY[i] * 2, 0.15, "sine", 0.022);   // high sparkle
+  musicStep++;
+}
+function startMusic() {
+  if (!musicTimer) musicTimer = setInterval(musicTick, 270);
+}
+function toggleMusic() {
+  musicOn = !musicOn;
+  musicBtn.textContent = musicOn ? "🎵" : "🔇";
+}
+
+// Clean up the music + audio when the page is refreshed or closed, so a
+// reload never leaves an old soundtrack playing underneath the new one.
+window.addEventListener("pagehide", () => {
+  if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+  if (audioCtx) { try { audioCtx.close(); } catch (e) { /* already closed */ } audioCtx = null; }
+});
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let wantListening = false;
+let micDenied = false;     // true once the user blocks the mic (stop asking)
+let restartTimer = null;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;      // keep listening, don't stop after one phrase
+  recognition.interimResults = false; // only final phrases (less restart churn)
+  recognition.lang = "en-US";
+
+  recognition.onstart = () => {
+    micDot.classList.add("listening");
+    micLabel.textContent = "Listening…";
+  };
+
+  recognition.onresult = (event) => {
+    // Look at the newest chunk of speech and act on it.
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const phrase = event.results[i][0].transcript.trim();
+      if (phrase) handleCommand(phrase);
+    }
+  };
+
+  // Browsers sometimes stop listening on their own — restart GENTLY if we still
+  // want it. The small delay avoids a tight stop/start loop (which, on a file://
+  // page, makes Chrome pop the mic permission over and over).
+  recognition.onend = () => {
+    micDot.classList.remove("listening");
+    micLabel.textContent = "Mic off";
+    if (wantListening && !micDenied) {
+      clearTimeout(restartTimer);
+      restartTimer = setTimeout(() => {
+        if (wantListening && !micDenied) {
+          try { recognition.start(); } catch (e) { /* already starting */ }
+        }
+      }, 900);
+    }
+  };
+
+  recognition.onerror = (e) => {
+    // If the user blocks the mic, stop trying so we don't keep prompting.
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      micDenied = true;
+      wantListening = false;
+      heardEl.textContent = "🎮 Mic off — use the arrow keys & space bar!";
+    } else if (e.error !== "no-speech" && e.error !== "aborted") {
+      heardEl.textContent = "Mic: " + e.error;
+    }
+  };
+} else {
+  heardEl.textContent = "This browser has no voice support — try Google Chrome.";
+}
+
+// ---- Starting the game ----
+// Browsers only allow the microphone + sound to start after a real click,
+// so the game begins when you press Start (or Skip) on the story screen.
+// ---- Timer + best-time high score (saved in the browser) ----
+let gameStartMs = 0;
+let timerInterval = null;
+const FAST_TIME = 180; // beating the game under 3:00 = a "Speed Champion"
+
+function fmtTime(totalSec) {
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+function elapsedSec() { return Math.floor((Date.now() - gameStartMs) / 1000); }
+function getBestTime() {
+  try {
+    const v = parseInt(localStorage.getItem("claraBestTime"), 10);
+    return isNaN(v) ? null : v;
+  } catch (e) { return null; } // localStorage can be blocked in sandboxes
+}
+function saveBestTime(sec) {
+  try { localStorage.setItem("claraBestTime", sec); } catch (e) { /* blocked */ }
+}
+
+let gameStarted = false;
+function beginGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+  document.getElementById("startScreen").style.display = "none";
+  initAudio();   // wake up the sound now that the player has clicked
+  startMusic();  // begin the magical soundtrack
+  placeDragon();
+
+  // Start the timer.
+  gameStartMs = Date.now();
+  levelStartMs = Date.now();
+  timerInterval = setInterval(() => {
+    document.getElementById("timer").textContent = fmtTime(elapsedSec());
+  }, 500);
+
+  // Voice works on desktop/Android Chrome; iPhones don't support it reliably,
+  // so there we guide the player to the touch controls instead.
+  if (recognition && !isIOS) {
+    wantListening = true;
+    try { recognition.start(); } catch (e) { /* already running */ }
+  } else if (isTouch) {
+    micLabel.textContent = "🎮 Touch controls";
+    heardEl.textContent = "Drag to move · tap 🔥 / 🌀 · S = Spin";
+  }
+
+  // Start the world: stars, potions, clouds, weirdos, and hazards keep appearing.
+  setInterval(spawnStar, 2200);
+  setInterval(spawnPotion, 4500);
+  setInterval(spawnCloud, 3000);
+  setInterval(spawnBoss, 10000);
+  setInterval(spawnSpinStar, 5000); // the dizzy hazard
+  setInterval(() => { if (currentLand >= 1) spawnBigPotion(); }, 7000); // big moving potions from level 2
+  spawnStar();
+  spawnPotion();
+
+  // Set up the first land's scenery and start the twinkling fairies.
+  sceneryRow.textContent = LANDS[0].scenery;
+  document.querySelector('.landScene[data-land="0"]').classList.add("show"); // Sky Kingdom scene
+  setInterval(spawnFairy, 350);
+}
+
+// Wire the critical buttons FIRST so nothing later can stop them attaching.
+startBtn.addEventListener("click", beginGame);
+document.getElementById("skipBtn").addEventListener("click", beginGame);
+musicBtn.addEventListener("click", toggleMusic);
+
+// ---- The intro story carousel ----
+const storyPanels = document.querySelectorAll(".storyPanel");
+const storyDots = document.querySelectorAll(".storyDots .dot");
+const storyBackBtn = document.getElementById("storyBack");
+const storyNextBtn = document.getElementById("storyNext");
+let storyIndex = 0;
+
+function showStory(i) {
+  storyIndex = Math.max(0, Math.min(storyPanels.length - 1, i));
+  storyPanels.forEach((p, idx) => p.classList.toggle("active", idx === storyIndex));
+  storyDots.forEach((d, idx) => d.classList.toggle("active", idx === storyIndex));
+  const last = storyIndex === storyPanels.length - 1;
+  storyBackBtn.style.visibility = storyIndex === 0 ? "hidden" : "visible";
+  storyNextBtn.style.display = last ? "none" : "inline-block";
+  startBtn.style.display = last ? "inline-block" : "none";
+}
+storyNextBtn.addEventListener("click", () => showStory(storyIndex + 1));
+storyBackBtn.addEventListener("click", () => showStory(storyIndex - 1));
+
+// Show the best time to beat on the last story panel.
+const bestNow = getBestTime();
+document.getElementById("startBestTime").textContent =
+  bestNow !== null ? "🏆 Best time to beat: " + fmtTime(bestNow) : "🏆 No best time yet — set one!";
+
+showStory(0);
+
+// Keyboard backup so you can also play with arrow keys + space bar.
+// Play Again simply reloads the page for a clean, fresh game.
+document.getElementById("playAgainBtn").addEventListener("click", () => location.reload());
+
+document.addEventListener("keydown", (e) => {
+  // Shari's Spin Fire works even if Clara is frozen — she can rescue her!
+  if (e.key === "s" || e.key === "S") { shariSpinFire(); return; }
+  if (dizzy || won || frozen) return; // can't act while dizzy, frozen, or after winning
+  if (e.key === "ArrowUp")    moveUp();
+  if (e.key === "ArrowDown")  moveDown();
+  if (e.key === "ArrowLeft")  moveLeft();
+  if (e.key === "ArrowRight") moveRight();
+  if (e.key === " ")          breatheFire();
+});
+
+// ---- Mobile / touch controls ----
+// On a touch device, drag your finger to move the dragon, and use the
+// on-screen 🔥 Fire and 🌀 Spin buttons.
+const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+if (isTouch) {
+  document.body.classList.add("touch");
+  // Resume the sound on any tap (mobile browsers suspend audio until you touch).
+  document.addEventListener("touchstart", () => initAudio(), { passive: true });
+}
+
+// Don't treat touches that land on the HUD/buttons as "move the dragon".
+function onControl(target) {
+  return !!(target.closest && target.closest(
+    "#touchControls, #helpToggle, #hud, #mic, #help, #musicBtn, #shariPower, #startScreen, #winScreen"));
+}
+
+function dragDragon(e) {
+  if (!gameStarted || won || dizzy || frozen) return;
+  const t = e.touches[0];
+  if (!t || onControl(t.target)) return;
+  e.preventDefault();
+  dragonBody.classList.remove("landed");
+  dragonX = clamp(t.clientX - 52, 20, window.innerWidth - 120);
+  dragonY = clamp(t.clientY - 52, 40, window.innerHeight - 100);
+  placeDragon();
+}
+game.addEventListener("touchstart", dragDragon, { passive: false });
+game.addEventListener("touchmove", dragDragon, { passive: false });
+
+// The on-screen Fire + Spin buttons.
+document.getElementById("fireTouchBtn").addEventListener("touchstart", (e) => {
+  e.preventDefault(); e.stopPropagation();
+  if (!(dizzy || won || frozen)) breatheFire();
+}, { passive: false });
+document.getElementById("spinTouchBtn").addEventListener("touchstart", (e) => {
+  e.preventDefault(); e.stopPropagation();
+  shariSpinFire();
+}, { passive: false });
+
+// The ❔ / ✕ button shows/hides the instructions. Start hidden on small screens.
+const helpEl = document.getElementById("help");
+const helpToggleBtn = document.getElementById("helpToggle");
+function updateHelpToggleIcon() {
+  const hidden = helpEl.classList.contains("collapsed");
+  helpToggleBtn.textContent = hidden ? "❔" : "✕";
+  helpToggleBtn.title = hidden ? "Show instructions" : "Hide instructions";
+}
+helpToggleBtn.addEventListener("click", () => {
+  helpEl.classList.toggle("collapsed");
+  updateHelpToggleIcon();
+});
+if (isTouch || window.innerWidth < 700) {
+  helpEl.classList.add("collapsed");
+}
+updateHelpToggleIcon();
+
+// Keep the dragon on screen if the window is resized.
+window.addEventListener("resize", placeDragon);
+placeDragon();
+</script>
+</body>
+</html>
