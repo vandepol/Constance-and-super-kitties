@@ -50,8 +50,20 @@ Open **💎 My Kitty Chest** (on the start screen, or after you win) to spend ge
 fun **dress-up** items — a Bow, Hat, Crown, Flower, Shades, Star, Sparkles trail or
 Rainbow trail. Whatever you wear shows up **on your kitty in the game**! 👑😎✨
 
-Every item shows a **big word + a picture**, and a **🔊 read** button reads the word
-out loud — a gentle way to practise reading while you play. There are **Quick Looks**
+### 📖 Word treasures & "sound it out"
+
+A simple **word** (cat, fish, run, jump, hat, star…) floats by in every level — touch
+it to hear it **read aloud** and earn a **gem**. And anywhere you see a word (shop
+items, sticker names, your kitty's name), **tap the word itself to "sound it out"** —
+each letter is spoken, then the whole word. Reading is the reward.
+
+### 🧲 Gem Magnet
+
+Save up **20 gems** and buy the **Magnet** in your Kitty Chest — it pulls gems (and
+Level-1 treats) toward your kitty, so collecting is easier and even more fun.
+
+Every dress-up item shows a **big word + a picture**, and a **🔊 read** button reads the
+word out loud. There are **Quick Looks**
 too (Princess 👑, Cool 😎, Party 🥳) that dress your kitty in a whole set with one tap.
 Watch for a **NEW!** badge on the chest when you've saved enough for something new.
 Rare **big gems** are worth **3**!

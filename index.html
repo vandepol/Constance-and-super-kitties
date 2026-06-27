@@ -127,6 +127,11 @@
   .letterBtn:hover { background: var(--hero-blue); }
   .letterBtn:active { transform: scale(.9); }
   .nameActions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  /* a floating WORD to read for a bonus gem */
+  .wordBubble { position: absolute; z-index: 3; pointer-events: none;
+    font-family: var(--font-display); font-size: 30px; font-weight: 800; color: #fff;
+    background: rgba(31,109,255,.9); border: 3px solid #fff; border-radius: 16px;
+    padding: 4px 14px; box-shadow: 0 0 16px rgba(120,200,255,.8); animation: gemBob 1.2s ease-in-out infinite; }
   /* sparkle / rainbow trail behind the kitty */
   .trailBit { position: absolute; z-index: 4; font-size: 18px; pointer-events: none; animation: trailFade .7s ease-out forwards; }
   @keyframes trailFade { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(.3); } }
@@ -145,7 +150,8 @@
   .shopItem { width: 132px; background: rgba(255,255,255,.08); border: 3px solid transparent; border-radius: 20px; padding: 10px 8px 12px; }
   .shopItem.equipped { border-color: var(--turq); box-shadow: 0 0 18px rgba(31,200,216,.5); }
   .shopItem .pic { font-size: 46px; line-height: 1; }
-  .shopItem .word { font-family: var(--font-display); font-size: 24px; margin: 4px 0 2px; }
+  .shopItem .word, .sticker .sWord[data-spell] { font-family: var(--font-display); font-size: 24px; margin: 4px 0 2px; cursor: pointer; }
+  .nameDisplay { cursor: pointer; }
   .shopItem .readBtn { background: rgba(255,255,255,.16); border: 1px solid var(--glass-border); color: #fff;
     border-radius: var(--radius-pill); font-size: 15px; padding: 3px 12px; cursor: pointer; margin-bottom: 8px; }
   .shopItem .buyBtn { width: 100%; border: none; border-radius: var(--radius-pill); cursor: pointer;
@@ -641,7 +647,7 @@
   <div class="overlay hidden" id="shopOverlay">
     <div class="card">
       <h1 class="title" style="font-size:40px">💎 Kitty Chest</h1>
-      <p class="subtitle">Find <b>gems</b> in the game, then make your kitty fabulous!<br>Tap <b>🔊 read</b> to hear each word.</p>
+      <p class="subtitle">Find <b>gems</b> in the game, then make your kitty fabulous!<br>Tap <b>🔊 read</b> to hear a word — or tap the <b>word</b> to sound it out!</p>
       <div class="shopGemLine">You have <span id="shopGems">0</span> 💎</div>
       <p class="subtitle" style="margin:6px 0 2px">✨ Quick Looks (wear a whole set!)</p>
       <div class="setsRow" id="setsRow"></div>
@@ -662,6 +668,7 @@
           (or <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>, or the buttons).</p>
         <p>🧶 Press <span class="key">SPACE</span> (or the 🧶 button) to <b>throw yarn</b> and slow down the baddie.</p>
         <p>💎 Grab sparkly <b>gems</b> hidden in every level, then spend them in your <b>Kitty Chest</b> to dress up your kitty!</p>
+        <p>📖 Grab a floating <b>word</b> to hear it read aloud and earn a gem. Buy the <b>🧲 Magnet</b> to pull treats &amp; gems to you!</p>
         <p>❤️ Watch your <b>hearts</b> — dodge the baddies and their attacks, or you'll have to try the level again.</p>
         <p><b>Level 1 — The Cavern:</b> 🐟 catch cat treats to fill your <b>basket</b> (gold ones = 3!).
           Beat the <b>Cat Burglar</b> to them. Full basket → <b>SUIT UP!</b></p>
@@ -991,10 +998,10 @@ let state = {
   running: false,
   score: 0, burglarScore: 0, basket: 0,
   hero: null, companion: null, enemy: null,
-  treats: [], crates: [], toys: [], yarns: [], waves: [], notes: [], shots: [], gems: [],
+  treats: [], crates: [], toys: [], yarns: [], waves: [], notes: [], shots: [], gems: [], words: [],
   hearts: 5, hurtUntil: 0,
   keys: {},
-  lastSpark: 0, lastShot: 0, lastGem: 0, lastTrail: 0,
+  lastSpark: 0, lastShot: 0, lastGem: 0, lastTrail: 0, lastWord: 0,
   puppy: null, toysStolen: 0,
 };
 
@@ -1032,8 +1039,12 @@ const SHOP = [
   { id: "sparkles", slot: "trail", word: "Sparkles", emoji: "✨", price: 8 },
   { id: "hearts",   slot: "trail", word: "Hearts",   emoji: "💕", price: 9 },
   { id: "rainbow",  slot: "trail", word: "Rainbow",  emoji: "🌈", price: 12 },
+  { id: "magnet",   slot: "power", word: "Magnet",   emoji: "🧲", price: 20 },
 ];
 const shopItem = (id) => SHOP.find((s) => s.id === id);
+const hasMagnet = () => owned.includes("magnet");
+// simple decodable / sight words that float by to read for a bonus gem
+const SIGHTWORDS = ["cat", "fish", "run", "jump", "yarn", "hat", "star", "fun", "hop", "red", "sun", "big", "pet", "mew", "go", "up"];
 // one-tap "Quick Looks" — equip the items you own from each set, and say the word
 const SETS = [
   { id: "princess", word: "Princess", emoji: "👑", items: ["crown", "heart", "sparkles"] },
@@ -1062,6 +1073,16 @@ function sayWord(text) {
     u.rate = 0.85; u.pitch = 1.2; speechSynthesis.cancel(); speechSynthesis.speak(u);
   } catch (e) {}
 }
+// "sound it out": say each letter, then the whole word
+function sayLetters(text) {
+  try {
+    speechSynthesis.cancel();
+    for (const ch of text.replace(/[^A-Za-z]/g, "")) {
+      const u = new SpeechSynthesisUtterance(ch); u.rate = 0.7; u.pitch = 1.2; speechSynthesis.speak(u);
+    }
+    const w = new SpeechSynthesisUtterance(text); w.rate = 0.8; w.pitch = 1.2; speechSynthesis.speak(w);
+  } catch (e) {}
+}
 function addGemsToBank(n) { bankGems += n; save("gems", bankGems); updateGemHud(); refreshNewBadges(); }
 function updateGemHud() { const el = document.getElementById("gemCount"); if (el) el.textContent = bankGems; }
 
@@ -1079,6 +1100,10 @@ function spawnGem() {
 function updateGems(ts) {
   const h = state.hero;
   for (const g of [...state.gems]) {
+    if (hasMagnet()) {                                  // 🧲 pull nearby gems toward the kitty
+      const dx = h.x - g.x, dy = h.y - g.y, d = Math.hypot(dx, dy);
+      if (d < 240 && d > 4) { g.x += (dx / d) * 4.5; g.y += (dy / d) * 4.5; g.el.style.left = (g.x - 22) + "px"; g.el.style.top = (g.y - 22) + "px"; }
+    }
     if (Math.hypot(g.x - h.x, g.y - h.y) < 62) {
       g.el.remove(); state.gems = state.gems.filter((q) => q !== g);
       addGemsToBank(g.val); state.runGems = (state.runGems || 0) + g.val; state.levelGems = (state.levelGems || 0) + g.val;
@@ -1088,6 +1113,31 @@ function updateGems(ts) {
   }
 }
 function clearGems() { state.gems.forEach((g) => g.el.remove()); state.gems = []; }
+
+// a simple WORD floats by — touch it to hear it read aloud + earn a gem (reading!)
+function spawnWord() {
+  if (state.words.length > 0) return;
+  const word = SIGHTWORDS[Math.floor(Math.random() * SIGHTWORDS.length)];
+  const el = document.createElement("div"); el.className = "wordBubble"; el.textContent = word;
+  let x, y, tries = 0;
+  do { x = 150 + Math.random() * (W() - 300); y = 160 + Math.random() * (H() - 340); tries++; }
+  while (tries < 8 && (inHud(x, y) || inPad(x, y) || inBasketUI(x, y)));
+  el.style.left = (x - 50) + "px"; el.style.top = (y - 26) + "px"; game.appendChild(el);
+  state.words.push({ el, x, y, word, born: now() });
+}
+function updateWords(ts) {
+  const h = state.hero;
+  for (const wd of [...state.words]) {
+    if (Math.hypot(wd.x - h.x, wd.y - h.y) < 70) {
+      wd.el.remove(); state.words = state.words.filter((q) => q !== wd);
+      sayWord(wd.word);                                  // read it aloud!
+      addGemsToBank(1); state.runGems = (state.runGems || 0) + 1; state.levelGems = (state.levelGems || 0) + 1;
+      popAt(wd.x - 16, wd.y - 24, "📖✨"); for (let i = 0; i < 6; i++) setTimeout(spawnSpark, i * 40);
+      tune([{ f: 660 }, { f: 880 }, { f: 1175, d: 0.2 }]);
+    } else if (ts - wd.born > 10000) { wd.el.remove(); state.words = state.words.filter((q) => q !== wd); }
+  }
+}
+function clearWords() { state.words.forEach((w) => w.el.remove()); state.words = []; }
 
 // put the equipped hat/shades onto a kitty drawing (trail is done in the loop)
 function applyCosmetics(wrapEl, sizePx) {
@@ -1230,8 +1280,8 @@ function placeHero() {
   h.el.classList.toggle("faceLeft", h.vx < -0.4);
 }
 function clearActors() {
-  document.querySelectorAll(".catWrap.actor,.treat,.crate,.toy,.yarn,.slowStars,.enemyWrap,.note,.wave,.dumpster,.dazeSwirl,.yarnBurst,.gem,.trailBit").forEach((e) => e.remove());
-  state.waves = []; state.notes = []; state.shots = []; state.gems = [];
+  document.querySelectorAll(".catWrap.actor,.treat,.crate,.toy,.yarn,.slowStars,.enemyWrap,.note,.wave,.dumpster,.dazeSwirl,.yarnBurst,.gem,.trailBit,.wordBubble").forEach((e) => e.remove());
+  state.waves = []; state.notes = []; state.shots = []; state.gems = []; state.words = [];
 }
 function makeHeroAndCompanion(superMode) {
   clearActors();
@@ -1373,6 +1423,12 @@ function updateLevel1(ts) {
   drawSlowStars(b, slowed);
 
   const h = state.hero;
+  if (hasMagnet()) {                                    // 🧲 pull nearby treats toward the kitty too
+    for (const t of state.treats) {
+      const dx = h.x - t.x, dy = h.y - t.y, d = Math.hypot(dx, dy);
+      if (d < 200 && d > 4) { t.x += (dx / d) * 3.4; t.y += (dy / d) * 3.4; t.el.style.left = t.x + "px"; t.el.style.top = t.y + "px"; }
+    }
+  }
   for (const t of [...state.treats]) if (Math.hypot(t.x - h.x, t.y - h.y) < 64) catchTreat(t);
   for (const t of [...state.treats]) if (Math.hypot(t.x - b.x, t.y - b.y) < 56) stealTreat(t);
 }
@@ -1586,9 +1642,9 @@ function winLevel2() {
 /* ---- shared helpers for the later levels ---- */
 function setScene(n) { game.classList.remove("lvl2", "lvl3", "lvl4"); if (n >= 2) game.classList.add("lvl" + n); }
 function clearLevelObjects() {
-  document.querySelectorAll(".treat,.crate,.toy,.yarn,.slowStars,.note,.wave,.dumpster,.enemyWrap,.yarnBurst,.gem,.trailBit").forEach((e) => e.remove());
+  document.querySelectorAll(".treat,.crate,.toy,.yarn,.slowStars,.note,.wave,.dumpster,.enemyWrap,.yarnBurst,.gem,.trailBit,.wordBubble").forEach((e) => e.remove());
   if (state.enemy && state.enemy.starsEl) state.enemy.starsEl.remove();
-  state.treats = []; state.crates = []; state.toys = []; state.yarns = []; state.notes = []; state.waves = []; state.shots = []; state.gems = [];
+  state.treats = []; state.crates = []; state.toys = []; state.yarns = []; state.notes = []; state.waves = []; state.shots = []; state.gems = []; state.words = [];
   if (state.hero) { state.hero.dazedUntil = 0; state.hero.kx = 0; state.hero.ky = 0; state.hero.el.style.opacity = "1"; if (state.hero.swirlEl) { state.hero.swirlEl.remove(); state.hero.swirlEl = null; } }
 }
 function spawnNote() {
@@ -1981,7 +2037,9 @@ function loop(ts) {
   updateWaves(ts);
   updateShots();
   updateGems(ts);
+  updateWords(ts);
   if (ts - state.lastGem > 6000) { spawnGem(); state.lastGem = ts; }
+  if (ts - state.lastWord > 11000) { spawnWord(); state.lastWord = ts; }
   // cosmetic sparkle/rainbow trail behind the kitty
   if (equip.trail && ts - state.lastTrail > 90) {
     state.lastTrail = ts;
@@ -2103,9 +2161,11 @@ function renderShop() {
     card.className = "shopItem" + (isEquipped ? " equipped" : "");
     let btn;
     if (!isOwned) btn = `<button class="buyBtn ${bankGems >= it.price ? "" : "cant"}" data-buy="${it.id}">💎 ${it.price}</button>`;
+    else if (it.slot === "power") btn = `<button class="buyBtn owned" disabled>Active ✨</button>`;
     else if (isEquipped) btn = `<button class="buyBtn owned" data-off="${it.id}">Wearing ✓</button>`;
     else btn = `<button class="buyBtn owned" data-wear="${it.id}">Wear it</button>`;
-    card.innerHTML = `<div class="pic">${it.emoji}</div><div class="word">${it.word}</div>`
+    // tap the word to "sound it out" (phonics); 🔊 reads the whole word
+    card.innerHTML = `<div class="pic">${it.emoji}</div><div class="word" data-spell="${it.word}">${it.word}</div>`
       + `<button class="readBtn" data-say="${it.word}">🔊 read</button>` + btn;
     grid.appendChild(card);
   }
@@ -2123,7 +2183,7 @@ function renderStickers() {
   for (const s of STICKERS) {
     const got = stickers.includes(s.id);
     const d = document.createElement("div"); d.className = "sticker" + (got ? "" : " locked");
-    d.innerHTML = `<div class="sEmoji">${got ? s.emoji : "❓"}</div><div class="sWord">${got ? s.word : "???"}</div>`
+    d.innerHTML = `<div class="sEmoji">${got ? s.emoji : "❓"}</div><div class="sWord"${got ? ` data-spell="${s.word}"` : ""}>${got ? s.word : "???"}</div>`
       + (got ? `<button class="readBtn" data-say="${s.word}">🔊 read</button>` : "");
     row.appendChild(d);
   }
@@ -2149,6 +2209,8 @@ function closeShop() {
   document.getElementById(shopReturn).classList.remove("hidden");
 }
 document.getElementById("shopOverlay").addEventListener("click", (e) => {
+  const spellEl = e.target.closest("[data-spell]");
+  if (spellEl) { sayLetters(spellEl.dataset.spell); return; }
   const t = e.target.closest("button"); if (!t) return;
   if (t.dataset.say) { sayWord(t.dataset.say); return; }
   if (t.dataset.set) { wearSet(t.dataset.set); return; }
@@ -2208,6 +2270,7 @@ document.getElementById("nameBtn").addEventListener("click", openNameScreen);
 document.getElementById("nameBack").addEventListener("click", () => { typingName = typingName.slice(0, -1); renderName(); });
 document.getElementById("nameDone").addEventListener("click", () => closeNameScreen(true));
 document.getElementById("nameReadBtn").addEventListener("click", () => sayWord(typingName || "your kitty"));
+document.getElementById("nameDisplay").addEventListener("click", () => { if (typingName) sayLetters(typingName); });
 buildLetterGrid();
 
 /* menu art */
