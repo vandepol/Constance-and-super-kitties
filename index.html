@@ -641,6 +641,10 @@
         <button class="diffBtn sel" data-diff="easy">😺 Easy</button>
         <button class="diffBtn" data-diff="hard">😼 Hard</button>
       </div>
+      <div class="diffPick" id="coopPick">
+        <button class="diffBtn sel" data-coop="0">🐱 1 Player</button>
+        <button class="diffBtn" data-coop="1">🐱🐱 2 Players (Bitsy = WASD)</button>
+      </div>
       <button class="bigBtn" id="startBtn">▶ Play</button>
       <div style="margin-top:10px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="bigBtn blue" id="chestBtn" style="font-size:20px;padding:12px 22px">💎 Kitty Chest<span class="newBadge hidden">NEW!</span></button>
@@ -1038,6 +1042,7 @@ const treatGoal = () => (isHard() ? 30 : 16);   // Hard needs way more treats!
 let chosenHero = "ginny";
 let companionHero = "bitsy";
 let twoPlayer = false;   // take-turns mode for two sisters
+let coop = false;        // play-together mode: Bitsy = WASD (player 2)
 let level = 1;
 let difficulty = "easy";                          // "easy" | "hard"
 const isHard = () => difficulty === "hard";
@@ -1048,7 +1053,7 @@ let state = {
   hero: null, companion: null, enemy: null,
   treats: [], crates: [], toys: [], yarns: [], waves: [], notes: [], shots: [], gems: [], words: [],
   hearts: 5, hurtUntil: 0,
-  keys: {},
+  keys: {}, keys2: {},
   lastSpark: 0, lastShot: 0, lastGem: 0, lastTrail: 0, lastWord: 0,
   puppy: null, toysStolen: 0,
 };
@@ -1169,15 +1174,22 @@ function updateGems(ts) {
       const dx = h.x - g.x, dy = h.y - g.y, d = Math.hypot(dx, dy);
       if (d < 240 && d > 4) { g.x += (dx / d) * 4.5; g.y += (dy / d) * 4.5; g.el.style.left = (g.x - 22) + "px"; g.el.style.top = (g.y - 22) + "px"; }
     }
-    if (Math.hypot(g.x - h.x, g.y - h.y) < 62) {
+    if (heroOrCompNear(g.x, g.y, 62)) {
       g.el.remove(); state.gems = state.gems.filter((q) => q !== g);
       addGemsToBank(g.val); state.runGems = (state.runGems || 0) + g.val; state.levelGems = (state.levelGems || 0) + g.val;
       popAt(g.x - 16, g.y - 16, g.val > 1 ? "💎✨" : "💎"); for (let i = 0; i < (g.val > 1 ? 9 : 5); i++) setTimeout(spawnSpark, i * 40);
       tune(g.val > 1 ? [{ f: 784 }, { f: 988 }, { f: 1319, d: 0.22 }] : [{ f: 988 }, { f: 1319, d: 0.18 }]);
-    } else if (ts - g.born > 9000) { g.el.remove(); state.gems = state.gems.filter((q) => q !== g); }
+    } else if (!g.persist && ts - g.born > 9000) { g.el.remove(); state.gems = state.gems.filter((q) => q !== g); }
   }
 }
 function clearGems() { state.gems.forEach((g) => g.el.remove()); state.gems = []; }
+// a pickup counts if EITHER kitty touches it (Bitsy helps collect in co-op)
+function heroOrCompNear(x, y, r) {
+  const h = state.hero, c = state.companion;
+  if (h && Math.hypot(x - h.x, y - h.y) < r) return true;
+  if (coop && c && Math.hypot(x - c.x, y - c.y) < r) return true;
+  return false;
+}
 
 // a simple WORD floats by — touch it to hear it read aloud + earn a gem (reading!)
 function spawnWord() {
@@ -1193,7 +1205,7 @@ function spawnWord() {
 function updateWords(ts) {
   const h = state.hero;
   for (const wd of [...state.words]) {
-    if (Math.hypot(wd.x - h.x, wd.y - h.y) < 70) {
+    if (heroOrCompNear(wd.x, wd.y, 70)) {
       wd.el.remove(); state.words = state.words.filter((q) => q !== wd);
       sayWord(wd.word);                                  // read it aloud!
       addGemsToBank(1); state.runGems = (state.runGems || 0) + 1; state.levelGems = (state.levelGems || 0) + 1;
@@ -1508,7 +1520,7 @@ function updateLevel1(ts) {
       if (d < 200 && d > 4) { t.x += (dx / d) * 3.4; t.y += (dy / d) * 3.4; t.el.style.left = t.x + "px"; t.el.style.top = t.y + "px"; }
     }
   }
-  for (const t of [...state.treats]) if (Math.hypot(t.x - h.x, t.y - h.y) < 64) catchTreat(t);
+  for (const t of [...state.treats]) if (heroOrCompNear(t.x, t.y, 64)) catchTreat(t);
   for (const t of [...state.treats]) if (Math.hypot(t.x - b.x, t.y - b.y) < 56) stealTreat(t);
 }
 
@@ -1546,7 +1558,7 @@ function startLevel2() {
   game.classList.add("lvl2");
   basketEl.classList.add("hidden");
   levelNameEl.textContent = "Level 2 · Kitty Land";
-  hudLine1.innerHTML = 'Cat toys safe: <b id="toysSafe">' + TOYS_TOTAL + '</b>';
+  hudLine1.innerHTML = '🧺 Toys rescued: <b>0</b> / ' + TOYS_TOTAL;
   // clear any previous Level-2 props (crates/toys) so restarts don't pile up
   document.querySelectorAll(".treat,.yarn,.slowStars,.crate,.toy").forEach((e) => e.remove());
   // remove the Level-1 Cat Burglar / old puppy (keep only hero + companion)
@@ -1559,7 +1571,7 @@ function startLevel2() {
   state.companion.x = W() * 0.12; state.companion.y = H() * 0.66;
 
   // cat toys (yarn balls) to protect — spread across the field
-  state.toys = []; state.toysStolen = 0;
+  state.toys = []; state.toysStolen = 0; state.toysRescued = 0;
   for (let i = 0; i < TOYS_TOTAL; i++) {
     const el = document.createElement("div"); el.className = "toy"; el.innerHTML = YARN_SVG;
     el.querySelector("svg").style.setProperty("--yc", TOY_COLORS[i]);
@@ -1680,18 +1692,32 @@ function updateLevel2(ts) {
   p.el.style.transform = p.faceLeft ? "scaleX(-1)" : "none";
   drawSlowStars(p, ts < p.slowUntil);
 
-  // (Mr. Puppy Paws is trapped by TANGLING him with yarn — see tanglePuppy().)
+  // (Tangle the puppy with yarn to trap him — see tanglePuppy() — OR rescue all the toys.)
 
-  // puppy reaches a toy -> steals it
+  // a kitty RESCUES a toy by touching it (you collect them to finish!)
+  for (const t of [...state.toys]) {
+    if (heroOrCompNear(t.x, t.y, TOY_R + 36)) {
+      t.el.remove(); state.toys = state.toys.filter((x) => x !== t);
+      state.toysRescued = (state.toysRescued || 0) + 1;
+      addGemsToBank(1); state.runGems = (state.runGems || 0) + 1; state.levelGems = (state.levelGems || 0) + 1;
+      popAt(t.x - 14, t.y - 14, "🧺✨"); for (let i = 0; i < 4; i++) setTimeout(spawnSpark, i * 40); sndTreat();
+      updateToyHud();
+      if (state.toys.length === 0) { winLevel2(); return; }   // rescued them all!
+    }
+  }
+  // the puppy steals a toy
   for (const t of [...state.toys]) {
     if (Math.hypot(t.x - p.x, t.y - p.y) < p.r + TOY_R) {
       t.el.remove(); state.toys = state.toys.filter((x) => x !== t);
-      state.toysStolen++; p.target = null; p.pauseUntil = ts + PUPPY_MUNCH;
-      const safe = document.getElementById("toysSafe"); if (safe) safe.textContent = state.toys.length;
+      state.toysStolen = (state.toysStolen || 0) + 1; p.target = null; p.pauseUntil = ts + PUPPY_MUNCH;
       popAt(t.x - 14, t.y - 14, "💨", "steal"); sndSteal();
-      if (state.toys.length === 0) loseLevel2();
+      updateToyHud();
+      if (state.toys.length === 0) { (state.toysRescued > 0 ? winLevel2() : loseLevel2()); return; }
     }
   }
+}
+function updateToyHud() {
+  hudLine1.innerHTML = '🧺 Toys rescued: <b>' + (state.toysRescued || 0) + '</b> / ' + TOYS_TOTAL;
 }
 // generic tangle: every level's baddie (puppy, Zsa Zsa, Lab Rat) is caught by yarn.
 // state.tangleNeed / state.tangleLabel / state.onWin / state.enemyCenter are set per level.
@@ -1783,6 +1809,13 @@ function startLevel3() {
   state.enemyCenter = 75; state.onWin = winLevel3; state.lastNote = 0; state.zsa.throwAt = now() + 1500;
   resetHearts(); updateTangleHud();
   banner("ROOFTOP CONCERT — LASSO ZSA ZSA! 🎤🦜"); sndLevel();
+  // a row of diamonds up high near Zsa Zsa — dodge past her to grab them!
+  for (let i = 0; i < 5; i++) {
+    const gx = W() * (0.22 + i * 0.14), gy = 90 + (i % 2) * 36;
+    const el = document.createElement("div"); el.className = "gem" + (i === 2 ? " bigGem" : ""); el.innerHTML = GEM_SVG;
+    el.style.left = (gx - 22) + "px"; el.style.top = (gy - 22) + "px"; game.appendChild(el);
+    state.gems.push({ el, x: gx, y: gy, born: now(), val: i === 2 ? 3 : 1, persist: true });   // stay until grabbed
+  }
   requestAnimationFrame(loop);
 }
 function updateLevel3(ts) {
@@ -1954,15 +1987,16 @@ function finalWin() {
 /* ============================================================
    8) YARN (press SPACE) — slows the current enemy
    ============================================================ */
-function shootYarn() {
+function shootYarn(from) {
   if (!state.running) return;
-  const t = now(); if (t - state.lastShot < 320) return; state.lastShot = t;
-  const h = state.hero, e = state.enemy; if (!e) return;
-  const dx = e.x - h.x, dy = e.y - h.y, d = Math.hypot(dx, dy) || 1;
+  from = from || state.hero;
+  const t = now(); if (t - (from.lastShot || 0) < 320) return; from.lastShot = t;
+  const e = state.enemy; if (!e) return;
+  const dx = e.x - from.x, dy = e.y - from.y, d = Math.hypot(dx, dy) || 1;
   const el = document.createElement("div"); el.className = "yarn"; el.innerHTML = YARN_SVG;
   el.querySelector("svg").style.setProperty("--yc", "#ff5a9e");
   game.appendChild(el);
-  state.yarns.push({ el, x: h.x, y: h.y, vx: (dx / d) * 11, vy: (dy / d) * 11, life: 0 });
+  state.yarns.push({ el, x: from.x, y: from.y, vx: (dx / d) * 11, vy: (dy / d) * 11, life: 0 });
   sndYarn();
 }
 function updateYarns(ts) {
@@ -2137,12 +2171,25 @@ function loop(ts) {
   h.el.style.opacity = (ts < state.hurtUntil && Math.floor(ts / 110) % 2) ? "0.35" : "1";   // blink when hurt
   placeHero();
 
-  const c = state.companion; c.t += 0.03;
-  const tx = h.x - 116 + Math.sin(c.t) * 30, ty = h.y + 66 + Math.cos(c.t * 1.3) * 24;
-  c.x += (tx - c.x) * 0.05; c.y += (ty - c.y) * 0.05;
-  c.x = Math.max(50, Math.min(W() - 50, c.x)); c.y = Math.max(60, Math.min(H() - 60, c.y));
+  const c = state.companion;
+  if (coop) {
+    // PLAYER 2 drives Bitsy with W A S D
+    const k2 = state.keys2; let a2x = 0, a2y = 0;
+    if (k2.left) a2x -= SPEED; if (k2.right) a2x += SPEED;
+    if (k2.up) a2y -= SPEED; if (k2.down) a2y += SPEED;
+    c.vx = Math.max(-MAXV, Math.min(MAXV, ((c.vx || 0) + a2x) * (a2x ? 1 : FRICTION)));
+    c.vy = Math.max(-MAXV, Math.min(MAXV, ((c.vy || 0) + a2y) * (a2y ? 1 : FRICTION)));
+    c.x += c.vx; c.y += c.vy;
+    c.x = Math.max(50, Math.min(W() - 50, c.x)); c.y = Math.max(70, Math.min(H() - 56, c.y));
+    c.el.classList.toggle("faceLeft", c.vx < -0.4);
+  } else {
+    c.t += 0.03;
+    const tx = h.x - 116 + Math.sin(c.t) * 30, ty = h.y + 66 + Math.cos(c.t * 1.3) * 24;
+    c.x += (tx - c.x) * 0.05; c.y += (ty - c.y) * 0.05;
+    c.x = Math.max(50, Math.min(W() - 50, c.x)); c.y = Math.max(60, Math.min(H() - 60, c.y));
+    c.el.classList.toggle("faceLeft", tx < c.x);
+  }
   c.el.style.left = (c.x - 46) + "px"; c.el.style.top = (c.y - 58) + "px";
-  c.el.classList.toggle("faceLeft", tx < c.x);
 
   if (level === 1) updateLevel1(ts);
   else if (level === 2) updateLevel2(ts);
@@ -2209,20 +2256,24 @@ function showWinCard() {
 /* ============================================================
    11) CONTROLS
    ============================================================ */
-function keyDir(e) {
-  switch (e.key) {
-    case "ArrowLeft": case "a": case "A": return "left";
-    case "ArrowRight": case "d": case "D": return "right";
-    case "ArrowUp": case "w": case "W": return "up";
-    case "ArrowDown": case "s": case "S": return "down";
-  }
+function arrowDir(e) {
+  switch (e.key) { case "ArrowLeft": return "left"; case "ArrowRight": return "right"; case "ArrowUp": return "up"; case "ArrowDown": return "down"; }
+  return null;
+}
+function wasdDir(e) {
+  switch (e.key) { case "a": case "A": return "left"; case "d": case "D": return "right"; case "w": case "W": return "up"; case "s": case "S": return "down"; }
   return null;
 }
 window.addEventListener("keydown", (e) => {
-  if (e.key === " " || e.code === "Space") { shootYarn(); e.preventDefault(); return; }
-  const d = keyDir(e); if (d) { state.keys[d] = true; e.preventDefault(); }
+  if (e.key === " " || e.code === "Space") { shootYarn(state.hero); e.preventDefault(); return; }      // P1 throw
+  if ((e.key === "f" || e.key === "F") && coop) { shootYarn(state.companion); e.preventDefault(); return; } // P2 throw
+  const a = arrowDir(e); if (a) { state.keys[a] = true; e.preventDefault(); return; }                  // arrows = P1
+  const w = wasdDir(e); if (w) { (coop ? state.keys2 : state.keys)[w] = true; e.preventDefault(); }     // WASD = P2 (or P1 solo)
 });
-window.addEventListener("keyup", (e) => { const d = keyDir(e); if (d) { state.keys[d] = false; e.preventDefault(); } });
+window.addEventListener("keyup", (e) => {
+  const a = arrowDir(e); if (a) { state.keys[a] = false; e.preventDefault(); return; }
+  const w = wasdDir(e); if (w) { state.keys2[w] = false; state.keys[w] = false; e.preventDefault(); }
+});
 
 function bindTouch(id, dir) {
   const el = document.getElementById(id);
@@ -2249,6 +2300,13 @@ document.querySelectorAll("#diffPick .diffBtn").forEach((b) => {
     document.querySelectorAll("#diffPick .diffBtn").forEach((x) => x.classList.remove("sel"));
     b.classList.add("sel");
     difficulty = b.dataset.diff;
+  });
+});
+document.querySelectorAll("#coopPick .diffBtn").forEach((b) => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("#coopPick .diffBtn").forEach((x) => x.classList.remove("sel"));
+    b.classList.add("sel");
+    coop = b.dataset.coop === "1";
   });
 });
 document.getElementById("startBtn").addEventListener("click", startGame);
