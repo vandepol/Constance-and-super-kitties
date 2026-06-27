@@ -2106,7 +2106,7 @@ function winLevel2() {
   sndTrap(); epicCelebrate();
   setTimeout(() => tune([{ f: 523 }, { f: 659 }, { f: 784 }, { f: 1047 }, { f: 1319, d: 0.4 }]), 300);
   showLevelReward("puppy");
-  setTimeout(startLevel3, 3300);         // on to Zsa Zsa!
+  setTimeout(() => playStory(STORY_L2L3, startLevel3), 3300);   // collar reveal interlude
 }
 
 /* ---- shared helpers for the later levels ---- */
@@ -2929,6 +2929,33 @@ const STORY_L1L2 = [
   { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
       + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:22%;width:34%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:22%;width:34%" }),
     text: "'Not the toys!' The Super Kitties sprang into action — after him!", dur: 6000, to: "scale(1.12)" },
+];
+
+// big glowing golden collar for the reveal (re-uses the shop's Gold Collar art)
+const goldCollarBig = (style) => `<div style="position:absolute;${style};filter:drop-shadow(0 0 18px #ffd23f)">${(shopItem("goldcollar") || {}).svg || "💛"}</div>`;
+
+const STORY_L2L3 = [
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #2a2c58, #0d1030)"></div>`
+      + `<div style="position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:34%">${PUPPY_SVG}</div>`,
+    text: "You tangled Mr. Puppy Paws! But… he just looked so sad. Something was wrong.", dur: 6500, to: "scale(1.25)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #2a2c58, #0d1030)"></div>`
+      + `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38%">${PUPPY_SVG}</div>`,
+    text: "'I wasn't being naughty,' he sniffled. 'I was looking everywhere for my treasured golden collar!'", dur: 7500, origin: "50% 40%", to: "scale(1.5)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #2a2c58, #0d1030)"></div>`
+      + `<div style="position:absolute;left:8%;top:30%;width:26%">${GRANNY_SVG}</div>`
+      + goldCollarBig("left:42%;top:34%;width:22%"),
+    text: "Then Granny Caterina hurried over. 'Oh my — THIS shiny thing? I found it on my balcony!' It was his GOLDEN COLLAR all along!", dur: 8500, origin: "52% 42%", to: "scale(1.7)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
+      + `<div style="position:absolute;left:46%;top:46%;transform:translate(-50%,-50%);width:32%">${PUPPY_SVG}</div>`
+      + goldCollarBig("left:40%;top:30%;width:18%")
+      + storyCatHTML("ginny", { plain: false, sup: true, style: "left:6%;bottom:4%;width:22%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:6%;bottom:4%;width:22%" }),
+    text: "She gave it back, and Mr. Puppy Paws wagged his tail with joy. Everyone was friends — hooray!", dur: 7000, to: "scale(1.15)" },
+  { build: () => storyTown(`<div style="position:absolute;left:60%;top:8%;width:30%">${ZSAZSA_SVG}</div>`
+      + storyFlyTreats().replace(/🐟/g, "🎵")),
+    text: "But high on the glittering rooftops, a fancy cockatoo named Zsa Zsa was swooping in — stealing the whole town's singing voices!", dur: 8000, origin: "70% 25%", to: "scale(1.4)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
+      + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:22%;width:34%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:22%;width:34%" }),
+    text: "'To the Rooftop Concert, Super Kitties!' Up, up, and away!", dur: 6000, to: "scale(1.12)" },
 ];
 
 function showScene(i) {
