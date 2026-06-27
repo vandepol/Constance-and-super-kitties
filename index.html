@@ -717,6 +717,8 @@
           <div class="pickDesc">White kitty · turquoise super-suit</div>
         </div>
       </div>
+      <!-- flip through the costumes you own, right here on the start screen -->
+      <button class="diffBtn hidden" id="tryLookBtn" style="margin:2px auto 10px">✨ Try a Look</button>
       <p class="subtitle" style="margin-bottom:8px">Choose difficulty:</p>
       <div class="diffPick" id="diffPick">
         <button class="diffBtn sel" data-diff="easy">😺 Easy</button>
@@ -2530,6 +2532,30 @@ function refreshHeroCosmetics() {
   for (const [id, sz] of sel) { const w = document.querySelector(id + " .catWrap"); if (w) applyCosmetics(w, sz); }
   if (state.hero && state.hero.el) applyCosmetics(state.hero.el, 110);
   if (state.companion && state.companion.el) applyCosmetics(state.companion.el, 92);
+  updateTryLook();
+}
+// wearable cosmetic slots (everything except the powers)
+const WEAR_SLOTS = ["hat", "face", "cheek", "neck", "trail", "cape", "suit"];
+// show the "Try a Look" button only once the player owns something to wear
+function updateTryLook() {
+  const btn = document.getElementById("tryLookBtn"); if (!btn) return;
+  const ownsWearable = owned.map(shopItem).some((it) => it && WEAR_SLOTS.includes(it.slot));
+  btn.classList.toggle("hidden", !ownsWearable);
+}
+// flip the picker kitties through each costume the player owns (then "plain")
+let lookIdx = -1;
+function cycleLook() {
+  const wearables = owned.map(shopItem).filter((it) => it && WEAR_SLOTS.includes(it.slot));
+  if (!wearables.length) return;
+  lookIdx = (lookIdx + 1) % (wearables.length + 1);
+  WEAR_SLOTS.forEach((s) => { equip[s] = null; });           // clear, then show one look
+  if (lookIdx < wearables.length) {
+    const it = wearables[lookIdx];
+    equip[it.slot] = it.id;
+    sayWord(it.word);                                        // read the costume's name aloud
+  }
+  saveEquip(); refreshHeroCosmetics();
+  tune([{ f: 740 }, { f: 988, d: 0.14 }]);
 }
 function renderShop() {
   document.getElementById("shopGems").textContent = bankGems;
@@ -2728,6 +2754,7 @@ function switchPlayer(n) {
 document.querySelectorAll("#playerBar .pBtn").forEach((b) => {
   b.addEventListener("click", () => switchPlayer(+b.dataset.player));
 });
+document.getElementById("tryLookBtn").addEventListener("click", cycleLook);
 
 /* menu art */
 selectHero(chosenHero);                 // reflect the loaded profile's kitty

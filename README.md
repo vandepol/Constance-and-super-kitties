@@ -60,6 +60,14 @@ on **shelves** by aisle:
 
 Whatever you wear shows up **on your kitty in the game**! 👑😎✨
 
+### ✨ Try a Look (right on the start screen!)
+
+Once you own a costume, a **✨ Try a Look** button appears under the kitties on the
+start screen. Tap it to **flip through everything you own** — capes, glitter suits,
+hats — right on Ginny and Bitsy, with each costume's name read aloud. Whatever look
+you stop on is what you'll wear in the game. No need to open the store to see your
+outfits! (The button only shows up after you've bought your first item.)
+
 ### 🛍️ Shop any time (even mid-level!)
 
 A **🛍️ button** sits at the top-right while you play. Tap it to **pause the game** and
