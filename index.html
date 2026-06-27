@@ -171,6 +171,10 @@
   #chestBtn { margin-top: 10px; }
   #shopOverlay .card, #nameOverlay .card { max-height: 94vh; overflow-y: auto; }
   .note.enemyNote { z-index: 6; font-size: 32px; filter: drop-shadow(0 0 10px #ff4d9d) drop-shadow(0 0 4px #fff); animation: spin .5s linear infinite; }
+  /* a baddie's wind-up warning (you see it before the throw) */
+  .shotWarn { position: absolute; z-index: 8; font-size: 30px; pointer-events: none; animation: shotWarn .52s ease-in-out; }
+  @keyframes shotWarn { 0% { transform: scale(.5); opacity: .3; } 50% { transform: scale(1.35); opacity: 1; } 100% { transform: scale(1); opacity: .7; } }
+  .enemyShot { position: absolute; z-index: 6; font-size: 30px; pointer-events: none; animation: spin .6s linear infinite; }
 
   /* ============================================================ THE CATS */
   .catWrap { position: absolute; z-index: 6; pointer-events: none; }
@@ -1826,7 +1830,6 @@ function updateLevel3(ts) {
   if (ts >= z.phaseUntil) {
     if (z.phase === "swoop") {
       z.phase = "perch"; z.phaseUntil = ts + (isHard() ? 1300 : 1800);
-      spawnWave(z.x, z.y, "song");                 // she belts a song-ring while perched — dodge it!
     } else {
       z.phase = "swoop"; z.phaseUntil = ts + 1000;
       z.tx = 150 + Math.random() * (W() - 300); z.ty = 110 + Math.random() * (H() * 0.42);
@@ -1843,10 +1846,10 @@ function updateLevel3(ts) {
   z.x = Math.max(60, Math.min(W() - 60, z.x)); z.y = Math.max(80, Math.min(H() * 0.72, z.y));
   z.el.style.left = (z.x - 75) + "px"; z.el.style.top = (z.y - 70) + "px";
   drawSlowStars(z, slowed);
-  // she HURLS music notes at the kitties — they fling you into the wall! (not while slowed)
+  // she winds up and HURLS music notes you can see coming — dodge them! (not while slowed)
   if (!slowed && ts >= (z.throwAt || 0)) {
-    spawnEnemyNote(z.x, z.y, state.hero.x, state.hero.y);
-    z.throwAt = ts + (isHard() ? 1100 : 1700);
+    spawnEnemyShot(z.x, z.y, "🎵", "#ff4d9d");
+    z.throwAt = ts + (isHard() ? 1300 : 1900);
   }
   // floating voices drift up (flavour)
   if (ts - (state.lastNote || 0) > 1600 && state.notes.length < 5) { spawnNote(); state.lastNote = ts; }
@@ -1922,7 +1925,7 @@ function updateLevel4(ts) {
     o.x = Math.max(70, Math.min(W() - 70, o.x)); o.y = Math.max(H() * 0.28, Math.min(H() - 90, o.y));
     o.el.style.left = (o.x - 60) + "px"; o.el.style.top = (o.y - 53) + "px";
     o.el.style.transform = (odx < 0) ? "scaleX(-1)" : "none";
-    if (ts >= o.sweepAt) { spawnWave(o.x, o.y, "ink"); o.sweepAt = ts + (isHard() ? 2100 : 2900); }
+    if (ts >= o.sweepAt) { spawnEnemyShot(o.x, o.y, GARBAGE[Math.floor(Math.random() * GARBAGE.length)], "#8a6a3a"); o.sweepAt = ts + (isHard() ? 2100 : 2900); }
   }
   // Lab Rat: mostly OUT roaming the alley, only briefly ducking into a dumpster
   if (ts >= r.modeUntil) {
@@ -2121,13 +2124,24 @@ function loseLevelRetry() {
     else startLevel4();
   }, 1500);
 }
-/* ---- enemy projectiles (Zsa Zsa's thrown music notes) ---- */
-function spawnEnemyNote(fx, fy, tx, ty) {
-  const el = document.createElement("div"); el.className = "note enemyNote"; el.textContent = "🎵";
-  el.style.left = (fx - 15) + "px"; el.style.top = (fy - 15) + "px"; el.style.zIndex = "6"; game.appendChild(el);
-  const dx = tx - fx, dy = ty - fy, d = Math.hypot(dx, dy) || 1;
-  state.shots.push({ el, x: fx, y: fy, vx: (dx / d) * 6.5, vy: (dy / d) * 6.5, life: 0 });
-  tone(520, 0.12, "square", 0.12);
+/* ---- enemy projectiles — TELEGRAPHED so you can see them coming & dodge ----
+   A warning emoji pulses at the shooter for half a second, THEN the thing flies
+   at where you are. (Zsa Zsa throws music notes; Otto throws garbage.) */
+const GARBAGE = ["🍌", "🥫", "🦴", "🗑️", "🍂"];
+function spawnEnemyShot(fx, fy, emoji, color) {
+  const warn = document.createElement("div"); warn.className = "shotWarn"; warn.textContent = emoji;
+  warn.style.left = (fx - 18) + "px"; warn.style.top = (fy - 42) + "px"; game.appendChild(warn);
+  tone(330, 0.12, "sine", 0.1);                       // little "watch out" beep
+  setTimeout(() => {
+    warn.remove();
+    if (!state.running) return;
+    const el = document.createElement("div"); el.className = "enemyShot"; el.textContent = emoji;
+    if (color) el.style.filter = "drop-shadow(0 0 8px " + color + ")";
+    el.style.left = (fx - 17) + "px"; el.style.top = (fy - 17) + "px"; game.appendChild(el);
+    const dx = state.hero.x - fx, dy = state.hero.y - fy, d = Math.hypot(dx, dy) || 1;
+    state.shots.push({ el, x: fx, y: fy, vx: (dx / d) * 6, vy: (dy / d) * 6, life: 0 });
+    tone(520, 0.12, "square", 0.12);
+  }, 520);
 }
 function updateShots() {
   const h = state.hero;
