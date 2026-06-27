@@ -92,6 +92,7 @@
   /* floating musical notes (Level 3 ambiance + the voices Zsa Zsa steals) */
   .note { position: absolute; z-index: 3; font-size: 30px; pointer-events: none;
     filter: drop-shadow(0 0 8px rgba(255,255,255,.5)); }
+  .note.enemyNote { z-index: 6; font-size: 32px; filter: drop-shadow(0 0 10px #ff4d9d) drop-shadow(0 0 4px #fff); animation: spin .5s linear infinite; }
 
   /* ============================================================ THE CATS */
   .catWrap { position: absolute; z-index: 6; pointer-events: none; }
@@ -198,6 +199,7 @@
   #hudLine1 b { color: var(--gold); }
   #hudLine2 { margin-top: 6px; font-size: 14px; opacity: .92; }
   #hudLine2 b { color: #c9d6ff; }
+  #hearts { margin-top: 6px; font-size: 20px; letter-spacing: 2px; min-height: 22px; }
 
   /* ---- the BASKET that fills with treats (Level 1) ---- */
   #basket { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 22; width: 184px; text-align: center; }
@@ -474,6 +476,7 @@
     <div id="levelName">Level 1 · The Cavern</div>
     <div id="hudLine1">Treats: <b id="score">0</b></div>
     <div id="hudLine2">You <b id="meName">Ginny</b> &nbsp;•&nbsp; Cat Burglar stole: <b id="burgScore">0</b></div>
+    <div id="hearts"></div>
   </div>
 
   <!-- the basket (Level 1) -->
@@ -619,14 +622,16 @@ const CAT_SVG = `
     <circle class="fur" cx="184" cy="118" r="14"/>
     <ellipse class="muz" cx="120" cy="124" rx="44" ry="32"/>
     <path class="mask" d="M58 96 C58 70 96 64 120 70 C144 64 182 70 182 96 C182 110 168 116 150 114 C140 124 100 124 90 114 C72 116 58 110 58 96 Z"/>
-    <ellipse class="eyeW" cx="96" cy="94" rx="19" ry="24"/>
-    <ellipse class="eyeW" cx="144" cy="94" rx="19" ry="24"/>
-    <ellipse class="eyeC" cx="96" cy="96" rx="14" ry="18"/>
-    <ellipse class="eyeC" cx="144" cy="96" rx="14" ry="18"/>
-    <circle class="eyeP" cx="96" cy="98" r="9"/>
-    <circle class="eyeP" cx="144" cy="98" r="9"/>
-    <circle class="shine" cx="100" cy="92" r="4"/>
-    <circle class="shine" cx="148" cy="92" r="4"/>
+    <ellipse class="eyeW" cx="94" cy="96" rx="25" ry="27"/>
+    <ellipse class="eyeW" cx="146" cy="96" rx="25" ry="27"/>
+    <ellipse class="eyeC" cx="94" cy="99" rx="20" ry="22"/>
+    <ellipse class="eyeC" cx="146" cy="99" rx="20" ry="22"/>
+    <circle class="eyeP" cx="94" cy="101" r="13"/>
+    <circle class="eyeP" cx="146" cy="101" r="13"/>
+    <circle class="shine" cx="101" cy="93" r="7"/>
+    <circle class="shine" cx="153" cy="93" r="7"/>
+    <circle class="shine" cx="87" cy="106" r="3.5"/>
+    <circle class="shine" cx="139" cy="106" r="3.5"/>
     <path class="nose" d="M114 120 L126 120 L120 128 Z"/>
     <path class="mouth" d="M120 128 q-8 10 -16 6 M120 128 q8 10 16 6"/>
     <path class="whisk" d="M86 122 L46 114 M86 130 L48 130 M154 122 L194 114 M154 130 L192 130"/>
@@ -799,6 +804,19 @@ const LABRAT_SVG = `
   <circle cx="72" cy="58" r="6" fill="#1a1a1a"/><circle cx="74" cy="56" r="2" fill="#fff"/>
   <circle cx="90" cy="56" r="6" fill="#1a1a1a"/><circle cx="92" cy="54" r="2" fill="#fff"/>
   <path d="M62 50 q8 -5 16 -2 M84 49 q8 -3 14 1" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- RED SCUBA GOGGLES -->
+  <path d="M59 57 L103 57" stroke="#d62828" stroke-width="5"/>
+  <path d="M61 57 Q44 56 40 65 M101 57 Q118 56 122 65" stroke="#d62828" stroke-width="4" fill="none"/>
+  <circle cx="72" cy="58" r="12" fill="#bfe9ff" fill-opacity="0.5" stroke="#d62828" stroke-width="4"/>
+  <circle cx="90" cy="58" r="12" fill="#bfe9ff" fill-opacity="0.5" stroke="#d62828" stroke-width="4"/>
+  <ellipse cx="68" cy="53" rx="3.5" ry="2.5" fill="#fff" opacity="0.8"/>
+  <ellipse cx="86" cy="53" rx="3.5" ry="2.5" fill="#fff" opacity="0.8"/>
+  <!-- UPSIDE-DOWN COLANDER HELMET -->
+  <path d="M40 42 Q42 4 72 4 Q102 4 104 42 Z" fill="#c4c8d2" stroke="#888d99" stroke-width="3"/>
+  <ellipse cx="72" cy="42" rx="33" ry="7" fill="#aeb3c0" stroke="#888d99" stroke-width="3"/>
+  <circle cx="72" cy="7" r="4" fill="#aeb3c0" stroke="#888d99" stroke-width="2"/>
+  <path d="M40 36 q-9 3 -7 13 M104 36 q9 3 7 13" fill="none" stroke="#888d99" stroke-width="4"/>
+  <g fill="#7a7f8c"><circle cx="60" cy="22" r="2.4"/><circle cx="72" cy="17" r="2.4"/><circle cx="84" cy="22" r="2.4"/><circle cx="54" cy="32" r="2.4"/><circle cx="66" cy="29" r="2.4"/><circle cx="78" cy="29" r="2.4"/><circle cx="90" cy="32" r="2.4"/></g>
   <!-- whiskers + sneaky grin -->
   <path d="M40 80 L8 74 M40 86 L10 90 M40 92 L12 100" stroke="#777" stroke-width="2" stroke-linecap="round"/>
   <path d="M44 88 q14 8 28 2" stroke="#5a3a4a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -868,7 +886,8 @@ let state = {
   running: false,
   score: 0, burglarScore: 0, basket: 0,
   hero: null, companion: null, enemy: null,
-  treats: [], crates: [], toys: [], yarns: [], waves: [], notes: [],
+  treats: [], crates: [], toys: [], yarns: [], waves: [], notes: [], shots: [],
+  hearts: 5, hurtUntil: 0,
   keys: {},
   lastSpark: 0, lastShot: 0,
   puppy: null, toysStolen: 0,
@@ -1002,7 +1021,7 @@ function placeHero() {
 }
 function clearActors() {
   document.querySelectorAll(".catWrap.actor,.treat,.crate,.toy,.yarn,.slowStars,.enemyWrap,.note,.wave,.dumpster,.dazeSwirl,.yarnBurst").forEach((e) => e.remove());
-  state.waves = []; state.notes = [];
+  state.waves = []; state.notes = []; state.shots = [];
 }
 function makeHeroAndCompanion(superMode) {
   clearActors();
@@ -1064,7 +1083,7 @@ function setupLevel1() {
   level = 1; setScene(1);
   levelNameEl.textContent = "Level 1 · The Cavern";
   basketEl.classList.remove("hidden");
-  hideCoach();
+  hideCoach(); resetHearts();
   state.score = 0; state.burglarScore = 0; state.basket = 0;
   state.treats = []; state.yarns = [];
   scoreEl.textContent = 0; burgScoreEl.textContent = 0;
@@ -1227,7 +1246,7 @@ function startLevel2() {
   showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw yarn at <b>Mr. Puppy Paws</b>!");
   state.enemyCenter = 60;
   state.onWin = winLevel2;
-  updateTangleHud();
+  resetHearts(); updateTangleHud();
 
   banner("KITTY LAND — LASSO HIM! 🧶🐶"); sndLevel();
   requestAnimationFrame(loop);   // winLevel1 stopped the loop for the cut-scene; restart it
@@ -1356,8 +1375,8 @@ function setScene(n) { game.classList.remove("lvl2", "lvl3", "lvl4"); if (n >= 2
 function clearLevelObjects() {
   document.querySelectorAll(".treat,.crate,.toy,.yarn,.slowStars,.note,.wave,.dumpster,.enemyWrap,.yarnBurst").forEach((e) => e.remove());
   if (state.enemy && state.enemy.starsEl) state.enemy.starsEl.remove();
-  state.treats = []; state.crates = []; state.toys = []; state.yarns = []; state.notes = []; state.waves = [];
-  if (state.hero) { state.hero.dazedUntil = 0; if (state.hero.swirlEl) { state.hero.swirlEl.remove(); state.hero.swirlEl = null; } }
+  state.treats = []; state.crates = []; state.toys = []; state.yarns = []; state.notes = []; state.waves = []; state.shots = [];
+  if (state.hero) { state.hero.dazedUntil = 0; state.hero.kx = 0; state.hero.ky = 0; state.hero.el.style.opacity = "1"; if (state.hero.swirlEl) { state.hero.swirlEl.remove(); state.hero.swirlEl = null; } }
 }
 function spawnNote() {
   const el = document.createElement("div"); el.className = "note";
@@ -1392,8 +1411,8 @@ function startLevel3() {
   state.tangleNeed = isHard() ? 6 : 4;
   state.tangleLabel = "🎤 Throw yarn at Zsa Zsa:";
   showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw yarn at <b>Zsa Zsa</b>! Dodge her songs.");
-  state.enemyCenter = 75; state.onWin = winLevel3; state.lastNote = 0;
-  updateTangleHud();
+  state.enemyCenter = 75; state.onWin = winLevel3; state.lastNote = 0; state.zsa.throwAt = now() + 1500;
+  resetHearts(); updateTangleHud();
   banner("ROOFTOP CONCERT — LASSO ZSA ZSA! 🎤🦜"); sndLevel();
   requestAnimationFrame(loop);
 }
@@ -1422,6 +1441,11 @@ function updateLevel3(ts) {
   z.x = Math.max(60, Math.min(W() - 60, z.x)); z.y = Math.max(80, Math.min(H() * 0.72, z.y));
   z.el.style.left = (z.x - 75) + "px"; z.el.style.top = (z.y - 70) + "px";
   drawSlowStars(z, slowed);
+  // she HURLS music notes at the kitties — they fling you into the wall! (not while slowed)
+  if (!slowed && ts >= (z.throwAt || 0)) {
+    spawnEnemyNote(z.x, z.y, state.hero.x, state.hero.y);
+    z.throwAt = ts + (isHard() ? 1100 : 1700);
+  }
   // floating voices drift up (flavour)
   if (ts - (state.lastNote || 0) > 1600 && state.notes.length < 5) { spawnNote(); state.lastNote = ts; }
   for (const n of [...state.notes]) {
@@ -1479,7 +1503,7 @@ function startLevel4() {
   state.tangleLabel = "🧶 Throw yarn at the Lab Rat:";
   showCoach("👉 Throw yarn (<b>SPACE</b>/<b>🧶</b>) at the <b>Lab Rat</b> when he pops out!");
   state.enemyCenter = 70; state.onWin = winLevel4;
-  updateTangleHud();
+  resetHearts(); updateTangleHud();
   banner("DUMPSTER ALLEY — CATCH THE LAB RAT! 🐀🗑️"); sndLevel();
   requestAnimationFrame(loop);
 }
@@ -1523,9 +1547,18 @@ function updateLevel4(ts) {
 function winLevel4() {
   state.running = false;
   banner("🏆 LAB RAT & OTTO DEFEATED! 🏆");
-  sndTrap(); epicCelebrate();
-  setTimeout(() => tune([{ f: 523 }, { f: 659 }, { f: 784 }, { f: 1047 }, { f: 1319 }, { f: 1568, d: 0.5 }]), 300);
-  setTimeout(finalWin, 3600);
+  sndTrap(); grandFinale();
+  setTimeout(finalWin, 5400);
+}
+// the BIG ending: wave after wave of confetti + fireworks + banners + fanfare
+function grandFinale() {
+  epicCelebrate();
+  setTimeout(() => tune([{ f: 523 }, { f: 659 }, { f: 784 }, { f: 1047 }, { f: 1319 }, { f: 1568 }, { f: 2093, d: 0.6 }]), 200);
+  setTimeout(() => { epicCelebrate(); banner("🎉 SUPER KITTIES WIN! 🎉"); }, 1500);
+  setTimeout(() => { epicCelebrate(); banner("🌈 KITTY LAND IS SAFE! 🌈"); }, 3000);
+  setTimeout(() => { epicCelebrate(); sndSuit(); }, 4400);
+  // a long shower of confetti throughout
+  for (let i = 0; i < 5; i++) setTimeout(epicCelebrate, 600 + i * 800);
 }
 function finalWin() {
   document.getElementById("winTitle").textContent = "🏆 YOU SAVED KITTY LAND!";
@@ -1560,8 +1593,8 @@ function updateYarns(ts) {
     if (e && e.hittable !== false) {
       const dx = e.x - y.x, dy = e.y - y.y, d = Math.hypot(dx, dy) || 1;
       const sp = Math.hypot(y.vx, y.vy) || 11;
-      y.vx += ((dx / d) * sp - y.vx) * 0.16;
-      y.vy += ((dy / d) * sp - y.vy) * 0.16;
+      y.vx += ((dx / d) * sp - y.vx) * 0.07;   // gentle assist only — you still have to aim
+      y.vy += ((dy / d) * sp - y.vy) * 0.07;
     }
     y.x += y.vx; y.y += y.vy; y.life++;
     y.el.style.left = (y.x - 17) + "px"; y.el.style.top = (y.y - 17) + "px";
@@ -1603,10 +1636,10 @@ function updateWaves(ts) {
     w.r += w.speed;
     w.el.style.width = (w.r * 2) + "px"; w.el.style.height = (w.r * 2) + "px";
     w.el.style.opacity = String(Math.max(0, 1 - w.r / w.maxR));
-    // the dangerous part is the ring EDGE — dodge it!
-    if (!w.hitHero && h && ts >= (h.dazedUntil || 0)) {
+    // the dangerous part is the ring EDGE — dodge it or lose a heart!
+    if (!w.hitHero && h && now() >= state.hurtUntil) {
       const d = Math.hypot(h.x - w.x, h.y - w.y);
-      if (Math.abs(d - w.r) < 36) { w.hitHero = true; h.dazedUntil = ts + 1200; popAt(h.x - 14, h.y - 30, "😵‍💫"); sndHit(); }
+      if (Math.abs(d - w.r) < 36) { w.hitHero = true; loseHeart(w.x, w.y, 18); }
     }
     if (w.r >= w.maxR) { w.el.remove(); state.waves = state.waves.filter((q) => q !== w); }
   }
@@ -1622,6 +1655,56 @@ function updateDazeSwirl(h, dazed) {
     else { h.swirlEl.remove(); h.swirlEl = null; }
   }
 }
+
+/* ---- HEARTS / getting hurt ---- */
+const startingHearts = () => (isHard() ? 3 : 5);
+function resetHearts() { state.hearts = startingHearts(); state.hurtUntil = 0; updateHeartsHud(); }
+function updateHeartsHud() {
+  const el = document.getElementById("hearts"); if (!el) return;
+  el.textContent = "❤️".repeat(Math.max(0, state.hearts)) + "🖤".repeat(Math.max(0, startingHearts() - state.hearts));
+}
+function loseHeart(srcX, srcY, strength) {
+  if (!state.running || now() < state.hurtUntil) return;   // brief invincibility after a hit
+  state.hearts--; state.hurtUntil = now() + 1300; updateHeartsHud();
+  const h = state.hero, dx = h.x - srcX, dy = h.y - srcY, d = Math.hypot(dx, dy) || 1, k = strength || 14;
+  h.kx = (dx / d) * k; h.ky = (dy / d) * k; h.dazedUntil = now() + 350;   // knocked back & briefly stunned
+  shake(); sndHit(); popAt(h.x - 14, h.y - 44, "💔");
+  if (state.hearts <= 0) loseLevelRetry();
+}
+function loseLevelRetry() {
+  state.running = false;
+  banner("🙀 Oops! Try again!");
+  setTimeout(() => {
+    if (level === 1) { state.running = true; setupLevel1(); requestAnimationFrame(loop); }
+    else if (level === 2) startLevel2();
+    else if (level === 3) startLevel3();
+    else startLevel4();
+  }, 1500);
+}
+/* ---- enemy projectiles (Zsa Zsa's thrown music notes) ---- */
+function spawnEnemyNote(fx, fy, tx, ty) {
+  const el = document.createElement("div"); el.className = "note enemyNote"; el.textContent = "🎵";
+  el.style.left = (fx - 15) + "px"; el.style.top = (fy - 15) + "px"; el.style.zIndex = "6"; game.appendChild(el);
+  const dx = tx - fx, dy = ty - fy, d = Math.hypot(dx, dy) || 1;
+  state.shots.push({ el, x: fx, y: fy, vx: (dx / d) * 6.5, vy: (dy / d) * 6.5, life: 0 });
+  tone(520, 0.12, "square", 0.12);
+}
+function updateShots() {
+  const h = state.hero;
+  for (const s of [...state.shots]) {
+    s.x += s.vx; s.y += s.vy; s.life++;
+    s.el.style.left = (s.x - 15) + "px"; s.el.style.top = (s.y - 15) + "px";
+    if (now() >= state.hurtUntil && Math.hypot(h.x - s.x, h.y - s.y) < (HERO_R + 14)) {
+      // fling the kitty hard in the note's direction — into the far wall!
+      loseHeart(s.x - s.vx * 6, s.y - s.vy * 6, 30);
+      s.el.remove(); state.shots = state.shots.filter((q) => q !== s); continue;
+    }
+    if (s.x < -40 || s.x > W() + 40 || s.y < -40 || s.y > H() + 40 || s.life > 260) {
+      s.el.remove(); state.shots = state.shots.filter((q) => q !== s);
+    }
+  }
+}
+function clearShots() { state.shots.forEach((s) => s.el.remove()); state.shots = []; }
 
 /* ============================================================
    9) THE GAME LOOP
@@ -1640,9 +1723,12 @@ function loop(ts) {
   }
   h.vx = Math.max(-MAXV, Math.min(MAXV, (h.vx + ax) * (ax ? 1 : FRICTION)));
   h.vy = Math.max(-MAXV, Math.min(MAXV, (h.vy + ay) * (ay ? 1 : FRICTION)));
-  h.x += h.vx; h.y += h.vy;
+  // knockback (not speed-capped) carries the kitty toward the wall when hit
+  h.x += h.vx + (h.kx || 0); h.y += h.vy + (h.ky || 0);
+  h.kx = (h.kx || 0) * 0.9; h.ky = (h.ky || 0) * 0.9;
   h.x = Math.max(HERO_W / 2, Math.min(W() - HERO_W / 2, h.x));
   h.y = Math.max(HERO_H / 2 + 10, Math.min(H() - HERO_H / 2, h.y));
+  h.el.style.opacity = (ts < state.hurtUntil && Math.floor(ts / 110) % 2) ? "0.35" : "1";   // blink when hurt
   placeHero();
 
   const c = state.companion; c.t += 0.03;
@@ -1658,6 +1744,11 @@ function loop(ts) {
   else updateLevel4(ts);
   updateYarns(ts);
   updateWaves(ts);
+  updateShots();
+
+  // touching the baddie hurts (so you can't just barge in — keep your distance!)
+  const en = state.enemy;
+  if (en && en.hittable !== false && Math.hypot(en.x - h.x, en.y - h.y) < (en.r + HERO_R - 10)) loseHeart(en.x, en.y, 16);
 
   if (ts - state.lastSpark > 600) { spawnSpark(); state.lastSpark = ts; }
   requestAnimationFrame(loop);
