@@ -458,6 +458,37 @@
   .badGuys { display: flex; gap: 14px; justify-content: center; margin: 10px 0 0; font-size: 13px; }
   .badGuys .bg { width: 86px; }
   .badGuys .bgArt { width: 70px; height: 70px; margin: 0 auto; }
+
+  /* ===== cinematic STORY intro ===== */
+  #storyOverlay { position: absolute; inset: 0; z-index: 80; overflow: hidden;
+    background: #05060f; display: flex; align-items: center; justify-content: center; }
+  #storyOverlay.hidden { display: none; }
+  #storyStage { position: absolute; inset: 0; transform-origin: 50% 50%;
+    transition: transform var(--camDur, 5s) ease-in-out; will-change: transform; }
+  #storyStage .scene { position: absolute; inset: 0; animation: sceneFade .9s ease both; }
+  @keyframes sceneFade { from { opacity: 0; } to { opacity: 1; } }
+  #storyStage svg { display: block; }
+  /* dark cinematic vignette over everything */
+  #storyVignette { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0,0,0,.55) 100%); }
+  #storyCaption { position: absolute; left: 0; right: 0; bottom: 34px; z-index: 2; text-align: center;
+    padding: 0 28px; color: #fff; font-family: var(--font-display); font-size: clamp(20px, 3.4vw, 34px);
+    line-height: 1.25; text-shadow: 0 2px 12px #000, 0 0 22px rgba(0,0,0,.8); animation: capRise .6s ease both; }
+  @keyframes capRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  #storySkip { position: absolute; top: 16px; right: 16px; z-index: 3; cursor: pointer;
+    font-family: var(--font-display); font-size: 18px; color: #fff; padding: 8px 18px; border-radius: 999px;
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  /* twinkling building windows */
+  .twWin { animation: twinkle 2.2s ease-in-out infinite; }
+  @keyframes twinkle { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  /* a treat being sucked away into the dark */
+  .flyTreat { position: absolute; font-size: 26px; animation: flyAway 2.4s ease-in infinite; }
+  @keyframes flyAway { 0% { opacity: 0; transform: translate(0,0) scale(1); }
+    15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--fx,300px), var(--fy,-220px)) scale(.2); } }
+  /* a walking kitty bob */
+  .walker { animation: walkBob .5s ease-in-out infinite; transform-origin: 50% 100%; }
+  @keyframes walkBob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-7px) rotate(1.5deg); } }
+  .storyTwinkleStar { position: absolute; color: #fff; animation: twinkle 1.8s ease-in-out infinite; }
 </style>
 </head>
 <body>
@@ -692,6 +723,14 @@
   <div class="corner">
     <button class="iconBtn" id="musicBtn" title="Sound on/off">🔊</button>
     <button class="iconBtn" id="helpBtn" title="How to play">❔</button>
+  </div>
+
+  <!-- CINEMATIC STORY INTRO -->
+  <div id="storyOverlay" class="hidden">
+    <div id="storyStage"></div>
+    <div id="storyVignette"></div>
+    <div id="storyCaption"></div>
+    <button id="storySkip">Skip ▶</button>
   </div>
 
   <!-- START / STORY -->
@@ -1249,6 +1288,7 @@ const SHOP = [
   { id: "heart",      cat: "Necklaces", slot: "neck", word: "Heart",    emoji: "💖", price: 6 },
   { id: "bell",       cat: "Necklaces", slot: "neck", word: "Bell",     emoji: "🔔", price: 7 },
   { id: "beads",      cat: "Necklaces", slot: "neck", word: "Beads",    emoji: "📿", price: 9 },
+  { id: "goldcollar", cat: "Necklaces", slot: "neck", word: "Gold Collar", emoji: "💛", price: 11, svg: `<svg viewBox="0 0 100 72" xmlns="http://www.w3.org/2000/svg"><path d="M10 16 Q50 46 90 16" fill="none" stroke="#ffcf3a" stroke-width="9" stroke-linecap="round"/><path d="M10 16 Q50 46 90 16" fill="none" stroke="#ffe98a" stroke-width="3" stroke-linecap="round"/><circle cx="31" cy="26" r="2.4" fill="#fff6c8"/><circle cx="50" cy="33" r="2.4" fill="#fff6c8"/><circle cx="69" cy="26" r="2.4" fill="#fff6c8"/><circle cx="50" cy="40" r="4" fill="#ffcf3a" stroke="#e0a800" stroke-width="1"/><path d="M50 66 C39 55 31 49 31 41.5 C31 36.5 35 33 39.5 33 C43.5 33 47.5 36 50 39.5 C52.5 36 56.5 33 60.5 33 C65 33 69 36.5 69 41.5 C69 49 61 55 50 66 Z" fill="#ff3b6b" stroke="#c01f4a" stroke-width="2"/></svg>` },
   { id: "sparkles",   cat: "Trails",   slot: "trail", word: "Sparkles", emoji: "✨", price: 8 },
   { id: "hearts",     cat: "Trails",   slot: "trail", word: "Hearts",   emoji: "💕", price: 9 },
   { id: "rainbow",    cat: "Trails",   slot: "trail", word: "Rainbow",  emoji: "🌈", price: 12 },
@@ -1412,7 +1452,7 @@ function applyCosmetics(wrapEl, sizePx) {
   if (equip.hat) { const it = shopItem(equip.hat); if (it) addItem(it, { left: "50%", top: it.svg ? "4%" : "-7%", transform: "translateX(-50%)", width: (w * 0.5) + "px", fontSize: (w * 0.4) + "px" }); }     // on top of the head
   if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "25%", transform: "translateX(-50%)", fontSize: (w * 0.28) + "px" }); }    // glasses on the eyes
   if (equip.cheek) { const it = shopItem(equip.cheek); if (it) add(it.emoji, { left: "26%", top: "34%", fontSize: (w * 0.2) + "px" }); }                                  // little accent on the cheek
-  if (equip.neck) { const it = shopItem(equip.neck); if (it) add(it.emoji, { left: "50%", top: "54%", transform: "translateX(-50%)", fontSize: (w * 0.24) + "px" }); }    // emblem on the chest
+  if (equip.neck) { const it = shopItem(equip.neck); if (it) addItem(it, { left: "50%", top: it.svg ? "47%" : "54%", transform: "translateX(-50%)", width: (w * 0.42) + "px", fontSize: (w * 0.24) + "px" }); }    // collar/emblem on the chest
   if (equip.trail) { const it = shopItem(equip.trail); if (it) add(it.emoji, { left: "82%", top: "56%", fontSize: (w * 0.26) + "px" }); }                                 // trail at the side
 }
 
@@ -2636,6 +2676,7 @@ function wasdDir(e) {
   return null;
 }
 window.addEventListener("keydown", (e) => {
+  if (storyPlaying) { if (e.key === " " || e.code === "Space" || e.key === "Enter") { nextScene(); e.preventDefault(); } return; }
   if (level === 5 && (e.key === " " || e.code === "Space")) { launchFirework(); e.preventDefault(); return; }  // party fireworks!
   if (e.key === "b" || e.key === "B") { fireStarBlast(); e.preventDefault(); return; }                 // Star Blast power
   if (e.key === " " || e.code === "Space") { shootYarn(state.hero); e.preventDefault(); return; }      // P1 throw
@@ -2682,7 +2723,114 @@ document.querySelectorAll("#coopPick .diffBtn").forEach((b) => {
     coop = b.dataset.coop === "1";
   });
 });
-document.getElementById("startBtn").addEventListener("click", startGame);
+/* ============================================================
+   CINEMATIC STORY INTRO — narrated, with movie-style zoom/pan
+   ============================================================ */
+let storyPlaying = false, storyIdx = 0, storyTimer = null, storyDone = null;
+const storyOv = document.getElementById("storyOverlay");
+const storyStage = document.getElementById("storyStage");
+const storyCap = document.getElementById("storyCaption");
+
+function narrate(t) {
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 0.92; u.pitch = 1.04; speechSynthesis.speak(u); } catch (e) {}
+}
+function storyMood() { tone(110, 0.7, "sine", 0.05); setTimeout(() => tone(146.8, 0.6, "sine", 0.04), 320); }
+
+// --- scene builders ---
+function storyCatHTML(hero, opts) {
+  opts = opts || {};
+  const svg = (opts.plain === false) ? CAT_SVG : CAT_SVG.replace('class="cat"', 'class="cat plain"');
+  return `<div class="catWrap${opts.sup ? " super" : ""}${opts.walker ? " walker" : ""}" style="${HEROES[hero].vars};position:absolute;${opts.style || ""}">${svg}</div>`;
+}
+function storyTown(extra) {
+  let stars = "";
+  for (let i = 0; i < 24; i++) stars += `<div class="storyTwinkleStar" style="left:${(i * 37) % 100}%;top:${(i * 53) % 52}%;font-size:${8 + (i % 4) * 3}px;animation-delay:${(i % 7) * 0.3}s">✦</div>`;
+  const cols = ["#2a2150", "#241b46", "#2e2358", "#211a40"];
+  const bx = [2, 16, 29, 43, 57, 71, 85], bh = [42, 60, 34, 66, 48, 72, 40];
+  let b = "";
+  for (let i = 0; i < bx.length; i++) {
+    b += `<rect x="${bx[i]}" y="${100 - bh[i]}" width="13" height="${bh[i]}" fill="${cols[i % 4]}"/>`;
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) if ((i + r + c) % 2 === 0)
+      b += `<rect class="twWin" x="${bx[i] + 2.5 + c * 5.5}" y="${(100 - bh[i]) + 6 + r * 9}" width="3.4" height="4.8" rx="1" fill="#ffd96b" style="animation-delay:${((i + r + c) % 6) * 0.4}s"/>`;
+  }
+  return `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMax slice" style="position:absolute;inset:0;width:100%;height:100%">
+    <rect width="100" height="100" fill="#0a0a22"/>
+    <circle cx="82" cy="16" r="9" fill="#fdf6c9"/><circle cx="78" cy="13" r="8" fill="#0a0a22"/>
+    ${b}</svg>${stars}${extra || ""}`;
+}
+function storyFlyTreats() {
+  let h = "";
+  for (let i = 0; i < 11; i++) h += `<div class="flyTreat" style="left:${8 + i * 8}%;top:${24 + (i % 5) * 11}%;--fx:${18 + (i % 4) * 9}vw;--fy:-${130 + (i % 5) * 40}px;animation-delay:${(i % 6) * 0.35}s">🐟</div>`;
+  return h;
+}
+function storyCavern() {
+  return `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%">
+    <defs><radialGradient id="cavGlow"><stop offset="0%" stop-color="#8a6bff" stop-opacity=".6"/><stop offset="100%" stop-color="#8a6bff" stop-opacity="0"/></radialGradient></defs>
+    <rect width="100" height="100" fill="#0b0a1e"/>
+    <ellipse cx="50" cy="60" rx="40" ry="44" fill="#161229"/>
+    <path d="M50 20 C26 20 18 48 18 74 L82 74 C82 48 74 20 50 20 Z" fill="#070611"/>
+    <ellipse cx="50" cy="62" rx="24" ry="26" fill="url(#cavGlow)"/>
+    <text x="50" y="14" text-anchor="middle" font-size="8.5" fill="#b9a7ff" font-family="Baloo 2, sans-serif" font-weight="800">THE CAT-VERN</text>
+  </svg><div class="storyTwinkleStar" style="left:50%;top:54%;font-size:26px">🐟</div>`;
+}
+function storyBurglarScene() {
+  let treats = "";
+  for (let i = 0; i < 8; i++) treats += `<div style="position:absolute;left:${20 + i * 7}%;top:${64 + (i % 3) * 8}%;font-size:24px">🐟</div>`;
+  return `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%">
+    <defs><radialGradient id="spot"><stop offset="0%" stop-color="#2a2350"/><stop offset="100%" stop-color="#0b0a1e"/></radialGradient></defs>
+    <rect width="100" height="100" fill="url(#spot)"/></svg>
+    <div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:40%">${BURGLAR_SVG}</div>${treats}`;
+}
+
+const STORY = [
+  { build: () => storyTown(), text: "Late one night in Kitty Ville, under the twinkling lights…", dur: 5500, to: "scale(1.14)" },
+  { build: () => storyTown(storyFlyTreats()), text: "…all the cat treats started to vanish — whooshing out the windows into the dark!", dur: 6500, to: "scale(1.2) translateY(4%)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%, #241a3a, #0a0a18)"></div>`
+      + storyCatHTML("ginny", { style: "left:8%;top:18%;width:42%" }) + storyCatHTML("bitsy", { style: "right:8%;top:18%;width:42%" }),
+    text: "Ginny and Bitsy saw every kitty's treats were gone. 'Where are they ALL going?'", dur: 6500, origin: "50% 30%", to: "scale(2.5)" },
+  { build: () => storyTown(storyCatHTML("ginny", { plain: true, walker: true, style: "left:34%;top:60%;width:16%" })
+      + storyCatHTML("bitsy", { plain: true, walker: true, style: "left:50%;top:62%;width:15%" })),
+    text: "The brave little kitties followed the trail of treats through the sleepy town…", dur: 6000, from: "scale(1.1) translateX(-8%)", to: "scale(1.1) translateX(8%)" },
+  { build: () => storyCavern(), text: "…straight to their very own secret Cat-vern. They pushed open the door…", dur: 5500, to: "scale(1.5)" },
+  { build: () => storyBurglarScene(), text: "…and there was the Cat Burglar — grabbing ALL the treats! 'Cat Burglar! Are you stealing the treats from Kitty Ville?'", dur: 7500, to: "scale(1.5) translateY(-3%)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
+      + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:20%;width:34%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:20%;width:34%" }),
+    text: "'We can't let her get them all!' SUIT UP, Super Kitties! Grab the treats before she does — but don't bump into her, or you'll lose a heart. Find sparkly diamonds to buy treats at the Kitty Mall!", dur: 10500, to: "scale(1.12)" },
+];
+
+function showScene(i) {
+  const sc = STORY[i]; if (!sc) { endStory(); return; }
+  storyIdx = i;
+  storyStage.style.setProperty("--camDur", (sc.dur / 1000) + "s");
+  storyStage.style.transition = "none";
+  storyStage.style.transformOrigin = sc.origin || "50% 50%";
+  storyStage.style.transform = sc.from || "scale(1)";
+  storyStage.innerHTML = `<div class="scene">${sc.build()}</div>`;
+  storyCap.textContent = sc.text;
+  void storyStage.offsetWidth;                       // reflow so the camera move animates
+  requestAnimationFrame(() => { storyStage.style.transition = ""; storyStage.style.transform = sc.to || "scale(1.12)"; });
+  narrate(sc.text); storyMood();
+  clearTimeout(storyTimer); storyTimer = setTimeout(nextScene, sc.dur);
+}
+function nextScene() { if (!storyPlaying) return; if (storyIdx + 1 >= STORY.length) endStory(); else showScene(storyIdx + 1); }
+function endStory() {
+  if (!storyPlaying) return;
+  storyPlaying = false; clearTimeout(storyTimer);
+  try { speechSynthesis.cancel(); } catch (e) {}
+  storyOv.classList.add("hidden"); storyStage.innerHTML = "";
+  const done = storyDone; storyDone = null; if (done) done();
+}
+function playStory(onDone) {
+  storyDone = onDone; storyPlaying = true;
+  initAudio();
+  document.getElementById("startOverlay").classList.add("hidden");
+  storyOv.classList.remove("hidden");
+  showScene(0);
+}
+storyStage.addEventListener("pointerdown", nextScene);
+document.getElementById("storySkip").addEventListener("click", (e) => { e.stopPropagation(); endStory(); });
+
+document.getElementById("startBtn").addEventListener("click", () => playStory(startGame));
 document.getElementById("playAgain").addEventListener("click", startGame);
 document.getElementById("musicBtn").addEventListener("click", () => {
   soundOn = !soundOn;
