@@ -41,14 +41,36 @@ his face) is trying to **steal all the cat toys**! This is a **trapping** level:
 
 Trap him and you **win** and save Kitty Land. 🎉
 
-## 💎 Sparkle Gems & the Kitty Chest
+## 💎 Sparkle Gems & the 🛍️ Kitty Store
 
 A glittering **Sparkle Gem** appears in every level now and then — touch it to pop
-it into your **Kitty Chest**! Your gems are **saved between plays**.
+it into your **gem purse**! Your gems are **saved between plays**.
 
-Open **💎 My Kitty Chest** (on the start screen, or after you win) to spend gems on
-fun **dress-up** items — a Bow, Hat, Crown, Flower, Shades, Star, Sparkles trail or
-Rainbow trail. Whatever you wear shows up **on your kitty in the game**! 👑😎✨
+Open the **🛍️ Kitty Store** to spend them — it's a walk-in shop with items lined up
+on **shelves** by aisle:
+
+- **Hats** — Bow, Hat, Cap, Flower, Party, Crown
+- **Glasses** — Shades, Specs, and a cheek Star
+- **Capes** — Red, Blue or Gold superhero cape (it flows behind your kitty!)
+- **Glitter Suits** — Gold, Pink or Diamond — your kitty's super-suit **shimmers** ✨
+- **Necklaces** — Heart, Bell, Beads
+- **Trails** — Sparkles, Hearts, Rainbow
+- **Throwables** — change what you throw! Star ⭐, Bolt ⚡ or Heart 💕 instead of yarn
+- **Powers** — the **Magnet** 🧲, and the **Star Blast** 🌟 (see below)
+
+Whatever you wear shows up **on your kitty in the game**! 👑😎✨
+
+### 🛍️ Shop any time (even mid-level!)
+
+A **🛍️ button** sits at the top-right while you play. Tap it to **pause the game** and
+pop into the store, buy or change your look, then tap **◀ Back** to jump right back in.
+
+### 🌟 Star Blast (a super power!)
+
+Save up **30 gems** for the **Star Blast** in the Powers aisle. Once you own it, a
+glowing **🌟 button** appears while you play (or press the **B** key). Fire it to
+**sweep away every incoming attack** at once — and in a boss fight it gives the
+baddie a **bonus tangle**. There's a short cool-down so it stays special.
 
 ### 📖 Word treasures & "sound it out"
 

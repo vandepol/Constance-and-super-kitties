@@ -166,9 +166,37 @@
   #gemHud.hidden { display: none; }
   #gemHud svg { width: 26px; height: 26px; }
   #gemHud b { color: #9ff0ff; }
+  /* in-game store + power buttons (sit under the gem purse, top-right) */
+  #storeBtn, #powerBtn { position: absolute; right: 16px; z-index: 20; width: 56px; height: 56px;
+    border: none; border-radius: 50%; font-size: 28px; cursor: pointer; box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: center; }
+  #storeBtn { top: 64px; background: linear-gradient(180deg, #ff8a3d, #ff5ab0); }
+  #powerBtn { top: 130px; background: linear-gradient(180deg, #ffe14d, #ff9d2e);
+    animation: powerPulse 1s ease-in-out infinite; }
+  #powerBtn.cooling { filter: grayscale(.7) brightness(.7); animation: none; cursor: default; }
+  @keyframes powerPulse { 0%,100%{ transform: scale(1); box-shadow: 0 0 0 0 rgba(255,225,77,.6); } 50%{ transform: scale(1.08); box-shadow: 0 0 0 10px rgba(255,225,77,0); } }
+  #storeBtn.hidden, #powerBtn.hidden { display: none; }
   /* the Kitty Chest / dress-up shop */
-  .shopGrid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin: 14px 0 6px; }
-  .shopItem { width: 132px; background: rgba(255,255,255,.08); border: 3px solid transparent; border-radius: 20px; padding: 10px 8px 12px; }
+  /* storefront look for the shop overlay */
+  #shopOverlay .card { background:
+      radial-gradient(circle at 18% 0%, rgba(255,210,120,.18), transparent 40%),
+      radial-gradient(circle at 82% 0%, rgba(120,200,255,.18), transparent 40%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 18px, rgba(255,255,255,.06) 18px 36px),
+      rgba(30,22,46,.96); }
+  .storeSign { font-family: var(--font-display); font-size: 38px; line-height: 1.1; color: #fff;
+    text-shadow: 0 0 10px var(--gold), 2px 2px 0 #c0463f; letter-spacing: 1px; margin: 2px 0 4px;
+    padding: 8px 10px; border-radius: 16px;
+    background: linear-gradient(180deg, #ff5ab0, #ff8a3d); box-shadow: inset 0 -6px 0 rgba(0,0,0,.18), 0 6px 0 rgba(0,0,0,.25); }
+  .shopGrid { margin: 12px 0 6px; }
+  /* a "store shelf": items sit on a wooden board, one shelf per category */
+  .shelf { margin: 6px 0 10px; }
+  .shelfLabel { font-family: var(--font-display); font-size: 20px; color: var(--gold); text-align: left; margin: 0 0 2px 8px; }
+  .shelfRow { display: flex; gap: 10px; overflow-x: auto; padding: 8px 8px 12px;
+    border-bottom: 12px solid #93592a; border-radius: 0 0 10px 10px;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(120,80,40,.22)); box-shadow: 0 6px 8px rgba(0,0,0,.25); }
+  .shelfRow .shopItem { flex: 0 0 auto; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,.6); vertical-align: middle; margin-left: 4px; }
+  .shopItem { width: 124px; background: rgba(255,255,255,.08); border: 3px solid transparent; border-radius: 20px; padding: 10px 8px 12px; }
   .shopItem.equipped { border-color: var(--turq); box-shadow: 0 0 18px rgba(31,200,216,.5); }
   .shopItem .pic { font-size: 46px; line-height: 1; }
   .shopItem .word, .sticker .sWord[data-spell] { font-family: var(--font-display); font-size: 24px; margin: 4px 0 2px; cursor: pointer; }
@@ -203,7 +231,9 @@
   .cat .whisk  { stroke: var(--furD); stroke-width: 2.4; stroke-linecap: round; fill: none; opacity: .85; }
   .cat .lash   { stroke: #2a2030; stroke-width: 4; stroke-linecap: round; fill: none; }
   .cat .mouth  { stroke: var(--furD); stroke-width: 2.6; stroke-linecap: round; fill: none; }
-  .cat .suit   { fill: var(--suit); }
+  .cat .suit   { fill: var(--suitC, var(--suit)); }
+  .cat.glitterSuit .suit { fill: var(--suitC, var(--suit)) !important; animation: shimmer 1.1s ease-in-out infinite; }
+  @keyframes shimmer { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.6) saturate(1.3); } }
   .cat .glove  { fill: var(--accent); }
   .cat .boot   { fill: var(--accent); }
   .cat .belt   { fill: var(--belt); }
@@ -226,7 +256,8 @@
   .catWrap.super { filter: drop-shadow(0 0 18px rgba(120,200,255,.7)); }
   .catWrap.charge { animation: chargeFlash .5s ease-in-out 5; }
   @keyframes chargeFlash { 0%,100% { filter: drop-shadow(0 0 6px #fff); } 50% { filter: brightness(2.2) drop-shadow(0 0 30px #fff); } }
-  .cat .cape { fill: var(--suit); opacity: .96; }
+  .cat .cape { fill: var(--capeC, var(--suit)); opacity: .96; }
+  .cat.wearCape .cape { display: block !important; }   /* a bought cape shows even on a plain kitty */
 
   /* ---- treats (Level 1) ---- */
   .treat { position: absolute; z-index: 3; animation: treatBob 1.1s ease-in-out infinite; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
@@ -633,6 +664,11 @@
 
   <div id="gemHud" class="hidden"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><polygon points="20,2 34,14 20,38 6,14" fill="#7fe3ff" stroke="#2aa7d6" stroke-width="2"/><polygon points="20,2 34,14 20,17 6,14" fill="#d6f6ff"/><polygon points="20,17 34,14 20,38" fill="#5cc8ee"/></svg><b id="gemCount">0</b></div>
 
+  <!-- open the store any time (pauses the game) -->
+  <button id="storeBtn" class="hidden" title="Open the Kitty Store">🛍️</button>
+  <!-- special power button (only shows when you own a key power) -->
+  <button id="powerBtn" class="hidden" title="Star Blast! (press B)">🌟</button>
+
   <div id="banner"></div>
 
   <!-- coach hint for the lasso levels -->
@@ -716,9 +752,9 @@
   <!-- KITTY CHEST / DRESS-UP SHOP -->
   <div class="overlay hidden" id="shopOverlay">
     <div class="card">
-      <h1 class="title" style="font-size:40px">💎 Kitty Chest</h1>
-      <p class="subtitle">Find <b>gems</b> in the game, then make your kitty fabulous!<br>Tap <b>🔊 read</b> to hear a word — or tap the <b>word</b> to sound it out!</p>
-      <div class="shopGemLine">You have <span id="shopGems">0</span> 💎</div>
+      <div class="storeSign">🛍️ 🐱 KITTY STORE 🐱 ✨</div>
+      <p class="subtitle">Walk the aisles and pick what you like off the <b>shelves</b>!<br>Tap <b>🔊 read</b> to hear a word — or tap the <b>word</b> to sound it out!</p>
+      <div class="shopGemLine">Your gem purse: <span id="shopGems">0</span> 💎</div>
       <p class="subtitle" style="margin:6px 0 2px">✨ Quick Looks (wear a whole set!)</p>
       <div class="setsRow" id="setsRow"></div>
       <div class="shopGrid" id="shopGrid"></div>
@@ -1120,7 +1156,7 @@ let bankGems, owned, equip, stickers, kittyName, bestStars;
 function loadProfile() {
   bankGems = store(pk("gems"), 0);
   owned = store(pk("owned"), []);
-  equip = store(pk("equip"), { hat: null, face: null, cheek: null, neck: null, trail: null });
+  equip = store(pk("equip"), { hat: null, face: null, cheek: null, neck: null, trail: null, cape: null, suit: null, throw: null });
   stickers = store(pk("stickers"), []);
   kittyName = store(pk("name"), player === 2 ? "Clara" : "Constance");   // this is Constance's game
   bestStars = store(pk("beststars"), 0);
@@ -1139,25 +1175,38 @@ const saveHero = () => save(pk("hero"), chosenHero);
 
 // the dress-up catalog — slot, big simple WORD, picture, gem price
 const SHOP = [
-  { id: "bow",      slot: "hat",   word: "Bow",      emoji: "🎀", price: 4 },
-  { id: "hat",      slot: "hat",   word: "Hat",      emoji: "🎩", price: 6 },
-  { id: "cap",      slot: "hat",   word: "Cap",      emoji: "🧢", price: 5 },
-  { id: "flower",   slot: "hat",   word: "Flower",   emoji: "🌸", price: 5 },
-  { id: "party",    slot: "hat",   word: "Party",    emoji: "🥳", price: 8 },
-  { id: "crown",    slot: "hat",   word: "Crown",    emoji: "👑", price: 10 },
-  { id: "shades",   slot: "face",  word: "Shades",   emoji: "🕶️", price: 7 },
-  { id: "specs",    slot: "face",  word: "Specs",    emoji: "👓", price: 6 },
-  { id: "starface", slot: "cheek", word: "Star",     emoji: "⭐", price: 5 },
-  { id: "heart",    slot: "neck",  word: "Heart",    emoji: "💖", price: 6 },
-  { id: "bell",     slot: "neck",  word: "Bell",     emoji: "🔔", price: 7 },
-  { id: "beads",    slot: "neck",  word: "Beads",    emoji: "📿", price: 9 },
-  { id: "sparkles", slot: "trail", word: "Sparkles", emoji: "✨", price: 8 },
-  { id: "hearts",   slot: "trail", word: "Hearts",   emoji: "💕", price: 9 },
-  { id: "rainbow",  slot: "trail", word: "Rainbow",  emoji: "🌈", price: 12 },
-  { id: "magnet",   slot: "power", word: "Magnet",   emoji: "🧲", price: 20 },
+  // cat = which shelf it sits on; slot = where it's worn
+  { id: "bow",        cat: "Hats",     slot: "hat",   word: "Bow",      emoji: "🎀", price: 4 },
+  { id: "hat",        cat: "Hats",     slot: "hat",   word: "Hat",      emoji: "🎩", price: 6 },
+  { id: "cap",        cat: "Hats",     slot: "hat",   word: "Cap",      emoji: "🧢", price: 5 },
+  { id: "flower",     cat: "Hats",     slot: "hat",   word: "Flower",   emoji: "🌸", price: 5 },
+  { id: "party",      cat: "Hats",     slot: "hat",   word: "Party",    emoji: "🥳", price: 8 },
+  { id: "crown",      cat: "Hats",     slot: "hat",   word: "Crown",    emoji: "👑", price: 10 },
+  { id: "shades",     cat: "Glasses",  slot: "face",  word: "Shades",   emoji: "🕶️", price: 7 },
+  { id: "specs",      cat: "Glasses",  slot: "face",  word: "Specs",    emoji: "👓", price: 6 },
+  { id: "starface",   cat: "Glasses",  slot: "cheek", word: "Star",     emoji: "⭐", price: 5 },
+  { id: "redcape",    cat: "Capes",    slot: "cape",  word: "Red Cape",  emoji: "🧥", price: 8,  color: "#ff3b3b" },
+  { id: "bluecape",   cat: "Capes",    slot: "cape",  word: "Blue Cape", emoji: "🧥", price: 8,  color: "#1f6dff" },
+  { id: "goldcape",   cat: "Capes",    slot: "cape",  word: "Gold Cape", emoji: "🧥", price: 12, color: "#ffcf3a" },
+  { id: "goldsuit",   cat: "Glitter Suits", slot: "suit", word: "Gold Suit",    emoji: "✨", price: 14, color: "#ffcf3a", glitter: true },
+  { id: "pinksuit",   cat: "Glitter Suits", slot: "suit", word: "Pink Glitter", emoji: "✨", price: 14, color: "#ff5ab0", glitter: true },
+  { id: "diamondsuit",cat: "Glitter Suits", slot: "suit", word: "Diamond Suit", emoji: "💎", price: 18, color: "#9fe0ff", glitter: true },
+  { id: "heart",      cat: "Necklaces", slot: "neck", word: "Heart",    emoji: "💖", price: 6 },
+  { id: "bell",       cat: "Necklaces", slot: "neck", word: "Bell",     emoji: "🔔", price: 7 },
+  { id: "beads",      cat: "Necklaces", slot: "neck", word: "Beads",    emoji: "📿", price: 9 },
+  { id: "sparkles",   cat: "Trails",   slot: "trail", word: "Sparkles", emoji: "✨", price: 8 },
+  { id: "hearts",     cat: "Trails",   slot: "trail", word: "Hearts",   emoji: "💕", price: 9 },
+  { id: "rainbow",    cat: "Trails",   slot: "trail", word: "Rainbow",  emoji: "🌈", price: 12 },
+  { id: "throwstar",  cat: "Throwables", slot: "throw", word: "Star",   emoji: "⭐", price: 10 },
+  { id: "throwbolt",  cat: "Throwables", slot: "throw", word: "Bolt",   emoji: "⚡", price: 12 },
+  { id: "throwheart", cat: "Throwables", slot: "throw", word: "Heart",  emoji: "💕", price: 10 },
+  { id: "magnet",     cat: "Powers",   slot: "power", word: "Magnet",   emoji: "🧲", price: 20 },
+  { id: "starblast",  cat: "Powers",   slot: "powerB",word: "Star Blast", emoji: "🌟", price: 30 },
 ];
+const SHOP_CATS = ["Hats", "Glasses", "Capes", "Glitter Suits", "Necklaces", "Trails", "Throwables", "Powers"];
 const shopItem = (id) => SHOP.find((s) => s.id === id);
 const hasMagnet = () => owned.includes("magnet");
+const hasStarBlast = () => owned.includes("starblast");
 // simple decodable / sight words that float by to read for a bonus gem
 const SIGHTWORDS = ["cat", "fish", "run", "jump", "yarn", "hat", "star", "fun", "hop", "red", "sun", "big", "pet", "mew", "go", "up"];
 // one-tap "Quick Looks" — equip the items you own from each set, and say the word
@@ -1284,7 +1333,18 @@ function applyCosmetics(wrapEl, sizePx) {
     s.style.position = "absolute"; s.style.pointerEvents = "none"; s.style.zIndex = "9";
     Object.assign(s.style, css); wrapEl.appendChild(s);
   };
-  // each slot has its OWN spot so nothing covers the face
+  // a bought CAPE recolours the cape (and makes it show even on a plain kitty); a
+  // GLITTER SUIT recolours the suit + shimmers. These ride on CSS custom props.
+  const cat = wrapEl.querySelector(".cat");
+  if (cat) {
+    cat.classList.toggle("wearCape", !!equip.cape);
+    cat.classList.toggle("glitterSuit", !!(equip.suit && (shopItem(equip.suit) || {}).glitter));
+  }
+  const capeIt = equip.cape && shopItem(equip.cape);
+  wrapEl.style.setProperty("--capeC", capeIt ? capeIt.color : "");
+  const suitIt = equip.suit && shopItem(equip.suit);
+  wrapEl.style.setProperty("--suitC", suitIt ? suitIt.color : "");
+  // emoji accessories — each slot has its OWN spot so nothing covers the face
   if (equip.hat) { const it = shopItem(equip.hat); if (it) add(it.emoji, { left: "50%", top: "-7%", transform: "translateX(-50%)", fontSize: (w * 0.4) + "px" }); }     // on top of the head
   if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "25%", transform: "translateX(-50%)", fontSize: (w * 0.28) + "px" }); }    // glasses on the eyes
   if (equip.cheek) { const it = shopItem(equip.cheek); if (it) add(it.emoji, { left: "26%", top: "34%", fontSize: (w * 0.2) + "px" }); }                                  // little accent on the cheek
@@ -2029,6 +2089,8 @@ function startParty() {
   setScene(5); basketEl.classList.add("hidden"); hideCoach();
   document.getElementById("touch").classList.add("hidden");
   document.getElementById("gemHud").classList.add("hidden");
+  document.getElementById("storeBtn").classList.add("hidden");
+  document.getElementById("powerBtn").classList.add("hidden");
   levelNameEl.textContent = "Level 5 · Kitty City";
   hudLine1.innerHTML = "🎉 Share the treats &amp; toys!";
   hudLine2.innerHTML = "Everyone dances together! 🎶";
@@ -2113,8 +2175,10 @@ function shootYarn(from) {
   const t = now(); if (t - (from.lastShot || 0) < 320) return; from.lastShot = t;
   const e = state.enemy; if (!e) return;
   const dx = e.x - from.x, dy = e.y - from.y, d = Math.hypot(dx, dy) || 1;
-  const el = document.createElement("div"); el.className = "yarn"; el.innerHTML = YARN_SVG;
-  el.querySelector("svg").style.setProperty("--yc", "#ff5a9e");
+  const el = document.createElement("div"); el.className = "yarn";
+  const throwIt = equip.throw && shopItem(equip.throw);
+  if (throwIt) { el.textContent = throwIt.emoji; el.style.fontSize = "30px"; }   // throw your chosen thing!
+  else { el.innerHTML = YARN_SVG; el.querySelector("svg").style.setProperty("--yc", "#ff5a9e"); }
   game.appendChild(el);
   state.yarns.push({ el, x: from.x, y: from.y, vx: (dx / d) * 11, vy: (dy / d) * 11, life: 0 });
   sndYarn();
@@ -2367,8 +2431,10 @@ function startGame() {
   document.getElementById("winOverlay").classList.add("hidden");
   document.getElementById("touch").classList.remove("hidden");
   document.getElementById("gemHud").classList.remove("hidden");
+  document.getElementById("storeBtn").classList.remove("hidden");
   meNameEl && (meNameEl.textContent = heroDisplayName());
   state.running = true; state.runGems = 0; state.runStars = 0; updateGemHud();
+  updatePowerBtn();
   startMusic();
   setupLevel1();
   game.tabIndex = 0; game.focus();   // make sure key presses reach the game
@@ -2402,6 +2468,7 @@ function wasdDir(e) {
   return null;
 }
 window.addEventListener("keydown", (e) => {
+  if (e.key === "b" || e.key === "B") { fireStarBlast(); e.preventDefault(); return; }                 // Star Blast power
   if (e.key === " " || e.code === "Space") { shootYarn(state.hero); e.preventDefault(); return; }      // P1 throw
   if ((e.key === "f" || e.key === "F") && coop) { shootYarn(state.companion); e.preventDefault(); return; } // P2 throw
   const a = arrowDir(e); if (a) { state.keys[a] = true; e.preventDefault(); return; }                  // arrows = P1
@@ -2467,19 +2534,28 @@ function refreshHeroCosmetics() {
 function renderShop() {
   document.getElementById("shopGems").textContent = bankGems;
   const grid = document.getElementById("shopGrid"); grid.innerHTML = "";
-  for (const it of SHOP) {
-    const isOwned = owned.includes(it.id), isEquipped = equip[it.slot] === it.id;
-    const card = document.createElement("div");
-    card.className = "shopItem" + (isEquipped ? " equipped" : "");
-    let btn;
-    if (!isOwned) btn = `<button class="buyBtn ${bankGems >= it.price ? "" : "cant"}" data-buy="${it.id}">💎 ${it.price}</button>`;
-    else if (it.slot === "power") btn = `<button class="buyBtn owned" disabled>Active ✨</button>`;
-    else if (isEquipped) btn = `<button class="buyBtn owned" data-off="${it.id}">Wearing ✓</button>`;
-    else btn = `<button class="buyBtn owned" data-wear="${it.id}">Wear it</button>`;
-    // tap the word to "sound it out" (phonics); 🔊 reads the whole word
-    card.innerHTML = `<div class="pic">${it.emoji}</div><div class="word" data-spell="${it.word}">${it.word}</div>`
-      + `<button class="readBtn" data-say="${it.word}">🔊 read</button>` + btn;
-    grid.appendChild(card);
+  const isPower = (it) => it.slot === "power" || it.slot === "powerB";
+  for (const cat of SHOP_CATS) {
+    const items = SHOP.filter((it) => it.cat === cat);
+    if (!items.length) continue;
+    const shelf = document.createElement("div"); shelf.className = "shelf";
+    const label = document.createElement("div"); label.className = "shelfLabel"; label.textContent = cat;
+    const row = document.createElement("div"); row.className = "shelfRow";
+    for (const it of items) {
+      const isOwned = owned.includes(it.id), isEquipped = equip[it.slot] === it.id;
+      const card = document.createElement("div");
+      card.className = "shopItem" + (isEquipped ? " equipped" : "");
+      let btn;
+      if (!isOwned) btn = `<button class="buyBtn ${bankGems >= it.price ? "" : "cant"}" data-buy="${it.id}">💎 ${it.price}</button>`;
+      else if (isPower(it)) btn = `<button class="buyBtn owned" disabled>Got it ✨</button>`;
+      else if (isEquipped) btn = `<button class="buyBtn owned" data-off="${it.id}">Wearing ✓</button>`;
+      else btn = `<button class="buyBtn owned" data-wear="${it.id}">Wear it</button>`;
+      const swatch = it.color ? `<span class="swatch" style="background:${it.color}"></span>` : "";
+      card.innerHTML = `<div class="pic">${it.emoji}${swatch}</div><div class="word" data-spell="${it.word}">${it.word}</div>`
+        + `<button class="readBtn" data-say="${it.word}">🔊 read</button>` + btn;
+      row.appendChild(card);
+    }
+    shelf.appendChild(label); shelf.appendChild(row); grid.appendChild(shelf);
   }
   renderSets(); renderStickers(); refreshNewBadges();
 }
@@ -2512,13 +2588,33 @@ function wearSet(id) {
   if (missing) sayWord("Get the " + missing.word); else sayWord(s.word);
 }
 let shopReturn = "startOverlay";
+let wasRunningBeforeShop = false;
 function openShop(from) {
-  shopReturn = from; document.getElementById(from).classList.add("hidden");
+  shopReturn = from;
+  if (from === "game") {
+    // pause the live game, hide the in-game HUD while you shop
+    wasRunningBeforeShop = state.running;
+    state.running = false;
+    document.getElementById("gemHud").classList.add("hidden");
+    document.getElementById("storeBtn").classList.add("hidden");
+    document.getElementById("powerBtn").classList.add("hidden");
+    document.getElementById("touch").classList.add("hidden");
+  } else {
+    document.getElementById(from).classList.add("hidden");
+  }
   renderShop(); document.getElementById("shopOverlay").classList.remove("hidden");
 }
 function closeShop() {
   document.getElementById("shopOverlay").classList.add("hidden");
-  document.getElementById(shopReturn).classList.remove("hidden");
+  if (shopReturn === "game") {
+    document.getElementById("gemHud").classList.remove("hidden");
+    document.getElementById("storeBtn").classList.remove("hidden");
+    document.getElementById("touch").classList.remove("hidden");
+    if (wasRunningBeforeShop) { state.running = true; game.focus(); startLoop(); }
+    updatePowerBtn();  // after running is restored, so the power button can re-appear
+  } else {
+    document.getElementById(shopReturn).classList.remove("hidden");
+  }
 }
 document.getElementById("shopOverlay").addEventListener("click", (e) => {
   const spellEl = e.target.closest("[data-spell]");
@@ -2546,6 +2642,33 @@ document.getElementById("shopOverlay").addEventListener("click", (e) => {
 document.getElementById("chestBtn").addEventListener("click", () => openShop("startOverlay"));
 document.getElementById("winChestBtn").addEventListener("click", () => openShop("winOverlay"));
 document.getElementById("shopClose").addEventListener("click", closeShop);
+document.getElementById("storeBtn").addEventListener("click", () => openShop("game"));
+
+/* ---- Star Blast: a 30-gem key power you can fire mid-game ---- */
+let powerCooling = false;
+function updatePowerBtn() {
+  // only show the power button once you own the Star Blast, and only during play
+  const btn = document.getElementById("powerBtn");
+  if (hasStarBlast() && state.running) btn.classList.remove("hidden");
+  else btn.classList.add("hidden");
+}
+function fireStarBlast() {
+  if (!hasStarBlast() || !state.running || powerCooling) return;
+  // a sparkly burst around the kitty, then sweep away every incoming enemy shot
+  const h = state.hero; if (h) burstYarn(h.x, h.y, 18);
+  state.shots.forEach((s) => burstYarn(s.x, s.y, 5));
+  clearShots();
+  // on a real boss fight (tangleNeed is set), give the baddie a bonus tangle;
+  // on Level 1's treat hunt there is no tangle, so just the sparkle + shot-sweep
+  if (state.tangleNeed && state.enemy && state.enemy.hittable !== false) tangleEnemy();
+  banner("⭐ STAR BLAST! ⭐");
+  tune([{ f: 880 }, { f: 1320, d: 0.12 }, { f: 1760, d: 0.18 }]);
+  // short cool-down so it can't be spammed
+  powerCooling = true;
+  const btn = document.getElementById("powerBtn"); btn.classList.add("cooling");
+  setTimeout(() => { powerCooling = false; btn.classList.remove("cooling"); }, 5000);
+}
+document.getElementById("powerBtn").addEventListener("click", fireStarBlast);
 
 /* ---- Name Your Kitty (early reading: letters -> sounds -> a word) ---- */
 const heroDisplayName = () => kittyName || HEROES[chosenHero].name;
