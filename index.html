@@ -1120,7 +1120,7 @@ let bankGems, owned, equip, stickers, kittyName, bestStars;
 function loadProfile() {
   bankGems = store(pk("gems"), 0);
   owned = store(pk("owned"), []);
-  equip = store(pk("equip"), { hat: null, face: null, neck: null, trail: null });
+  equip = store(pk("equip"), { hat: null, face: null, cheek: null, neck: null, trail: null });
   stickers = store(pk("stickers"), []);
   kittyName = store(pk("name"), player === 2 ? "Clara" : "Constance");   // this is Constance's game
   bestStars = store(pk("beststars"), 0);
@@ -1147,7 +1147,7 @@ const SHOP = [
   { id: "crown",    slot: "hat",   word: "Crown",    emoji: "👑", price: 10 },
   { id: "shades",   slot: "face",  word: "Shades",   emoji: "🕶️", price: 7 },
   { id: "specs",    slot: "face",  word: "Specs",    emoji: "👓", price: 6 },
-  { id: "starface", slot: "face",  word: "Star",     emoji: "⭐", price: 5 },
+  { id: "starface", slot: "cheek", word: "Star",     emoji: "⭐", price: 5 },
   { id: "heart",    slot: "neck",  word: "Heart",    emoji: "💖", price: 6 },
   { id: "bell",     slot: "neck",  word: "Bell",     emoji: "🔔", price: 7 },
   { id: "beads",    slot: "neck",  word: "Beads",    emoji: "📿", price: 9 },
@@ -1284,10 +1284,12 @@ function applyCosmetics(wrapEl, sizePx) {
     s.style.position = "absolute"; s.style.pointerEvents = "none"; s.style.zIndex = "9";
     Object.assign(s.style, css); wrapEl.appendChild(s);
   };
-  if (equip.hat) { const it = shopItem(equip.hat); if (it) add(it.emoji, { left: "50%", top: "-3%", transform: "translateX(-50%)", fontSize: (w * 0.42) + "px" }); }
-  if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "26%", transform: "translateX(-50%)", fontSize: (w * 0.3) + "px" }); }
-  if (equip.neck) { const it = shopItem(equip.neck); if (it) add(it.emoji, { left: "50%", top: "52%", transform: "translateX(-50%)", fontSize: (w * 0.26) + "px" }); }
-  if (equip.trail) { const it = shopItem(equip.trail); if (it) add(it.emoji, { left: "80%", top: "58%", fontSize: (w * 0.28) + "px" }); }   // show the trail at rest too
+  // each slot has its OWN spot so nothing covers the face
+  if (equip.hat) { const it = shopItem(equip.hat); if (it) add(it.emoji, { left: "50%", top: "-7%", transform: "translateX(-50%)", fontSize: (w * 0.4) + "px" }); }     // on top of the head
+  if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "25%", transform: "translateX(-50%)", fontSize: (w * 0.28) + "px" }); }    // glasses on the eyes
+  if (equip.cheek) { const it = shopItem(equip.cheek); if (it) add(it.emoji, { left: "26%", top: "34%", fontSize: (w * 0.2) + "px" }); }                                  // little accent on the cheek
+  if (equip.neck) { const it = shopItem(equip.neck); if (it) add(it.emoji, { left: "50%", top: "54%", transform: "translateX(-50%)", fontSize: (w * 0.24) + "px" }); }    // emblem on the chest
+  if (equip.trail) { const it = shopItem(equip.trail); if (it) add(it.emoji, { left: "82%", top: "56%", fontSize: (w * 0.26) + "px" }); }                                 // trail at the side
 }
 
 /* ============================================================
