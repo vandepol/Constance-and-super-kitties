@@ -70,10 +70,19 @@ Rare **big gems** are worth **3**!
 
 ## 👯 Two players (take turns)
 
-Two sisters? On the start screen, tap **Player 1** or **Player 2** under "Players
+Two sisters? On the start screen, tap **Constance** or **Clara** under "Players
 take turns." Each player has her **own** kitty, name, gem chest, outfits, stickers
 and best score — all saved separately. Take turns: one plays, then tap the other
 player's button and it's her turn with all her own stuff.
+
+## 🎉 Surprises & tougher bosses
+
+Every level now throws **surprises** — a **Gem Shower**, a **Big Gem**, a **Treat
+Rain**, a floating **Word Treasure**, or a baddie **ZOOM** speed-burst. And halfway
+through a boss fight the baddie gets **MAD** 😾 and speeds up, so the fights are
+longer and more exciting. In **Level 2** your yarn now **bounces off the crates** —
+Mr. Puppy Paws can hide behind them, so push the boxes aside or move for a clear
+shot!
 
 ## ✏️ Name Your Kitty
 

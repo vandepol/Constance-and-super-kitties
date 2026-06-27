@@ -605,8 +605,8 @@
       <p class="subtitle">🐾 Ginny &amp; Bitsy · a super-hero adventure 🐾</p>
       <div id="playerBar">
         <span class="pbLabel">Players take turns:</span>
-        <button class="pBtn sel" data-player="1">👤 <span id="p1name">Player 1</span></button>
-        <button class="pBtn" data-player="2">👤 <span id="p2name">Player 2</span></button>
+        <button class="pBtn sel" data-player="1">👤 <span id="p1name">Constance</span></button>
+        <button class="pBtn" data-player="2">👤 <span id="p2name">Clara</span></button>
       </div>
       <p class="story">
         Deep in <b>The Cavern</b>, two little kitties — <b>Ginny</b> and <b>Bitsy</b> —
@@ -928,19 +928,16 @@ const LABRAT_SVG = `
   <circle cx="72" cy="58" r="6" fill="#1a1a1a"/><circle cx="74" cy="56" r="2" fill="#fff"/>
   <circle cx="90" cy="56" r="6" fill="#1a1a1a"/><circle cx="92" cy="54" r="2" fill="#fff"/>
   <path d="M62 50 q8 -5 16 -2 M84 49 q8 -3 14 1" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- RED SCUBA GOGGLES -->
-  <path d="M59 57 L103 57" stroke="#d62828" stroke-width="5"/>
-  <path d="M61 57 Q44 56 40 65 M101 57 Q118 56 122 65" stroke="#d62828" stroke-width="4" fill="none"/>
-  <circle cx="72" cy="58" r="12" fill="#bfe9ff" fill-opacity="0.5" stroke="#d62828" stroke-width="4"/>
-  <circle cx="90" cy="58" r="12" fill="#bfe9ff" fill-opacity="0.5" stroke="#d62828" stroke-width="4"/>
-  <ellipse cx="68" cy="53" rx="3.5" ry="2.5" fill="#fff" opacity="0.8"/>
-  <ellipse cx="86" cy="53" rx="3.5" ry="2.5" fill="#fff" opacity="0.8"/>
-  <!-- UPSIDE-DOWN COLANDER HELMET -->
-  <path d="M40 42 Q42 4 72 4 Q102 4 104 42 Z" fill="#c4c8d2" stroke="#888d99" stroke-width="3"/>
-  <ellipse cx="72" cy="42" rx="33" ry="7" fill="#aeb3c0" stroke="#888d99" stroke-width="3"/>
-  <circle cx="72" cy="7" r="4" fill="#aeb3c0" stroke="#888d99" stroke-width="2"/>
-  <path d="M40 36 q-9 3 -7 13 M104 36 q9 3 7 13" fill="none" stroke="#888d99" stroke-width="4"/>
-  <g fill="#7a7f8c"><circle cx="60" cy="22" r="2.4"/><circle cx="72" cy="17" r="2.4"/><circle cx="84" cy="22" r="2.4"/><circle cx="54" cy="32" r="2.4"/><circle cx="66" cy="29" r="2.4"/><circle cx="78" cy="29" r="2.4"/><circle cx="90" cy="32" r="2.4"/></g>
+  <!-- RED DIVE MASK (single lens, underwater adventure) -->
+  <path d="M50 58 H112" stroke="#d62828" stroke-width="6"/>
+  <path d="M52 58 Q40 56 36 67 M110 58 Q122 56 126 67" stroke="#d62828" stroke-width="4" fill="none"/>
+  <rect x="52" y="44" width="58" height="30" rx="15" fill="#bfe9ff" fill-opacity="0.55" stroke="#d62828" stroke-width="6"/>
+  <ellipse cx="67" cy="52" rx="6" ry="3" fill="#fff" opacity="0.8"/>
+  <!-- small colander perched on the tip of his head -->
+  <path d="M58 30 Q60 6 72 6 Q84 6 86 30 Z" fill="#c4c8d2" stroke="#888d99" stroke-width="3"/>
+  <ellipse cx="72" cy="30" rx="15" ry="5" fill="#aeb3c0" stroke="#888d99" stroke-width="3"/>
+  <circle cx="72" cy="8" r="3" fill="#aeb3c0" stroke="#888d99" stroke-width="2"/>
+  <g fill="#7a7f8c"><circle cx="66" cy="18" r="1.8"/><circle cx="72" cy="14" r="1.8"/><circle cx="78" cy="18" r="1.8"/><circle cx="69" cy="24" r="1.8"/><circle cx="75" cy="24" r="1.8"/></g>
   <!-- whiskers + sneaky grin -->
   <path d="M40 80 L8 74 M40 86 L10 90 M40 92 L12 100" stroke="#777" stroke-width="2" stroke-linecap="round"/>
   <path d="M44 88 q14 8 28 2" stroke="#5a3a4a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -999,7 +996,7 @@ const W = () => window.innerWidth;
 const H = () => window.innerHeight;
 const now = () => performance.now();
 
-const treatGoal = () => (isHard() ? 24 : 12);   // Hard needs way more treats!
+const treatGoal = () => (isHard() ? 30 : 16);   // Hard needs way more treats!
 let chosenHero = "ginny";
 let companionHero = "bitsy";
 let twoPlayer = false;   // take-turns mode for two sisters
@@ -1037,7 +1034,7 @@ function loadProfile() {
   owned = store(pk("owned"), []);
   equip = store(pk("equip"), { hat: null, face: null, neck: null, trail: null });
   stickers = store(pk("stickers"), []);
-  kittyName = store(pk("name"), "");
+  kittyName = store(pk("name"), player === 2 ? "Clara" : "Constance");   // this is Constance's game
   bestStars = store(pk("beststars"), 0);
   chosenHero = store(pk("hero"), player === 2 ? "bitsy" : "ginny");
   companionHero = chosenHero === "ginny" ? "bitsy" : "ginny";
@@ -1117,9 +1114,7 @@ function addGemsToBank(n) { bankGems += n; saveGems(); updateGemHud(); refreshNe
 function updateGemHud() { const el = document.getElementById("gemCount"); if (el) el.textContent = bankGems; }
 
 const GEM_SVG = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><polygon points="20,2 34,14 20,38 6,14" fill="#7fe3ff" stroke="#2aa7d6" stroke-width="2"/><polygon points="20,2 34,14 20,17 6,14" fill="#d6f6ff"/><polygon points="20,17 34,14 20,38" fill="#5cc8ee"/><polygon points="6,14 20,17 20,38" fill="#49b6df"/></svg>`;
-function spawnGem() {
-  if (state.gems.length > 1) return;
-  const big = Math.random() < 0.22;                 // a rare BIG gem worth 3!
+function createGem(big) {
   const el = document.createElement("div"); el.className = "gem" + (big ? " bigGem" : ""); el.innerHTML = GEM_SVG;
   let x, y, tries = 0;
   do { x = 120 + Math.random() * (W() - 240); y = 150 + Math.random() * (H() - 330); tries++; }
@@ -1127,6 +1122,8 @@ function spawnGem() {
   el.style.left = (x - 22) + "px"; el.style.top = (y - 22) + "px"; game.appendChild(el);
   state.gems.push({ el, x, y, born: now(), val: big ? 3 : 1 });
 }
+function spawnGem() { if (state.gems.length > 1) return; createGem(Math.random() < 0.22); }
+function spawnBigGem() { createGem(true); }
 function updateGems(ts) {
   const h = state.hero;
   for (const g of [...state.gems]) {
@@ -1168,6 +1165,20 @@ function updateWords(ts) {
   }
 }
 function clearWords() { state.words.forEach((w) => w.el.remove()); state.words = []; }
+
+// ---- SURPRISE EVENTS — keep every playthrough unpredictable ----
+function maybeSurprise(ts) {
+  if (ts - (state.lastSurprise || 0) < 12000) return;
+  state.lastSurprise = ts;
+  const opts = [
+    () => { banner("💎 GEM SHOWER! 💎"); for (let i = 0; i < 3; i++) setTimeout(() => createGem(false), i * 250); },
+    () => { banner("✨ BIG GEM! ✨"); spawnBigGem(); tune([{ f: 784 }, { f: 1047, d: .2 }]); },
+    () => { banner("📖 WORD TREASURE! 📖"); spawnWord(); },
+  ];
+  if (level === 1) opts.push(() => { banner("🐟 TREAT RAIN! 🐟"); for (let i = 0; i < 6; i++) setTimeout(spawnTreat, i * 140); });
+  if (level >= 2 && state.enemy) opts.push(() => { banner("💨 ZOOM! " + (state.bossName || "")); state.enemy.burstUntil = ts + 3000; shake(); });
+  opts[Math.floor(Math.random() * opts.length)]();
+}
 
 // put the equipped hat/shades onto a kitty drawing (trail is done in the loop)
 function applyCosmetics(wrapEl, sizePx) {
@@ -1539,7 +1550,8 @@ function startLevel2() {
   game.appendChild(pe);
   state.puppy = { x: W() * 0.85, y: H() * 0.5, el: pe, target: null, slowUntil: 0, tangle: 0, r: PUPPY_R };
   state.enemy = state.puppy;
-  state.tangleNeed = isHard() ? 6 : 4;
+  state.tangleNeed = isHard() ? 7 : 5;
+  state.bossName = "Mr. Puppy Paws";
   state.tangleLabel = "🧶 Throw yarn at the puppy:";
   showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw yarn at <b>Mr. Puppy Paws</b>!");
   state.enemyCenter = 60;
@@ -1605,7 +1617,7 @@ function updateLevel2(ts) {
   const munching = ts < (p.pauseUntil || 0);
   if (p.target && !munching) {
     const slowed = ts < p.slowUntil;
-    const sp = PUPPY_SPEED * (isHard() ? 1.4 : 1) * (slowed ? SLOW_FACTOR : 1);
+    const sp = PUPPY_SPEED * (isHard() ? 1.4 : 1) * enrageMult(p) * (slowed ? SLOW_FACTOR : 1);
     const dx = p.target.x - p.x, dy = p.target.y - p.y, d = Math.hypot(dx, dy) || 1;
     const stepX = (dx / d) * sp, stepY = (dy / d) * sp;
     // try full move; if a crate blocks, try sliding along just one axis
@@ -1653,8 +1665,15 @@ function tangleEnemy() {
   w.querySelector("svg").style.setProperty("--yc", BURST_COLORS[e.tangle % BURST_COLORS.length]);
   e.el.appendChild(w);
   updateTangleHud();
+  // halfway = the baddie gets MAD and speeds up (a surprise mid-fight!)
+  if (!e.enraged && e.tangle >= Math.ceil(state.tangleNeed / 2) && e.tangle < state.tangleNeed) {
+    e.enraged = true; shake();
+    banner("😾 " + (state.bossName || "The baddie") + " is MAD now!");
+    tune([{ f: 200, d: .1 }, { f: 160, d: .14 }]);
+  }
   if (e.tangle >= state.tangleNeed) (state.onWin || winLevel2)();
 }
+const enrageMult = (e) => (e && e.enraged ? 1.45 : 1) * (e && now() < (e.burstUntil || 0) ? 1.7 : 1);
 function loseLevel2() {
   banner("He got the toys! Try again 🐶");
   setTimeout(() => { if (level === 2) startLevel2(); }, 1600);
@@ -1707,7 +1726,8 @@ function startLevel3() {
   game.appendChild(ze);
   state.zsa = { x: W() * 0.7, y: H() * 0.3, el: ze, tangle: 0, slowUntil: 0, r: 60, hittable: true, tx: W() * 0.5, ty: H() * 0.3, phase: "perch", phaseUntil: now() + 1400 };
   state.enemy = state.zsa;
-  state.tangleNeed = isHard() ? 6 : 4;
+  state.tangleNeed = isHard() ? 9 : 6;
+  state.bossName = "Zsa Zsa";
   state.tangleLabel = "🎤 Throw yarn at Zsa Zsa:";
   showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw yarn at <b>Zsa Zsa</b>! Dodge her songs.");
   state.enemyCenter = 75; state.onWin = winLevel3; state.lastNote = 0; state.zsa.throwAt = now() + 1500;
@@ -1730,7 +1750,7 @@ function updateLevel3(ts) {
     }
   }
   if (z.phase === "swoop") {
-    const sp = (slowed ? 1.2 : 3.0) * (isHard() ? 1.15 : 1);
+    const sp = (slowed ? 1.2 : 3.0) * (isHard() ? 1.15 : 1) * enrageMult(z);
     const dx = z.tx - z.x, dy = z.ty - z.y, d = Math.hypot(dx, dy) || 1;
     z.x += (dx / d) * sp; z.y += (dy / d) * sp + Math.sin(ts / 160) * 1.0;
     z.el.style.transform = (dx < 0) ? "scaleX(-1)" : "none";
@@ -1772,7 +1792,7 @@ function startLevel4() {
   level = 4; state.running = true;
   setScene(4); basketEl.classList.add("hidden");
   levelNameEl.textContent = "Level 4 · Dumpster Alley";
-  hudLine1.innerHTML = "🐀 Catch the Lab Rat — dodge Otto's beams!";
+  hudLine1.innerHTML = "🧶 Throw yarn at the Lab Rat — dodge Otto's beams!";
   clearLevelObjects();
   state.hero.x = W() * 0.5; state.hero.y = H() * 0.84; state.hero.vx = 0; state.hero.vy = 0; placeHero();
   state.companion.x = W() * 0.4; state.companion.y = H() * 0.86;
@@ -1799,12 +1819,13 @@ function startLevel4() {
   state.rat = { x: start.x, y: start.y - 14, el: re, tangle: 0, slowUntil: 0, r: 50, hittable: true,
                 mode: "out", modeUntil: now() + 2400, tx: start.x, ty: start.y, retargetAt: 0 };
   state.enemy = state.rat;
-  state.tangleNeed = isHard() ? 8 : 6;
+  state.tangleNeed = isHard() ? 12 : 8;
+  state.bossName = "the Lab Rat";
   state.tangleLabel = "🧶 Throw yarn at the Lab Rat:";
   showCoach("👉 Throw yarn (<b>SPACE</b>/<b>🧶</b>) at the <b>Lab Rat</b> when he pops out!");
   state.enemyCenter = 70; state.onWin = winLevel4;
   resetHearts(); updateTangleHud();
-  banner("DUMPSTER ALLEY — CATCH THE LAB RAT! 🐀🗑️"); sndLevel();
+  banner("DUMPSTER ALLEY — LASSO THE LAB RAT! 🧶🐀"); sndLevel();
   requestAnimationFrame(loop);
 }
 function updateLevel4(ts) {
@@ -1835,7 +1856,7 @@ function updateLevel4(ts) {
   if (r.mode === "out") {
     const slowed = ts < r.slowUntil;
     if (ts >= r.retargetAt) { r.tx = 120 + Math.random() * (W() - 240); r.ty = H() * 0.34 + Math.random() * (H() * 0.42); r.retargetAt = ts + 650 + Math.random() * 500; }
-    const sp = (slowed ? 0.8 : 2.5) * (isHard() ? 1.25 : 1);
+    const sp = (slowed ? 0.8 : 2.5) * (isHard() ? 1.25 : 1) * enrageMult(r);
     const dx = r.tx - r.x, dy = r.ty - r.y, d = Math.hypot(dx, dy) || 1;
     r.x += (dx / d) * sp; r.y += (dy / d) * sp;
     r.x = Math.max(60, Math.min(W() - 60, r.x)); r.y = Math.max(H() * 0.3, Math.min(H() - 80, r.y));
@@ -1897,14 +1918,28 @@ function shootYarn() {
 function updateYarns(ts) {
   for (const y of [...state.yarns]) {
     const e = state.enemy;
-    // gently HOME IN on the baddie so throws connect without precise aim (kid-friendly)
-    if (e && e.hittable !== false) {
+    // gently HOME IN on the baddie — EXCEPT in Level 2, where boxes block your shot
+    // (there you must aim and clear a path, so the crates matter).
+    if (e && e.hittable !== false && level !== 2) {
       const dx = e.x - y.x, dy = e.y - y.y, d = Math.hypot(dx, dy) || 1;
       const sp = Math.hypot(y.vx, y.vy) || 11;
       y.vx += ((dx / d) * sp - y.vx) * 0.07;   // gentle assist only — you still have to aim
       y.vy += ((dy / d) * sp - y.vy) * 0.07;
     }
     y.x += y.vx; y.y += y.vy; y.life++;
+    // BOUNCE off the wooden crates (Level 2) — the puppy can hide behind them!
+    if (level === 2) {
+      for (const c of state.crates) {
+        if (Math.hypot(c.x - y.x, c.y - y.y) < CRATE_R + 14) {
+          const nx = y.x - c.x, ny = y.y - c.y, nl = Math.hypot(nx, ny) || 1, ux = nx / nl, uy = ny / nl;
+          const dot = y.vx * ux + y.vy * uy;
+          y.vx -= 2 * dot * ux; y.vy -= 2 * dot * uy;          // reflect off the box
+          y.x = c.x + ux * (CRATE_R + 15); y.y = c.y + uy * (CRATE_R + 15);
+          y.bounces = (y.bounces || 0) + 1; tone(300, 0.06, "square", 0.12);
+          break;
+        }
+      }
+    }
     y.el.style.left = (y.x - 17) + "px"; y.el.style.top = (y.y - 17) + "px";
     if (e && e.hittable !== false && Math.hypot(e.x - y.x, e.y - y.y) < (e.r + 30)) {
       e.slowUntil = ts + SLOW_MS; popAt(y.x - 14, y.y - 14, "💫"); sndHit();
@@ -1966,7 +2001,7 @@ function updateDazeSwirl(h, dazed) {
 
 /* ---- HEARTS / getting hurt ---- */
 const startingHearts = () => (isHard() ? 3 : 5);
-function resetHearts() { state.hearts = startingHearts(); state.hurtUntil = 0; state.levelGems = 0; updateHeartsHud(); }
+function resetHearts() { state.hearts = startingHearts(); state.hurtUntil = 0; state.levelGems = 0; state.lastSurprise = now(); updateHeartsHud(); }
 // 3 stars for finishing a level with all hearts, down to 1
 function levelStars() {
   const full = startingHearts();
@@ -2070,6 +2105,7 @@ function loop(ts) {
   updateWords(ts);
   if (ts - state.lastGem > 6000) { spawnGem(); state.lastGem = ts; }
   if (ts - state.lastWord > 11000) { spawnWord(); state.lastWord = ts; }
+  maybeSurprise(ts);
   // cosmetic sparkle/rainbow trail behind the kitty
   if (equip.trail && ts - state.lastTrail > 90) {
     state.lastTrail = ts;
@@ -2308,8 +2344,8 @@ buildLetterGrid();
 
 /* ---- take-turns: switch between Player 1 and Player 2 profiles ---- */
 function updatePlayerBar() {
-  document.getElementById("p1name").textContent = store("p1_name", "") || "Player 1";
-  document.getElementById("p2name").textContent = store("p2_name", "") || "Player 2";
+  document.getElementById("p1name").textContent = store("p1_name", "") || "Constance";
+  document.getElementById("p2name").textContent = store("p2_name", "") || "Clara";
   document.querySelectorAll("#playerBar .pBtn").forEach((b) => b.classList.toggle("sel", +b.dataset.player === player));
 }
 function switchPlayer(n) {
