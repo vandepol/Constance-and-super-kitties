@@ -118,7 +118,14 @@ notes) and **sings sonic rings** — if a ring touches you, you get dazed and ca
 move for a moment, so **dodge them**! Chase her and hit her with **yarn** until
 she's all tangled up — that frees the voices.
 
-## 🗑️ Level 4 — The Lab Rat's Dumpster Alley (final level!)
+## 🎉 Level 5 — Kitty City (the celebration!)
+
+When you beat all the baddies, the Super Kitties zoom to **Kitty City** and hand out
+all the cat treats and toys to the city kitties — and everyone **dances together to
+dance music**! 🎶 Confetti, gifts raining down, the whole crew bopping. Tap to
+continue to your trophy when you're ready.
+
+## 🗑️ Level 4 — The Lab Rat's Dumpster Alley
 
 The **Lab Rat** lives in the **dumpsters** and pops out of a different one each
 time (like whack-a-mole) — lasso him with **yarn** while he's **out**! His slippery

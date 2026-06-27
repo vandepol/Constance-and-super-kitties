@@ -79,13 +79,26 @@
       linear-gradient(180deg, #2a2455 0%, #4a3a7a 42%, #6a5a4a 72%, #7a6a3a 100%);
   }
 
-  #cavernScene, #kittyScene, #concertScene, #alleyScene { position: absolute; inset: 0; z-index: 1; pointer-events: none; display: none; }
+  #cavernScene, #kittyScene, #concertScene, #alleyScene, #cityScene { position: absolute; inset: 0; z-index: 1; pointer-events: none; display: none; }
   #cavernScene { display: block; }
-  #game.lvl2 #cavernScene, #game.lvl3 #cavernScene, #game.lvl4 #cavernScene { display: none; }
+  #game.lvl2 #cavernScene, #game.lvl3 #cavernScene, #game.lvl4 #cavernScene, #game.lvl5 #cavernScene { display: none; }
   #game.lvl2 #kittyScene { display: block; }
   #game.lvl3 #concertScene { display: block; }
   #game.lvl4 #alleyScene { display: block; }
-  #cavernScene svg, #kittyScene svg, #concertScene svg, #alleyScene svg { width: 100%; height: 100%; display: block; }
+  #game.lvl5 #cityScene { display: block; }
+  #cavernScene svg, #kittyScene svg, #concertScene svg, #alleyScene svg, #cityScene svg { width: 100%; height: 100%; display: block; }
+  /* ---- LEVEL 5: Kitty City dance party ---- */
+  #game.lvl5 {
+    background:
+      radial-gradient(circle at 50% 18%, rgba(255,240,150,0.5) 0%, rgba(255,240,150,0) 30%),
+      radial-gradient(circle at 18% 60%, rgba(0,230,255,0.3) 0%, rgba(0,230,255,0) 34%),
+      radial-gradient(circle at 82% 58%, rgba(255,90,200,0.32) 0%, rgba(255,90,200,0) 34%),
+      linear-gradient(180deg, #3a1b6e 0%, #7a2bb0 40%, #ff7ac0 74%, #ffd36a 100%);
+  }
+  .partyCat { position: absolute; z-index: 6; animation: dance .5s ease-in-out infinite; }
+  @keyframes dance { 0%,100% { transform: translateY(0) rotate(-7deg); } 50% { transform: translateY(-15px) rotate(7deg); } }
+  .gift { position: absolute; z-index: 5; font-size: 30px; pointer-events: none; animation: giftFall 3.2s linear forwards; }
+  @keyframes giftFall { 0% { transform: translateY(0) rotate(0); } 100% { transform: translateY(112vh) rotate(360deg); } }
   .crys { transform-box: fill-box; transform-origin: center; animation: crysTwinkle 3.2s ease-in-out infinite; }
   @keyframes crysTwinkle { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
 
@@ -559,6 +572,34 @@
       <!-- a few trash bits + flies -->
       <circle cx="180" cy="690" r="10" fill="#7a8a3a"/><circle cx="640" cy="700" r="8" fill="#8a6a3a"/>
       <text x="500" y="200" font-size="22" opacity="0.5">🪰</text><text x="760" y="300" font-size="22" opacity="0.5">🪰</text>
+    </svg>
+  </div>
+
+  <!-- LEVEL 5 scenery: Kitty City (the celebration!) -->
+  <div id="cityScene">
+    <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- city skyline with lit windows -->
+      <g fill="#3a1f66">
+        <rect x="20" y="320" width="150" height="320"/><rect x="190" y="240" width="120" height="400"/>
+        <rect x="330" y="300" width="160" height="340"/><rect x="510" y="200" width="130" height="440"/>
+        <rect x="660" y="290" width="150" height="350"/><rect x="830" y="240" width="130" height="400"/>
+        <rect x="980" y="310" width="200" height="330"/>
+      </g>
+      <g fill="#ffe066">
+        <rect x="40" y="350" width="18" height="22"/><rect x="80" y="350" width="18" height="22"/><rect x="40" y="400" width="18" height="22"/><rect x="110" y="400" width="18" height="22"/>
+        <rect x="210" y="270" width="18" height="22"/><rect x="250" y="270" width="18" height="22"/><rect x="210" y="330" width="18" height="22"/>
+        <rect x="360" y="330" width="18" height="22"/><rect x="420" y="330" width="18" height="22"/><rect x="360" y="390" width="18" height="22"/>
+        <rect x="540" y="240" width="18" height="22"/><rect x="590" y="240" width="18" height="22"/><rect x="540" y="300" width="18" height="22"/>
+        <rect x="690" y="330" width="18" height="22"/><rect x="750" y="330" width="18" height="22"/>
+        <rect x="860" y="280" width="18" height="22"/><rect x="910" y="280" width="18" height="22"/>
+        <rect x="1010" y="350" width="18" height="22"/><rect x="1070" y="350" width="18" height="22"/><rect x="1120" y="350" width="18" height="22"/>
+      </g>
+      <!-- string lights -->
+      <path d="M0 150 Q300 210 600 150 T1200 150" fill="none" stroke="#8a6fb0" stroke-width="3"/>
+      <g><circle class="crys" cx="150" cy="186" r="7" fill="#ff5a9e"/><circle class="crys" cx="300" cy="196" r="7" fill="#ffd23f"/><circle class="crys" cx="450" cy="184" r="7" fill="#5ad1ff"/><circle class="crys" cx="600" cy="176" r="7" fill="#7be08a"/><circle class="crys" cx="750" cy="184" r="7" fill="#ff8a3d"/><circle class="crys" cx="900" cy="196" r="7" fill="#b06bff"/><circle class="crys" cx="1050" cy="186" r="7" fill="#ff5a9e"/></g>
+      <!-- dance floor -->
+      <rect x="0" y="640" width="1200" height="160" fill="#5a2b8a"/>
+      <g opacity="0.5"><rect x="120" y="660" width="90" height="60" fill="#ff5a9e"/><rect x="300" y="660" width="90" height="60" fill="#5ad1ff"/><rect x="480" y="660" width="90" height="60" fill="#ffd23f"/><rect x="660" y="660" width="90" height="60" fill="#7be08a"/><rect x="840" y="660" width="90" height="60" fill="#ff8a3d"/><rect x="1020" y="660" width="90" height="60" fill="#b06bff"/></g>
     </svg>
   </div>
 
@@ -1308,6 +1349,23 @@ function startMusic() {
 }
 function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
 
+/* an upbeat DANCE track for the Kitty City party (kick + hat + bouncy melody) */
+let danceTimer = null, danceStep = 0;
+const DANCE = [
+  { m: 784, k: 1 }, { m: 0 }, { m: 988, h: 1 }, { m: 0 }, { m: 1175, k: 1 }, { m: 988 }, { m: 784, h: 1 }, { m: 0 },
+  { m: 880, k: 1 }, { m: 0 }, { m: 1047, h: 1 }, { m: 0 }, { m: 1319, k: 1 }, { m: 1047 }, { m: 880, h: 1 }, { m: 659 },
+];
+function danceTick() {
+  if (!soundOn || !audioCtx) return;
+  const s = DANCE[danceStep % DANCE.length];
+  if (s.k) tone(72, 0.16, "sine", 0.2);            // kick
+  if (s.h) tone(1000, 0.04, "square", 0.05);       // hat
+  if (s.m) tone(s.m, 0.13, "sawtooth", 0.07);      // melody
+  danceStep++;
+}
+function startDanceMusic() { stopMusic(); stopDanceMusic(); if (!soundOn || !audioCtx) return; danceTimer = setInterval(danceTick, 145); }
+function stopDanceMusic() { if (danceTimer) { clearInterval(danceTimer); danceTimer = null; } }
+
 /* ============================================================
    4) HELPERS
    ============================================================ */
@@ -1769,7 +1827,7 @@ function winLevel2() {
 }
 
 /* ---- shared helpers for the later levels ---- */
-function setScene(n) { game.classList.remove("lvl2", "lvl3", "lvl4"); if (n >= 2) game.classList.add("lvl" + n); }
+function setScene(n) { game.classList.remove("lvl2", "lvl3", "lvl4", "lvl5"); if (n >= 2) game.classList.add("lvl" + n); }
 function clearLevelObjects() {
   document.querySelectorAll(".treat,.crate,.toy,.yarn,.slowStars,.note,.wave,.dumpster,.enemyWrap,.yarnBurst,.gem,.trailBit,.wordBubble").forEach((e) => e.remove());
   if (state.enemy && state.enemy.starsEl) state.enemy.starsEl.remove();
@@ -1806,7 +1864,7 @@ function startLevel3() {
   game.appendChild(ze);
   state.zsa = { x: W() * 0.7, y: H() * 0.3, el: ze, tangle: 0, slowUntil: 0, r: 60, hittable: true, tx: W() * 0.5, ty: H() * 0.3, phase: "perch", phaseUntil: now() + 1400 };
   state.enemy = state.zsa;
-  state.tangleNeed = isHard() ? 9 : 6;
+  state.tangleNeed = isHard() ? 9 : 5;
   state.bossName = "Zsa Zsa";
   state.tangleLabel = "🎤 Throw yarn at Zsa Zsa:";
   showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw yarn at <b>Zsa Zsa</b>! Dodge her songs.");
@@ -1849,7 +1907,7 @@ function updateLevel3(ts) {
   // she winds up and HURLS music notes you can see coming — dodge them! (not while slowed)
   if (!slowed && ts >= (z.throwAt || 0)) {
     spawnEnemyShot(z.x, z.y, "🎵", "#ff4d9d");
-    z.throwAt = ts + (isHard() ? 1300 : 1900);
+    z.throwAt = ts + (isHard() ? 1300 : 2600);
   }
   // floating voices drift up (flavour)
   if (ts - (state.lastNote || 0) > 1600 && state.notes.length < 5) { spawnNote(); state.lastNote = ts; }
@@ -1905,7 +1963,7 @@ function startLevel4() {
   state.rat = { x: start.x, y: start.y - 14, el: re, tangle: 0, slowUntil: 0, r: 50, hittable: true,
                 mode: "out", modeUntil: now() + 2400, tx: start.x, ty: start.y, retargetAt: 0 };
   state.enemy = state.rat;
-  state.tangleNeed = isHard() ? 12 : 8;
+  state.tangleNeed = isHard() ? 12 : 6;
   state.bossName = "the Lab Rat";
   state.tangleLabel = "🧶 Throw yarn at the Lab Rat:";
   showCoach("👉 Throw yarn (<b>SPACE</b>/<b>🧶</b>) at the <b>Lab Rat</b> when he pops out!");
@@ -1925,7 +1983,7 @@ function updateLevel4(ts) {
     o.x = Math.max(70, Math.min(W() - 70, o.x)); o.y = Math.max(H() * 0.28, Math.min(H() - 90, o.y));
     o.el.style.left = (o.x - 60) + "px"; o.el.style.top = (o.y - 53) + "px";
     o.el.style.transform = (odx < 0) ? "scaleX(-1)" : "none";
-    if (ts >= o.sweepAt) { spawnEnemyShot(o.x, o.y, GARBAGE[Math.floor(Math.random() * GARBAGE.length)], "#8a6a3a"); o.sweepAt = ts + (isHard() ? 2100 : 2900); }
+    if (ts >= o.sweepAt) { spawnEnemyShot(o.x, o.y, GARBAGE[Math.floor(Math.random() * GARBAGE.length)], "#8a6a3a"); o.sweepAt = ts + (isHard() ? 2100 : 3800); }
   }
   // Lab Rat: mostly OUT roaming the alley, only briefly ducking into a dumpster
   if (ts >= r.modeUntil) {
@@ -1956,7 +2014,62 @@ function winLevel4() {
   earnSticker("labrat"); state.runStars = (state.runStars || 0) + levelStars();
   banner("🏆 LAB RAT & OTTO DEFEATED! 🏆");
   sndTrap(); grandFinale();
-  setTimeout(finalWin, 5400);
+  setTimeout(startParty, 4200);              // off to the Kitty City celebration!
+}
+/* ============================================================
+   7d) LEVEL 5 — KITTY CITY (the celebration finale)
+   The Super Kitties hand out all the treats & toys; everyone dances!
+   ============================================================ */
+function startParty() {
+  level = 5; state.running = false;
+  setScene(5); basketEl.classList.add("hidden"); hideCoach();
+  document.getElementById("touch").classList.add("hidden");
+  document.getElementById("gemHud").classList.add("hidden");
+  levelNameEl.textContent = "Level 5 · Kitty City";
+  hudLine1.innerHTML = "🎉 Share the treats &amp; toys!";
+  hudLine2.innerHTML = "Everyone dances together! 🎶";
+  document.getElementById("hearts").textContent = "";
+  clearLevelObjects(); clearActors();
+  // a crowd of happy city kitties, dancing
+  for (let i = 0; i < 8; i++) {
+    const k = makeCat({ hero: i % 2 ? "bitsy" : "ginny", plain: true });
+    k.classList.add("actor", "partyCat");
+    k.style.width = "82px"; k.style.height = "102px";
+    k.style.left = (W() * (0.08 + i * 0.108)) + "px";
+    k.style.top = (H() * (0.56 + (i % 2 ? 0.07 : 0))) + "px";
+    k.style.animationDelay = (i * 0.11) + "s";
+    game.appendChild(k);
+  }
+  // the two SUPER KITTIES dancing centre-stage (wearing their outfits)
+  [["ginny", 0.4], ["bitsy", 0.5]].forEach(([hero, fx], i) => {
+    const c = makeCat({ hero, plain: false, sup: true });
+    c.classList.add("actor", "partyCat");
+    c.style.width = "126px"; c.style.height = "156px";
+    c.style.left = (W() * fx - 20) + "px"; c.style.top = (H() * 0.38) + "px";
+    c.style.animationDelay = (i * 0.25) + "s";
+    game.appendChild(c); applyCosmetics(c, 126);
+  });
+  banner("🎉 KITTY CITY PARTY! 🎶");
+  startDanceMusic();
+  state._partyGift = setInterval(rainGift, 280);                 // treats & toys rain down
+  state._partyCf = setInterval(epicCelebrate, 1700);
+  for (let i = 0; i < 12; i++) setTimeout(spawnSpark, i * 120);
+  state._partyEnd = setTimeout(endParty, 11000);                 // then the trophy screen
+  setTimeout(() => game.addEventListener("pointerdown", partySkip), 2000);  // or tap to continue
+}
+function rainGift() {
+  const e = ["🐟", "🧶", "💎", "⭐", "🎁", "💕"];
+  const d = document.createElement("div"); d.className = "gift"; d.textContent = e[Math.floor(Math.random() * e.length)];
+  d.style.left = (Math.random() * W()) + "px"; d.style.top = "-30px"; game.appendChild(d);
+  setTimeout(() => d.remove(), 3200);
+}
+function partySkip() { endParty(); }
+function endParty() {
+  clearTimeout(state._partyEnd); clearInterval(state._partyGift); clearInterval(state._partyCf);
+  game.removeEventListener("pointerdown", partySkip);
+  stopDanceMusic();
+  document.querySelectorAll(".gift, .partyCat").forEach((g) => g.remove());
+  finalWin();
 }
 // the BIG ending: wave after wave of confetti + fireworks + banners + fanfare
 function grandFinale() {
@@ -2132,6 +2245,8 @@ function spawnEnemyShot(fx, fy, emoji, color) {
   const warn = document.createElement("div"); warn.className = "shotWarn"; warn.textContent = emoji;
   warn.style.left = (fx - 18) + "px"; warn.style.top = (fy - 42) + "px"; game.appendChild(warn);
   tone(330, 0.12, "sine", 0.1);                       // little "watch out" beep
+  const windup = isHard() ? 440 : 720;                // longer warning on Easy
+  const speed = isHard() ? 6.5 : 3.6;                 // slower projectiles on Easy
   setTimeout(() => {
     warn.remove();
     if (!state.running) return;
@@ -2139,9 +2254,9 @@ function spawnEnemyShot(fx, fy, emoji, color) {
     if (color) el.style.filter = "drop-shadow(0 0 8px " + color + ")";
     el.style.left = (fx - 17) + "px"; el.style.top = (fy - 17) + "px"; game.appendChild(el);
     const dx = state.hero.x - fx, dy = state.hero.y - fy, d = Math.hypot(dx, dy) || 1;
-    state.shots.push({ el, x: fx, y: fy, vx: (dx / d) * 6, vy: (dy / d) * 6, life: 0 });
+    state.shots.push({ el, x: fx, y: fy, vx: (dx / d) * speed, vy: (dy / d) * speed, life: 0 });
     tone(520, 0.12, "square", 0.12);
-  }, 520);
+  }, windup);
 }
 function updateShots() {
   const h = state.hero;
@@ -2240,11 +2355,13 @@ function loop(ts) {
    ============================================================ */
 function startGame() {
   initAudio();
+  document.querySelectorAll(".gift, .partyCat").forEach((e) => e.remove());  // clean up any party
+  stopDanceMusic();
   document.getElementById("startOverlay").classList.add("hidden");
   document.getElementById("winOverlay").classList.add("hidden");
   document.getElementById("touch").classList.remove("hidden");
   document.getElementById("gemHud").classList.remove("hidden");
-  meNameEl && (meNameEl.textContent = HEROES[chosenHero].name);
+  meNameEl && (meNameEl.textContent = heroDisplayName());
   state.running = true; state.runGems = 0; state.runStars = 0; updateGemHud();
   startMusic();
   setupLevel1();
