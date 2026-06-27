@@ -834,7 +834,7 @@ const W = () => window.innerWidth;
 const H = () => window.innerHeight;
 const now = () => performance.now();
 
-const TREATS_TO_WIN = 12;
+const treatGoal = () => (isHard() ? 24 : 12);   // Hard needs way more treats!
 let chosenHero = "ginny";
 let companionHero = "bitsy";
 let level = 1;
@@ -1045,7 +1045,7 @@ function setupLevel1() {
   state.treats = []; state.yarns = [];
   scoreEl.textContent = 0; burgScoreEl.textContent = 0;
   basketFish.innerHTML = "";
-  hudLine1.innerHTML = 'Treats: <b id="score">0</b>';
+  hudLine1.innerHTML = 'Treats: <b id="score">0</b> / ' + treatGoal();
   hudLine2.innerHTML = 'You <b id="meName">' + HEROES[chosenHero].name + '</b> &nbsp;•&nbsp; Cat Burglar stole: <b id="burgScore">0</b>';
 
   makeHeroAndCompanion(false);
@@ -1063,35 +1063,40 @@ function setupLevel1() {
 }
 
 function addBasketFish(golden) {
-  // show one fish per treat, piling up in the basket bowl (4 columns, rising rows)
-  const count = Math.min(TREATS_TO_WIN, state.basket);
+  // show one fish per treat, piling up in the basket bowl. The grid adapts so
+  // even Hard's 24 treats fit (more, smaller fish).
+  const goal = treatGoal();
+  const count = Math.min(goal, state.basket);
+  const many = goal > 12;
+  const cols = many ? 6 : 4, fw = many ? 26 : 38;
+  const colStep = many ? 27 : 40, rowStep = many ? 15 : 20, baseTop = many ? 80 : 70, baseLeft = many ? 12 : 16;
   for (let i = basketFish.children.length; i < count; i++) {
-    const row = Math.floor(i / 4), col = i % 4;
+    const row = Math.floor(i / cols), col = i % cols;
     const f = document.createElement("div"); f.className = "bfish";
-    f.style.left = (16 + col * 40 + (row % 2 ? 10 : 0)) + "px";  // rows nudge for a natural pile
-    f.style.top = (70 - row * 20) + "px";                        // rows 0,1,2 → 70,50,30 (rise up)
-    f.innerHTML = TREAT_SVG;                                     // full, undistorted fish
+    f.style.left = (baseLeft + col * colStep + (row % 2 ? 8 : 0)) + "px";
+    f.style.top = (baseTop - row * rowStep) + "px";
+    f.innerHTML = TREAT_SVG;
     const svg = f.querySelector("svg");
-    svg.style.width = "38px"; svg.style.height = "auto";
+    svg.style.width = fw + "px"; svg.style.height = "auto";
     svg.style.setProperty("--tc", (i === count - 1 && golden) ? "#ffd23f" : TREAT_COLORS[i % TREAT_COLORS.length]);
     basketFish.appendChild(f);
   }
 }
 function catchTreat(t) {
   removeTreat(t);
-  state.score += t.val; state.basket = Math.min(TREATS_TO_WIN, state.basket + t.val);
-  document.getElementById("score").textContent = state.score;
+  state.score += t.val; state.basket = Math.min(treatGoal(), state.basket + t.val);
+  document.getElementById("score").textContent = state.basket;   // progress toward the goal
   addBasketFish(t.golden);
   popAt(t.x - 16, t.y - 16, t.golden ? "🌟" : "💖");
   state.hero.el.classList.add("hop"); setTimeout(() => state.hero.el.classList.remove("hop"), 360);
   t.golden ? sndGold() : sndTreat();
-  if (state.basket >= TREATS_TO_WIN) winLevel1();
+  if (state.basket >= treatGoal()) winLevel1();
 }
 function stealTreat(t) {
   removeTreat(t);
   state.burglarScore += 1; document.getElementById("burgScore").textContent = state.burglarScore;
   popAt(t.x - 14, t.y - 14, "💨", "steal");
-  state.enemy.target = null; state.enemy.pauseUntil = now() + BURG_PAUSE; sndSteal();
+  state.enemy.target = null; state.enemy.pauseUntil = now() + (isHard() ? 250 : BURG_PAUSE); sndSteal();
 }
 function nearestTreat(x, y) {
   let best = null, bd = Infinity;
@@ -1101,7 +1106,7 @@ function nearestTreat(x, y) {
 function updateLevel1(ts) {
   const b = state.enemy;
   const slowed = ts < b.slowUntil;
-  const speed = BURG_SPEED * (isHard() ? 2 : 1) * (slowed ? SLOW_FACTOR : 1);  // Hard = 2× faster grabbing
+  const speed = BURG_SPEED * (isHard() ? 3.2 : 1) * (slowed ? SLOW_FACTOR : 1);  // Hard = 3.2× faster (faster than the kitty!)
   if (ts >= (b.pauseUntil || 0)) {
     if (!b.target || !state.treats.includes(b.target)) b.target = nearestTreat(b.x, b.y);
     if (b.target) {
