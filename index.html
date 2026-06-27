@@ -277,6 +277,10 @@
     transition: transform .6s cubic-bezier(.2,.7,.3,1), opacity .6s ease-out; }
   .yarnBurst svg { display: block; width: 24px; }
   @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  /* firework sparks (Kitty City party) */
+  .fxSpark { position: absolute; z-index: 46; pointer-events: none; width: 11px; height: 11px;
+    border-radius: 50%; box-shadow: 0 0 8px currentColor;
+    transition: transform .75s ease-out, opacity .75s ease-out; }
 
   /* ---- crates you push (Level 2) ---- */
   .crate { position: absolute; z-index: 4; filter: drop-shadow(0 4px 5px rgba(0,0,0,.35)); }
@@ -1017,34 +1021,39 @@ const COCKATOO_SVG = `
 /* ===== big in-game baddies for Levels 3 & 4 ===== */
 /* Zsa Zsa — a flashy singing cockatoo, wings spread, belting a note */
 const ZSAZSA_SVG = `
-<svg viewBox="0 0 170 150" xmlns="http://www.w3.org/2000/svg">
-  <!-- wings spread -->
-  <path d="M66 86 Q18 56 4 92 Q32 102 70 100 Z" fill="#eef4ff" stroke="#cdd6e4" stroke-width="3"/>
-  <path d="M104 86 Q152 56 166 92 Q138 102 100 100 Z" fill="#eef4ff" stroke="#cdd6e4" stroke-width="3"/>
+<svg viewBox="-18 -12 206 174" xmlns="http://www.w3.org/2000/svg">
+  <!-- BIG dramatic feathered wings, spread wide for a grand presence -->
+  <path d="M68 86 Q6 28 -16 86 Q-3 92 11 88 Q-3 101 16 98 Q3 110 24 105 Q13 118 39 111 Q51 105 70 100 Z" fill="#eef4ff" stroke="#cdd6e4" stroke-width="3"/>
+  <path d="M102 86 Q164 28 186 86 Q173 92 159 88 Q173 101 154 98 Q167 110 146 105 Q157 118 131 111 Q119 105 100 100 Z" fill="#eef4ff" stroke="#cdd6e4" stroke-width="3"/>
   <!-- body -->
-  <ellipse cx="85" cy="104" rx="32" ry="38" fill="#fbfdff" stroke="#cdd6e4" stroke-width="3"/>
-  <!-- big yellow swept-up crest -->
-  <path d="M58 30 Q52 -4 66 10 Q60 -8 74 8 Q72 -12 85 6 Q98 -12 96 8 Q110 -8 104 10 Q118 -4 112 30 Z" fill="#ffd23f" stroke="#f0b800" stroke-width="2"/>
+  <ellipse cx="85" cy="106" rx="33" ry="40" fill="#fbfdff" stroke="#cdd6e4" stroke-width="3"/>
+  <!-- tall, full yellow swept-up crest -->
+  <path d="M52 28 Q42 -14 60 4 Q50 -18 70 2 Q66 -24 85 0 Q104 -24 100 2 Q120 -18 110 4 Q128 -14 118 28 Z" fill="#ffd23f" stroke="#f0b800" stroke-width="2"/>
   <!-- big SQUARE-ish cockatoo head -->
-  <rect x="48" y="20" width="74" height="66" rx="26" fill="#fbfdff" stroke="#cdd6e4" stroke-width="3"/>
+  <rect x="46" y="18" width="78" height="70" rx="28" fill="#fbfdff" stroke="#cdd6e4" stroke-width="3"/>
+  <!-- glam comma eyelashes -->
+  <path d="M52 38 Q47 46 53 51 A4.5 4.5 0 0 0 63 50 Q60 41 52 38 Z" fill="#2a2030"/>
+  <path d="M118 38 Q123 46 117 51 A4.5 4.5 0 0 1 107 50 Q110 41 118 38 Z" fill="#2a2030"/>
   <!-- big round green "Beanie-Boo" eyes (like the kitties, but green) -->
-  <ellipse cx="69" cy="48" rx="13" ry="14" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1"/>
-  <ellipse cx="101" cy="48" rx="13" ry="14" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1"/>
-  <ellipse cx="69" cy="49" rx="11" ry="12" fill="#3fb950" stroke="rgba(0,0,0,.28)" stroke-width="1.5"/>
-  <ellipse cx="101" cy="49" rx="11" ry="12" fill="#3fb950" stroke="rgba(0,0,0,.28)" stroke-width="1.5"/>
-  <circle cx="69" cy="50" r="8" fill="#16182c"/><circle cx="101" cy="50" r="8" fill="#16182c"/>
-  <circle cx="73" cy="44" r="3.6" fill="#fff"/><circle cx="105" cy="44" r="3.6" fill="#fff"/>
-  <circle cx="65" cy="53" r="1.8" fill="#fff"/><circle cx="97" cy="53" r="1.8" fill="#fff"/>
+  <ellipse cx="68" cy="50" rx="13" ry="14" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1"/>
+  <ellipse cx="102" cy="50" rx="13" ry="14" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1"/>
+  <ellipse cx="68" cy="51" rx="11" ry="12" fill="#3fb950" stroke="rgba(0,0,0,.28)" stroke-width="1.5"/>
+  <ellipse cx="102" cy="51" rx="11" ry="12" fill="#3fb950" stroke="rgba(0,0,0,.28)" stroke-width="1.5"/>
+  <circle cx="68" cy="52" r="8" fill="#16182c"/><circle cx="102" cy="52" r="8" fill="#16182c"/>
+  <circle cx="72" cy="46" r="3.6" fill="#fff"/><circle cx="106" cy="46" r="3.6" fill="#fff"/>
+  <circle cx="64" cy="55" r="1.8" fill="#fff"/><circle cx="98" cy="55" r="1.8" fill="#fff"/>
   <!-- wide hooked grey beak, open and singing -->
-  <path d="M73 62 Q85 58 97 62 Q99 74 85 80 Q71 74 73 62 Z" fill="#6b6f7a" stroke="#4a4d57" stroke-width="1.5"/>
-  <path d="M76 72 Q85 78 94 72 Q90 82 85 82 Q80 82 76 72 Z" fill="#3a3d46"/>
-  <!-- rosy cheeks -->
-  <ellipse cx="58" cy="62" rx="6" ry="4" fill="#ff8ab0" opacity=".6"/>
-  <ellipse cx="112" cy="62" rx="6" ry="4" fill="#ff8ab0" opacity=".6"/>
+  <path d="M72 64 Q85 60 98 64 Q100 76 85 82 Q70 76 72 64 Z" fill="#6b6f7a" stroke="#4a4d57" stroke-width="1.5"/>
+  <path d="M75 74 Q85 80 95 74 Q91 84 85 84 Q79 84 75 74 Z" fill="#3a3d46"/>
+  <!-- rosy cheeks + glam sparkles -->
+  <ellipse cx="56" cy="64" rx="6.5" ry="4.5" fill="#ff8ab0" opacity=".6"/>
+  <ellipse cx="114" cy="64" rx="6.5" ry="4.5" fill="#ff8ab0" opacity=".6"/>
+  <text x="-6" y="34" font-size="18">✨</text>
+  <text x="166" y="44" font-size="18">✨</text>
   <!-- feet -->
-  <path d="M76 140 L76 150 M94 140 L94 150" stroke="#5a5a5a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M76 144 L76 154 M94 144 L94 154" stroke="#5a5a5a" stroke-width="4" stroke-linecap="round"/>
   <!-- a note coming out as she sings -->
-  <text x="140" y="44" font-size="22" fill="#ffd23f">🎵</text>
+  <text x="150" y="20" font-size="22" fill="#ffd23f">🎵</text>
 </svg>`;
 
 /* Lab Rat — scruffy grey dumpster rat with a sneaky grin */
@@ -1072,11 +1081,11 @@ const LABRAT_SVG = `
   <path d="M52 58 Q40 56 36 67 M110 58 Q122 56 126 67" stroke="#d62828" stroke-width="4" fill="none"/>
   <rect x="52" y="44" width="58" height="30" rx="15" fill="#bfe9ff" fill-opacity="0.55" stroke="#d62828" stroke-width="6"/>
   <ellipse cx="67" cy="52" rx="6" ry="3" fill="#fff" opacity="0.8"/>
-  <!-- tiny colander perched on the very tip of his head -->
-  <path d="M63 26 Q64 10 72 10 Q80 10 81 26 Z" fill="#c4c8d2" stroke="#888d99" stroke-width="2.5"/>
-  <ellipse cx="72" cy="26" rx="10" ry="3.5" fill="#aeb3c0" stroke="#888d99" stroke-width="2.5"/>
-  <circle cx="72" cy="11" r="2.4" fill="#aeb3c0" stroke="#888d99" stroke-width="1.6"/>
-  <g fill="#7a7f8c"><circle cx="69" cy="18" r="1.4"/><circle cx="72" cy="15" r="1.4"/><circle cx="75" cy="18" r="1.4"/><circle cx="72" cy="22" r="1.4"/></g>
+  <!-- tiny colander perched on top of his head, centred over his face/goggles -->
+  <path d="M72 36 Q73 20 81 20 Q89 20 90 36 Z" fill="#c4c8d2" stroke="#888d99" stroke-width="2.5"/>
+  <ellipse cx="81" cy="36" rx="10" ry="3.5" fill="#aeb3c0" stroke="#888d99" stroke-width="2.5"/>
+  <circle cx="81" cy="21" r="2.4" fill="#aeb3c0" stroke="#888d99" stroke-width="1.6"/>
+  <g fill="#7a7f8c"><circle cx="78" cy="28" r="1.4"/><circle cx="81" cy="25" r="1.4"/><circle cx="84" cy="28" r="1.4"/><circle cx="81" cy="32" r="1.4"/></g>
   <!-- whiskers + sneaky grin -->
   <path d="M40 80 L8 74 M40 86 L10 90 M40 92 L12 100" stroke="#777" stroke-width="2" stroke-linecap="round"/>
   <path d="M44 88 q14 8 28 2" stroke="#5a3a4a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -1126,6 +1135,18 @@ const DUMPSTER_SVG = `
   <path d="M8 40 L132 40 L120 22 L20 22 Z" fill="#52a85e" stroke="#246030" stroke-width="4"/>
   <rect x="20" y="54" width="100" height="6" fill="#2f7a3c" opacity=".6"/>
   <circle cx="34" cy="100" r="9" fill="#2a2a2a"/><circle cx="106" cy="100" r="9" fill="#2a2a2a"/>
+</svg>`;
+
+/* the same dumpster, lid flipped OPEN with a sparkly glow (after you find the prize) */
+const DUMPSTER_OPEN_SVG = `
+<svg viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+  <rect x="14" y="40" width="112" height="56" rx="6" fill="#3f8a4a" stroke="#246030" stroke-width="4"/>
+  <rect x="20" y="54" width="100" height="6" fill="#2f7a3c" opacity=".6"/>
+  <circle cx="34" cy="100" r="9" fill="#2a2a2a"/><circle cx="106" cy="100" r="9" fill="#2a2a2a"/>
+  <!-- glow from inside -->
+  <ellipse cx="70" cy="40" rx="50" ry="12" fill="#fff3b0" opacity=".85"/>
+  <!-- lid hinged open at the back -->
+  <path d="M8 40 L20 22 L116 22 L132 40 Z" fill="#52a85e" stroke="#246030" stroke-width="4" transform="rotate(-32 14 40)"/>
 </svg>`;
 
 /* ============================================================
@@ -1454,7 +1475,7 @@ function startMusic() {
   musicTimer = setInterval(musicTick, 200);      // 0.2s per eighth note
 }
 function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
-function stopAllMusic() { stopMusic(); stopDanceMusic(); }
+function stopAllMusic() { stopMusic(); stopDanceMusic(); stopGlamMusic(); }
 
 /* an upbeat DANCE track for the Kitty City party (kick + hat + bouncy melody) */
 let danceTimer = null, danceStep = 0;
@@ -1472,6 +1493,27 @@ function danceTick() {
 }
 function startDanceMusic() { stopAllMusic(); if (!soundOn || !audioCtx) return; danceTimer = setInterval(danceTick, 145); }
 function stopDanceMusic() { if (danceTimer) { clearInterval(danceTimer); danceTimer = null; } }
+
+/* Zsa Zsa's GLAM track — a sparkly disco/"kids-club" loop: four-on-the-floor
+   kick, off-beat hats, a funky bass, and a glittery major-key hook. */
+let glamTimer = null, glamStep = 0;
+const GLAM = [
+  { m: 1047, k: 1, b: 131 }, { m: 0, h: 1 }, { m: 1319, b: 131 }, { m: 1047, h: 1 },
+  { m: 988,  k: 1, b: 165 }, { m: 0, h: 1 }, { m: 1175, b: 165 }, { m: 988,  h: 1 },
+  { m: 880,  k: 1, b: 147 }, { m: 0, h: 1 }, { m: 1047, b: 147 }, { m: 1319, h: 1 },
+  { m: 1568, k: 1, b: 196 }, { m: 1319, h: 1 }, { m: 1175, b: 196 }, { m: 988, h: 1 },
+];
+function glamTick() {
+  if (!soundOn || !audioCtx) return;
+  const s = GLAM[glamStep % GLAM.length];
+  if (s.k) tone(70, 0.18, "sine", 0.18);            // disco kick
+  if (s.h) tone(1100, 0.03, "square", 0.045);       // hi-hat shimmer
+  if (s.b) tone(s.b, 0.2, "triangle", 0.085);       // funky bass
+  if (s.m) { tone(s.m, 0.16, "sawtooth", 0.06); tone(s.m * 1.5, 0.12, "sine", 0.025); } // glitter lead + 5th
+  glamStep++;
+}
+function startGlamMusic() { stopAllMusic(); if (!soundOn || !audioCtx) return; glamTimer = setInterval(glamTick, 150); }
+function stopGlamMusic() { if (glamTimer) { clearInterval(glamTimer); glamTimer = null; } }
 
 /* ============================================================
    4) HELPERS
@@ -1504,6 +1546,26 @@ function burstYarn(x, y, count) {
     });
     setTimeout(() => el.remove(), 680);
   }
+}
+// a single firework: a whistle up, then a colourful burst + boom (party interactivity)
+function launchFirework(x, y) {
+  const tx = (x == null) ? W() * (0.2 + Math.random() * 0.6) : x;
+  const ty = (y == null) ? H() * (0.16 + Math.random() * 0.25) : Math.max(60, y);
+  tone(900, 0.18, "sine", 0.08);                          // whistle up
+  setTimeout(() => {
+    for (let i = 0; i < 20; i++) {
+      const d = document.createElement("div"); d.className = "fxSpark";
+      const col = BURST_COLORS[i % BURST_COLORS.length];
+      d.style.left = tx + "px"; d.style.top = ty + "px"; d.style.background = col; d.style.color = col;
+      game.appendChild(d);
+      const ang = (i / 20) * Math.PI * 2, dist = 70 + Math.random() * 80;
+      const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist;
+      requestAnimationFrame(() => { d.style.transform = `translate(${dx}px,${dy}px)`; d.style.opacity = "0"; });
+      setTimeout(() => d.remove(), 780);
+    }
+    tone(150, 0.18, "sawtooth", 0.12); tone(70, 0.22, "sine", 0.13);   // boom
+    popAt(tx - 16, ty - 16, ["🎆", "🎇", "✨"][Math.floor(Math.random() * 3)]);
+  }, 200);
 }
 // confetti + fireworks + repeated shakes — the big "you win!" moment
 function epicCelebrate() {
@@ -1786,6 +1848,7 @@ function startLevel2() {
   game.appendChild(pe);
   state.puppy = { x: W() * 0.85, y: H() * 0.5, el: pe, target: null, slowUntil: 0, tangle: 0, r: PUPPY_R };
   state.enemy = state.puppy;
+  state.levelMinMs = 0;   // L2 ends as soon as he's trapped (no time floor)
   state.tangleNeed = isHard() ? 7 : 5;
   state.bossName = "Mr. Puppy Paws";
   state.tangleLabel = "🧶 Throw yarn at the puppy:";
@@ -1933,7 +1996,22 @@ function tangleEnemy() {
     banner("😾 " + (state.bossName || "The baddie") + " is MAD now!");
     tune([{ f: 200, d: .1 }, { f: 160, d: .14 }]);
   }
-  if (e.tangle >= state.tangleNeed) (state.onWin || winLevel2)();
+  maybeWinBoss();
+}
+// Boss levels (Zsa Zsa, Lab Rat) run for at least state.levelMinMs — you must
+// fully tangle the baddie AND outlast the clock (whichever takes longer).
+function maybeWinBoss() {
+  const e = state.enemy; if (!e) return;
+  if (e.tangle < state.tangleNeed) return;
+  if (now() - (state.levelStart || 0) >= (state.levelMinMs || 0)) { (state.onWin || winLevel2)(); }
+  else if (!state.bossSubduedAnnounced) {
+    state.bossSubduedAnnounced = true;
+    banner("Almost! Keep dodging & grab gems! ⏱");
+  }
+}
+function tickBossClock() {
+  const c = document.getElementById("bossClock"); if (!c) return;
+  c.textContent = fmtTime(Math.max(0, (state.levelMinMs || 0) - (now() - (state.levelStart || 0))));
 }
 const enrageMult = (e) => (e && e.enraged ? 1.45 : 1) * (e && now() < (e.burstUntil || 0) ? 1.7 : 1);
 function loseLevel2() {
@@ -1977,24 +2055,26 @@ function startLevel3() {
   level = 3; state.running = true;
   setScene(3); basketEl.classList.add("hidden");
   levelNameEl.textContent = "Level 3 · Rooftop Concert";
-  hudLine1.innerHTML = "🎵 Free the town's stolen voices!";
+  hudLine1.innerHTML = '🎵 Free the voices! &nbsp;•&nbsp; ⏱ <b id="bossClock">1:00</b>';
   clearLevelObjects();
+  state.levelStart = now(); state.levelMinMs = 60000; state.bossSubduedAnnounced = false;
   state.hero.x = W() * 0.16; state.hero.y = H() * 0.72; state.hero.vx = 0; state.hero.vy = 0; placeHero();
   state.companion.x = W() * 0.1; state.companion.y = H() * 0.74;
 
   const ze = document.createElement("div");
   ze.className = "enemyWrap"; ze.style.position = "absolute"; ze.style.zIndex = "6";
-  ze.style.width = "150px"; ze.style.height = "140px"; ze.innerHTML = ZSAZSA_SVG;
+  ze.style.width = "184px"; ze.style.height = "166px"; ze.innerHTML = ZSAZSA_SVG;
   game.appendChild(ze);
-  state.zsa = { x: W() * 0.7, y: H() * 0.3, el: ze, tangle: 0, slowUntil: 0, r: 60, hittable: true, tx: W() * 0.5, ty: H() * 0.3, phase: "perch", phaseUntil: now() + 1400 };
+  state.zsa = { x: W() * 0.7, y: H() * 0.3, el: ze, tangle: 0, slowUntil: 0, r: 68, hittable: true, tx: W() * 0.5, ty: H() * 0.3, phase: "perch", phaseUntil: now() + 1400 };
   state.enemy = state.zsa;
   state.tangleNeed = isHard() ? 9 : 5;
   state.bossName = "Zsa Zsa";
   state.tangleLabel = "🎤 Throw yarn at Zsa Zsa:";
   showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw yarn at <b>Zsa Zsa</b>! Dodge her songs.");
-  state.enemyCenter = 75; state.onWin = winLevel3; state.lastNote = 0; state.zsa.throwAt = now() + 1500;
+  state.enemyCenter = 90; state.onWin = winLevel3; state.lastNote = 0; state.zsa.throwAt = now() + 1500;
   resetHearts(); updateTangleHud();
   banner("ROOFTOP CONCERT — LASSO ZSA ZSA! 🎤🦜"); sndLevel();
+  startGlamMusic();   // Zsa Zsa gets her own fabulous kids-club track
   // a row of diamonds up high near Zsa Zsa — dodge past her to grab them!
   for (let i = 0; i < 5; i++) {
     const gx = W() * (0.22 + i * 0.14), gy = 90 + (i % 2) * 36;
@@ -2026,8 +2106,9 @@ function updateLevel3(ts) {
     z.y += Math.sin(ts / 200) * 0.8;               // perched: gentle bob, easy to lasso
   }
   z.x = Math.max(60, Math.min(W() - 60, z.x)); z.y = Math.max(80, Math.min(H() * 0.72, z.y));
-  z.el.style.left = (z.x - 75) + "px"; z.el.style.top = (z.y - 70) + "px";
+  z.el.style.left = (z.x - 92) + "px"; z.el.style.top = (z.y - 83) + "px";
   drawSlowStars(z, slowed);
+  tickBossClock(); maybeWinBoss();
   // she winds up and HURLS music notes you can see coming — dodge them! (not while slowed)
   if (!slowed && ts >= (z.throwAt || 0)) {
     spawnEnemyShot(z.x, z.y, "🎵", "#ff4d9d");
@@ -2060,18 +2141,20 @@ function startLevel4() {
   level = 4; state.running = true;
   setScene(4); basketEl.classList.add("hidden");
   levelNameEl.textContent = "Level 4 · Dumpster Alley";
-  hudLine1.innerHTML = "🧶 Throw yarn at the Lab Rat — dodge Otto's beams!";
+  hudLine1.innerHTML = '🧶 Lasso the Lab Rat — bump bins for prizes! &nbsp;•&nbsp; ⏱ <b id="bossClock">1:00</b>';
   clearLevelObjects();
+  state.levelStart = now(); state.levelMinMs = 60000; state.bossSubduedAnnounced = false;
+  startMusic();   // back to the heroic track (L3 used Zsa Zsa's glam track)
   state.hero.x = W() * 0.5; state.hero.y = H() * 0.84; state.hero.vx = 0; state.hero.vy = 0; placeHero();
   state.companion.x = W() * 0.4; state.companion.y = H() * 0.86;
 
-  // dumpsters
+  // dumpsters — bump one open to find a prize gem inside!
   state.dumpsters = [];
   const dpos = [[0.2, 0.42], [0.44, 0.36], [0.7, 0.42], [0.85, 0.56]];
   for (const [fx, fy] of dpos) {
     const el = document.createElement("div"); el.className = "dumpster"; el.style.position = "absolute"; el.style.zIndex = "3";
     el.style.width = "140px"; el.style.height = "110px"; el.innerHTML = DUMPSTER_SVG;
-    const dd = { x: W() * fx, y: H() * fy, el };
+    const dd = { x: W() * fx, y: H() * fy, el, opened: false };
     el.style.left = (dd.x - 70) + "px"; el.style.top = (dd.y - 55) + "px"; game.appendChild(el);
     state.dumpsters.push(dd);
   }
@@ -2132,6 +2215,25 @@ function updateLevel4(ts) {
     drawSlowStars(r, slowed);
   } else if (r.starsEl) { r.starsEl.remove(); r.starsEl = null; }
   r.el.style.left = (r.x - 70) + "px"; r.el.style.top = (r.y - 60) + "px";
+
+  // bump a closed dumpster to pop it open and reveal a prize gem
+  const h = state.hero;
+  for (const dd of state.dumpsters || []) {
+    if (!dd.opened && (Math.hypot(h.x - dd.x, h.y - dd.y) < 80 || heroOrCompNear(dd.x, dd.y, 80))) openDumpster(dd);
+  }
+  tickBossClock(); maybeWinBoss();
+}
+// pop a bin open → confetti + a prize gem (sometimes a big one)
+function openDumpster(dd) {
+  dd.opened = true;
+  dd.el.innerHTML = DUMPSTER_OPEN_SVG;
+  popAt(dd.x - 16, dd.y - 64, "✨"); for (let i = 0; i < 4; i++) setTimeout(spawnSpark, i * 50);
+  sndGold();
+  const big = Math.random() < 0.35;
+  const gx = dd.x, gy = dd.y - 46;
+  const el = document.createElement("div"); el.className = "gem" + (big ? " bigGem" : ""); el.innerHTML = GEM_SVG;
+  el.style.left = (gx - 22) + "px"; el.style.top = (gy - 22) + "px"; game.appendChild(el);
+  state.gems.push({ el, x: gx, y: gy, born: now(), val: big ? 3 : 1, persist: true });
 }
 function winLevel4() {
   state.running = false;
@@ -2153,7 +2255,7 @@ function startParty() {
   document.getElementById("powerBtn").classList.add("hidden");
   levelNameEl.textContent = "Level 5 · Kitty City";
   hudLine1.innerHTML = "🎉 Share the treats &amp; toys!";
-  hudLine2.innerHTML = "Everyone dances together! 🎶";
+  hudLine2.innerHTML = "Tap or press SPACE for fireworks! 🎆";
   document.getElementById("hearts").textContent = "";
   clearLevelObjects(); clearActors();
   // a crowd of happy city kitties, dancing
@@ -2180,8 +2282,15 @@ function startParty() {
   state._partyGift = setInterval(rainGift, 280);                 // treats & toys rain down
   state._partyCf = setInterval(epicCelebrate, 1700);
   for (let i = 0; i < 12; i++) setTimeout(spawnSpark, i * 120);
-  state._partyEnd = setTimeout(endParty, 11000);                 // then the trophy screen
-  setTimeout(() => game.addEventListener("pointerdown", partySkip), 2000);  // or tap to continue
+  state._partyEnd = setTimeout(endParty, 16000);                 // then the trophy screen
+  game.addEventListener("pointerdown", partyFirework);           // tap anywhere = a firework!
+  for (let i = 0; i < 3; i++) setTimeout(() => launchFirework(), 600 + i * 700);  // a few to start
+}
+// tap during the party to shoot off a firecracker where you tapped
+function partyFirework(e) {
+  if (level !== 5) return;
+  const rect = game.getBoundingClientRect();
+  launchFirework(e.clientX - rect.left, e.clientY - rect.top);
 }
 function rainGift() {
   const e = ["🐟", "🧶", "💎", "⭐", "🎁", "💕"];
@@ -2189,10 +2298,9 @@ function rainGift() {
   d.style.left = (Math.random() * W()) + "px"; d.style.top = "-30px"; game.appendChild(d);
   setTimeout(() => d.remove(), 3200);
 }
-function partySkip() { endParty(); }
 function endParty() {
   clearTimeout(state._partyEnd); clearInterval(state._partyGift); clearInterval(state._partyCf);
-  game.removeEventListener("pointerdown", partySkip);
+  game.removeEventListener("pointerdown", partyFirework);
   stopDanceMusic();
   document.querySelectorAll(".gift, .partyCat").forEach((g) => g.remove());
   finalWin();
@@ -2528,6 +2636,7 @@ function wasdDir(e) {
   return null;
 }
 window.addEventListener("keydown", (e) => {
+  if (level === 5 && (e.key === " " || e.code === "Space")) { launchFirework(); e.preventDefault(); return; }  // party fireworks!
   if (e.key === "b" || e.key === "B") { fireStarBlast(); e.preventDefault(); return; }                 // Star Blast power
   if (e.key === " " || e.code === "Space") { shootYarn(state.hero); e.preventDefault(); return; }      // P1 throw
   if ((e.key === "f" || e.key === "F") && coop) { shootYarn(state.companion); e.preventDefault(); return; } // P2 throw
