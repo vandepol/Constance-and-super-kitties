@@ -68,6 +68,13 @@ too (Princess 👑, Cool 😎, Party 🥳) that dress your kitty in a whole set 
 Watch for a **NEW!** badge on the chest when you've saved enough for something new.
 Rare **big gems** are worth **3**!
 
+## 👯 Two players (take turns)
+
+Two sisters? On the start screen, tap **Player 1** or **Player 2** under "Players
+take turns." Each player has her **own** kitty, name, gem chest, outfits, stickers
+and best score — all saved separately. Take turns: one plays, then tap the other
+player's button and it's her turn with all her own stuff.
+
 ## ✏️ Name Your Kitty
 
 Tap **✏️ Name Kitty** on the start screen and **tap letters to spell a name** — each

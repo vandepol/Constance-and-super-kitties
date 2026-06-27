@@ -325,6 +325,13 @@
   .pick .gname { color: var(--pink); }
   .pick .bname { color: var(--turq); }
 
+  /* take-turns player bar */
+  #playerBar { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; margin: 6px 0 12px; }
+  #playerBar .pbLabel { font-size: 15px; opacity: .9; }
+  .pBtn { font-family: var(--font-display); font-size: 18px; cursor: pointer; color: #fff;
+    border: 3px solid transparent; border-radius: var(--radius-pill); padding: 8px 18px; background: rgba(255,255,255,.1); }
+  .pBtn:hover { background: rgba(255,255,255,.18); }
+  .pBtn.sel { border-color: var(--turq); background: rgba(31,200,216,.18); box-shadow: 0 0 16px rgba(31,200,216,.5); }
   /* Easy / Hard difficulty picker */
   .diffPick { display: flex; gap: 12px; justify-content: center; margin: 0 0 18px; }
   .diffBtn {
@@ -596,6 +603,11 @@
     <div class="card">
       <h1 class="title">Constance &amp; the Super Kitties</h1>
       <p class="subtitle">🐾 Ginny &amp; Bitsy · a super-hero adventure 🐾</p>
+      <div id="playerBar">
+        <span class="pbLabel">Players take turns:</span>
+        <button class="pBtn sel" data-player="1">👤 <span id="p1name">Player 1</span></button>
+        <button class="pBtn" data-player="2">👤 <span id="p2name">Player 2</span></button>
+      </div>
       <p class="story">
         Deep in <b>The Cavern</b>, two little kitties — <b>Ginny</b> and <b>Bitsy</b> —
         are hunting for <b>cat treats</b> to fill their <b>basket</b>. Fill it up to
@@ -990,6 +1002,7 @@ const now = () => performance.now();
 const treatGoal = () => (isHard() ? 24 : 12);   // Hard needs way more treats!
 let chosenHero = "ginny";
 let companionHero = "bitsy";
+let twoPlayer = false;   // take-turns mode for two sisters
 let level = 1;
 let difficulty = "easy";                          // "easy" | "hard"
 const isHard = () => difficulty === "hard";
@@ -1015,12 +1028,29 @@ function store(key, def) {
   catch (e) { return def; }
 }
 function save(key, val) { try { localStorage.setItem("sk_" + key, JSON.stringify(val)); } catch (e) {} }
-let bankGems = store("gems", 0);                 // gems saved across plays
-let owned = store("owned", []);                   // item ids the kitty owns
-let equip = store("equip", { hat: null, face: null, neck: null, trail: null });
-let stickers = store("stickers", []);             // baddies you've beaten
-let kittyName = store("name", "");                // the name the player spelled
-let bestStars = store("beststars", 0);
+// ---- PLAYER PROFILES (take-turns): each sister has her own kitty + treasure ----
+let player = store("player", 1);                  // 1 or 2 — whose turn it is
+const pk = (name) => "p" + player + "_" + name;   // namespace a key to the current player
+let bankGems, owned, equip, stickers, kittyName, bestStars;
+function loadProfile() {
+  bankGems = store(pk("gems"), 0);
+  owned = store(pk("owned"), []);
+  equip = store(pk("equip"), { hat: null, face: null, neck: null, trail: null });
+  stickers = store(pk("stickers"), []);
+  kittyName = store(pk("name"), "");
+  bestStars = store(pk("beststars"), 0);
+  chosenHero = store(pk("hero"), player === 2 ? "bitsy" : "ginny");
+  companionHero = chosenHero === "ginny" ? "bitsy" : "ginny";
+}
+loadProfile();
+// per-profile savers
+const saveGems = () => save(pk("gems"), bankGems);
+const saveOwned = () => save(pk("owned"), owned);
+const saveEquip = () => save(pk("equip"), equip);
+const saveStickers = () => save(pk("stickers"), stickers);
+const saveName = () => save(pk("name"), kittyName);
+const saveBest = () => save(pk("beststars"), bestStars);
+const saveHero = () => save(pk("hero"), chosenHero);
 
 // the dress-up catalog — slot, big simple WORD, picture, gem price
 const SHOP = [
@@ -1058,7 +1088,7 @@ const STICKERS = [
   { id: "zsazsa",  word: "Zsa Zsa", emoji: "🦜" },
   { id: "labrat",  word: "Lab Rat", emoji: "🐀" },
 ];
-function earnSticker(id) { if (!stickers.includes(id)) { stickers.push(id); save("stickers", stickers); } }
+function earnSticker(id) { if (!stickers.includes(id)) { stickers.push(id); saveStickers(); } }
 // is there an item the player can afford but doesn't own yet?
 function hasNewItem() { return SHOP.some((it) => !owned.includes(it.id) && bankGems >= it.price); }
 function refreshNewBadges() {
@@ -1083,7 +1113,7 @@ function sayLetters(text) {
     const w = new SpeechSynthesisUtterance(text); w.rate = 0.8; w.pitch = 1.2; speechSynthesis.speak(w);
   } catch (e) {}
 }
-function addGemsToBank(n) { bankGems += n; save("gems", bankGems); updateGemHud(); refreshNewBadges(); }
+function addGemsToBank(n) { bankGems += n; saveGems(); updateGemHud(); refreshNewBadges(); }
 function updateGemHud() { const el = document.getElementById("gemCount"); if (el) el.textContent = bankGems; }
 
 const GEM_SVG = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><polygon points="20,2 34,14 20,38 6,14" fill="#7fe3ff" stroke="#2aa7d6" stroke-width="2"/><polygon points="20,2 34,14 20,17 6,14" fill="#d6f6ff"/><polygon points="20,17 34,14 20,38" fill="#5cc8ee"/><polygon points="6,14 20,17 20,38" fill="#49b6df"/></svg>`;
@@ -1838,7 +1868,7 @@ function finalWin() {
   document.getElementById("comingLine").innerHTML =
     "You are the <b>Super Kitties</b>! 🦸🐱🦸 Press Play Again to start a new adventure.";
   const rg = state.runGems || 0, rs = state.runStars || 0;
-  if (rs > bestStars) { bestStars = rs; save("beststars", bestStars); }
+  if (rs > bestStars) { bestStars = rs; saveBest(); }
   document.getElementById("winTitle").innerHTML = "🏆 YOU SAVED KITTY LAND!";
   document.getElementById("winGemLine").innerHTML =
     `${"⭐".repeat(Math.min(12, rs))}<br>You earned <b>${rs}</b> stars` + (rs >= bestStars ? " — a new best! 🏅" : ` (best: ${bestStars})`) + `<br>` +
@@ -2118,14 +2148,15 @@ function bindTouch(id, dir) {
 bindTouch("tUp", "up"); bindTouch("tDown", "down"); bindTouch("tLeft", "left"); bindTouch("tRight", "right");
 document.getElementById("tFire").addEventListener("pointerdown", (e) => { shootYarn(); e.preventDefault(); });
 
+function selectHero(hero) {
+  chosenHero = hero;
+  companionHero = chosenHero === "ginny" ? "bitsy" : "ginny";
+  document.querySelectorAll("#chooser .pick").forEach((x) => x.classList.toggle("sel", x.dataset.hero === hero));
+  meNameEl && (meNameEl.textContent = heroDisplayName());
+  saveHero();
+}
 document.querySelectorAll("#chooser .pick").forEach((p) => {
-  p.addEventListener("click", () => {
-    document.querySelectorAll("#chooser .pick").forEach((x) => x.classList.remove("sel"));
-    p.classList.add("sel");
-    chosenHero = p.dataset.hero;
-    companionHero = chosenHero === "ginny" ? "bitsy" : "ginny";
-    meNameEl && (meNameEl.textContent = HEROES[chosenHero].name);
-  });
+  p.addEventListener("click", () => selectHero(p.dataset.hero));
 });
 document.querySelectorAll("#diffPick .diffBtn").forEach((b) => {
   b.addEventListener("click", () => {
@@ -2196,7 +2227,7 @@ function wearSet(id) {
     const it = shopItem(itemId);
     if (owned.includes(itemId)) equip[it.slot] = itemId; else if (!missing) missing = it;
   }
-  save("equip", equip); renderShop(); refreshHeroCosmetics();
+  saveEquip(); renderShop(); refreshHeroCosmetics();
   if (missing) sayWord("Get the " + missing.word); else sayWord(s.word);
 }
 let shopReturn = "startOverlay";
@@ -2217,17 +2248,17 @@ document.getElementById("shopOverlay").addEventListener("click", (e) => {
   if (t.dataset.buy) {
     const it = shopItem(t.dataset.buy);
     if (bankGems >= it.price) {
-      bankGems -= it.price; save("gems", bankGems);
-      owned.push(it.id); save("owned", owned);
-      equip[it.slot] = it.id; save("equip", equip);
+      bankGems -= it.price; saveGems();
+      owned.push(it.id); saveOwned();
+      equip[it.slot] = it.id; saveEquip();
       sayWord(it.word); tune([{ f: 880 }, { f: 1175, d: 0.2 }]);
       updateGemHud(); renderShop(); refreshHeroCosmetics();
     }
   } else if (t.dataset.wear) {
-    const it = shopItem(t.dataset.wear); equip[it.slot] = it.id; save("equip", equip);
+    const it = shopItem(t.dataset.wear); equip[it.slot] = it.id; saveEquip();
     renderShop(); refreshHeroCosmetics();
   } else if (t.dataset.off) {
-    const it = shopItem(t.dataset.off); equip[it.slot] = null; save("equip", equip);
+    const it = shopItem(t.dataset.off); equip[it.slot] = null; saveEquip();
     renderShop(); refreshHeroCosmetics();
   }
 });
@@ -2260,11 +2291,13 @@ function openNameScreen() {
 function closeNameScreen(saveIt) {
   if (saveIt) {
     kittyName = typingName.charAt(0) + typingName.slice(1).toLowerCase();   // Titlecase
-    save("name", kittyName);
+    saveName();
     if (kittyName) sayWord(kittyName);
   }
   document.getElementById("nameOverlay").classList.add("hidden");
   document.getElementById("startOverlay").classList.remove("hidden");
+  if (meNameEl) meNameEl.textContent = heroDisplayName();
+  updatePlayerBar();
 }
 document.getElementById("nameBtn").addEventListener("click", openNameScreen);
 document.getElementById("nameBack").addEventListener("click", () => { typingName = typingName.slice(0, -1); renderName(); });
@@ -2273,12 +2306,33 @@ document.getElementById("nameReadBtn").addEventListener("click", () => sayWord(t
 document.getElementById("nameDisplay").addEventListener("click", () => { if (typingName) sayLetters(typingName); });
 buildLetterGrid();
 
+/* ---- take-turns: switch between Player 1 and Player 2 profiles ---- */
+function updatePlayerBar() {
+  document.getElementById("p1name").textContent = store("p1_name", "") || "Player 1";
+  document.getElementById("p2name").textContent = store("p2_name", "") || "Player 2";
+  document.querySelectorAll("#playerBar .pBtn").forEach((b) => b.classList.toggle("sel", +b.dataset.player === player));
+}
+function switchPlayer(n) {
+  if (player === n) return;
+  player = n; save("player", player);
+  loadProfile();                       // load that sister's kitty + treasure
+  selectHero(chosenHero);              // reflect her kitty + name in the chooser
+  renderCatInto("pickGinny", "ginny", true); renderCatInto("pickBitsy", "bitsy", true);
+  refreshHeroCosmetics(); updateGemHud(); refreshNewBadges(); updatePlayerBar();
+  tune([{ f: 660 }, { f: 880, d: 0.16 }]);
+}
+document.querySelectorAll("#playerBar .pBtn").forEach((b) => {
+  b.addEventListener("click", () => switchPlayer(+b.dataset.player));
+});
+
 /* menu art */
+selectHero(chosenHero);                 // reflect the loaded profile's kitty
 renderCatInto("pickGinny", "ginny", true);
 renderCatInto("pickBitsy", "bitsy", true);
 refreshHeroCosmetics();
 updateGemHud();
 refreshNewBadges();
+updatePlayerBar();
 
 window.addEventListener("resize", () => { if (state.running) placeHero(); });
 </script>
