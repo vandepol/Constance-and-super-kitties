@@ -223,8 +223,8 @@
   .cat .furD   { fill: var(--furD); }
   .cat .muz    { fill: var(--muz); }
   .cat .ear    { fill: var(--inEar); }
-  .cat .eyeW   { fill: #ffffff; }
-  .cat .eyeC   { fill: var(--eye); }
+  .cat .eyeW   { fill: #ffffff; stroke: rgba(20,18,40,.16); stroke-width: 1.5; }
+  .cat .eyeC   { fill: var(--eye); stroke: rgba(0,0,0,.28); stroke-width: 2.5; }   /* defined iris ring */
   .cat .eyeP   { fill: #16182c; }
   .cat .shine  { fill: #ffffff; }
   .cat .nose   { fill: var(--nose); }
@@ -850,19 +850,23 @@ const CAT_SVG = `
     <circle class="fur" cx="182" cy="118" r="13"/>
     <ellipse class="muz" cx="120" cy="124" rx="42" ry="30"/>
     <path class="mask" d="M58 96 C58 70 96 64 120 70 C144 64 182 70 182 96 C182 110 168 116 150 114 C140 124 100 124 90 114 C72 116 58 110 58 96 Z"/>
-    <ellipse class="eyeW" cx="94" cy="96" rx="24" ry="26"/>
-    <ellipse class="eyeW" cx="146" cy="96" rx="24" ry="26"/>
-    <ellipse class="eyeC" cx="95" cy="99" rx="19" ry="21"/>
-    <ellipse class="eyeC" cx="145" cy="99" rx="19" ry="21"/>
-    <circle class="eyeP" cx="95" cy="101" r="12"/>
-    <circle class="eyeP" cx="145" cy="101" r="12"/>
-    <circle class="shine" cx="101" cy="93" r="6.5"/>
-    <circle class="shine" cx="151" cy="93" r="6.5"/>
-    <circle class="shine" cx="88" cy="106" r="3.5"/>
-    <circle class="shine" cx="138" cy="106" r="3.5"/>
+    <!-- big round, glossy "Beanie-Boo" sparkle eyes -->
+    <ellipse class="eyeW" cx="91" cy="95" rx="27" ry="29"/>
+    <ellipse class="eyeW" cx="149" cy="95" rx="27" ry="29"/>
+    <ellipse class="eyeC" cx="92" cy="97" rx="23" ry="25"/>
+    <ellipse class="eyeC" cx="148" cy="97" rx="23" ry="25"/>
+    <circle class="eyeP" cx="92" cy="98" r="17"/>
+    <circle class="eyeP" cx="148" cy="98" r="17"/>
+    <!-- glossy highlights: big top-corner gleam, lower sparkle, tiny twinkle -->
+    <circle class="shine" cx="100" cy="88" r="8.5"/>
+    <circle class="shine" cx="156" cy="88" r="8.5"/>
+    <circle class="shine" cx="83" cy="104" r="4.5"/>
+    <circle class="shine" cx="139" cy="104" r="4.5"/>
+    <circle class="shine" cx="97" cy="100" r="2.6"/>
+    <circle class="shine" cx="153" cy="100" r="2.6"/>
     <!-- a single cat-eye lash flicking up & out from each outer eye corner -->
-    <path class="lash" d="M77 84 Q63 73 51 65"/>
-    <path class="lash" d="M163 84 Q177 73 189 65"/>
+    <path class="lash" d="M71 82 Q57 71 46 62"/>
+    <path class="lash" d="M169 82 Q183 71 194 62"/>
     <path class="nose" d="M114 120 L126 120 L120 128 Z"/>
     <path class="mouth" d="M120 128 q-8 10 -16 6 M120 128 q8 10 16 6"/>
     <path class="whisk" d="M88 122 L50 114 M88 130 L52 130 M152 122 L190 114 M152 130 L188 130"/>
