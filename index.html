@@ -6,7 +6,7 @@
 <title>Constance &amp; the Super Kitties</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Luckiest+Guy&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   /* ============================================================
      CONSTANCE & THE SUPER KITTIES
@@ -369,11 +369,11 @@
     margin: 0 auto;
   }
   .title {
-    font-family: var(--font-display); font-weight: 800; line-height: 1.02;
-    font-size: clamp(30px, 6vw, 56px); margin: 0 0 6px;
+    font-family: "Luckiest Guy", var(--font-display); font-weight: 400; line-height: 1.05;
+    letter-spacing: 1.5px; font-size: clamp(32px, 6.4vw, 60px); margin: 0 0 8px;
     background: linear-gradient(90deg, var(--hero-red), var(--gold) 40%, var(--turq) 75%, var(--hero-blue));
     -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
+    filter: drop-shadow(2px 3px 0 rgba(0,0,0,.3)); }
   .subtitle { font-size: 18px; opacity: .95; margin: 0 0 14px; }
   .story { font-size: 17px; line-height: 1.5; margin: 12px 0 18px; }
   .story b { color: var(--gold); }
@@ -994,26 +994,45 @@ const PUPPY_SVG = `
 /* Cat Burglar (L1) — black/grey/white sneaky cat with robber mask + swag bag */
 const BURGLAR_SVG = `
 <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+  <!-- swag bag (she's still a sneaky treat thief!) -->
   <g transform="translate(150 150)">
     <path d="M0 6 C-22 6 -30 30 -26 50 C-22 64 22 64 26 50 C30 30 22 6 0 6 Z" fill="#3a3f52" stroke="#1c1f2c" stroke-width="3"/>
     <text x="0" y="46" font-size="22" text-anchor="middle" fill="#ffd23f" font-family="Baloo 2, sans-serif" font-weight="800">$</text>
     <path d="M-14 8 q14 -14 28 0" fill="none" stroke="#1c1f2c" stroke-width="4"/>
   </g>
-  <path d="M48 180 C8 176 8 128 38 116 C18 140 30 162 60 158 Z" fill="#2b2b2b"/>
-  <ellipse cx="88" cy="150" rx="48" ry="46" fill="#9aa0ad" stroke="#3a3f52" stroke-width="3"/>
-  <ellipse cx="88" cy="162" rx="22" ry="28" fill="#f2f4f8"/>
-  <path d="M52 64 L40 22 L86 52 Z" fill="#2b2b2b"/>
-  <path d="M124 64 L136 22 L90 52 Z" fill="#2b2b2b"/>
-  <ellipse cx="88" cy="84" rx="56" ry="50" fill="#2b2b2b"/>
-  <ellipse cx="88" cy="104" rx="34" ry="26" fill="#f2f4f8"/>
-  <path d="M80 50 q8 -8 16 0 q4 30 -8 40 q-12 -10 -8 -40 Z" fill="#f2f4f8"/>
-  <path d="M40 78 C40 64 70 60 88 64 C106 60 136 64 136 78 C136 90 120 92 104 90 C96 98 80 98 72 90 C56 92 40 90 40 78 Z" fill="#15161f"/>
-  <ellipse cx="70" cy="80" rx="11" ry="9" fill="#ffd23f"/>
-  <ellipse cx="106" cy="80" rx="11" ry="9" fill="#ffd23f"/>
-  <ellipse cx="70" cy="80" rx="3" ry="6" fill="#15161f"/>
-  <ellipse cx="106" cy="80" rx="3" ry="6" fill="#15161f"/>
-  <path d="M83 100 L95 100 L89 108 Z" fill="#ff9bbf"/>
-  <path d="M55 102 L24 96 M55 110 L26 112 M123 102 L154 96 M123 110 L152 112" stroke="#cfd4de" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- grey tail with black stripes -->
+  <path d="M48 180 C8 176 8 128 38 116 C18 140 30 162 60 158 Z" fill="#9aa0ad"/>
+  <path d="M22 124 l11 4 M16 140 l11 2 M20 158 l10 -2" stroke="#3a3f52" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- grey body, light belly, black side stripes -->
+  <ellipse cx="88" cy="150" rx="48" ry="46" fill="#9aa0ad" stroke="#6b7080" stroke-width="2"/>
+  <ellipse cx="88" cy="162" rx="22" ry="28" fill="#eef1f6"/>
+  <path d="M50 132 q9 8 1 17 M126 132 q-9 8 -1 17 M48 158 q9 8 1 17 M128 158 q-9 8 -1 17" stroke="#3a3f52" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- ears: grey with black tips + pink inner -->
+  <path d="M54 56 L44 14 L92 50 Z" fill="#9aa0ad"/><path d="M122 56 L132 14 L84 50 Z" fill="#9aa0ad"/>
+  <path d="M50 28 L44 14 L62 33 Z" fill="#3a3f52"/><path d="M126 28 L132 14 L114 33 Z" fill="#3a3f52"/>
+  <path d="M58 50 L50 30 L82 47 Z" fill="#f0aec5"/><path d="M118 50 L126 30 L94 47 Z" fill="#f0aec5"/>
+  <!-- grey head -->
+  <ellipse cx="88" cy="86" rx="56" ry="50" fill="#9aa0ad"/>
+  <!-- black tabby stripes (cheeks, below the beanie) -->
+  <path d="M36 86 q12 3 18 12 M140 86 q-12 3 -18 12 M34 100 q12 2 18 9 M142 100 q-12 2 -18 9" stroke="#3a3f52" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <!-- light muzzle -->
+  <ellipse cx="88" cy="108" rx="34" ry="24" fill="#eef1f6"/>
+  <!-- big "Beanie-Boo" GREY eyes (like the super kitties) -->
+  <ellipse cx="70" cy="88" rx="16" ry="17" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1.2"/>
+  <ellipse cx="106" cy="88" rx="16" ry="17" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1.2"/>
+  <ellipse cx="70" cy="89" rx="13" ry="14" fill="#aab2c0" stroke="rgba(0,0,0,.3)" stroke-width="1.6"/>
+  <ellipse cx="106" cy="89" rx="13" ry="14" fill="#aab2c0" stroke="rgba(0,0,0,.3)" stroke-width="1.6"/>
+  <circle cx="70" cy="90" r="9.5" fill="#16182c"/><circle cx="106" cy="90" r="9.5" fill="#16182c"/>
+  <circle cx="74" cy="84" r="4" fill="#fff"/><circle cx="110" cy="84" r="4" fill="#fff"/>
+  <circle cx="66" cy="93" r="2" fill="#fff"/><circle cx="102" cy="93" r="2" fill="#fff"/>
+  <!-- nose + sneaky mouth + whiskers -->
+  <path d="M83 106 L95 106 L89 113 Z" fill="#ff9bbf"/>
+  <path d="M89 113 q-7 7 -14 4 M89 113 q7 7 14 4" stroke="#5a5f6e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M55 106 L24 100 M55 114 L26 116 M123 106 L154 100 M123 114 L152 116" stroke="#cfd4de" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- little blue beanie hat -->
+  <path d="M58 50 Q58 22 88 22 Q118 22 118 50 Z" fill="#2f7ad6" stroke="#1f5bb0" stroke-width="2.5"/>
+  <rect x="53" y="46" width="70" height="11" rx="5.5" fill="#3a8ae6" stroke="#1f5bb0" stroke-width="2"/>
+  <circle cx="88" cy="20" r="7" fill="#bcd9ff" stroke="#8fb8ee" stroke-width="1.5"/>
 </svg>`;
 
 const RAT_SVG = `
@@ -1325,22 +1344,39 @@ function refreshNewBadges() {
   document.querySelectorAll(".newBadge").forEach((b) => b.classList.toggle("hidden", !show));
 }
 
-// read a word aloud — early-reading support (Web Speech, no files)
-function sayWord(text) {
+// ---- the word reader: pick the clearest, friendliest English voice available ----
+let _voice = null;
+function loadVoices() {
   try {
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.85; u.pitch = 1.2; speechSynthesis.cancel(); speechSynthesis.speak(u);
+    const vs = speechSynthesis.getVoices(); if (!vs.length) return;
+    // prefer warm, clear, kid-friendly voices; then any local en-US; then any English
+    const pref = ["Samantha", "Google US English", "Karen", "Tessa", "Moira", "Victoria",
+                  "Microsoft Zira", "Google UK English Female", "Allison", "Ava"];
+    _voice = pref.map((n) => vs.find((v) => v.name === n)).find(Boolean)
+      || vs.find((v) => /en[-_]US/i.test(v.lang) && v.localService)
+      || vs.find((v) => /en[-_]US/i.test(v.lang))
+      || vs.find((v) => /^en/i.test(v.lang)) || vs[0];
   } catch (e) {}
 }
-// "sound it out": say each letter, then the whole word
-function sayLetters(text) {
+loadVoices();
+try { speechSynthesis.addEventListener("voiceschanged", loadVoices); } catch (e) {}
+function speak(text, { rate = 0.9, pitch = 1.12 } = {}) {
   try {
-    speechSynthesis.cancel();
-    for (const ch of text.replace(/[^A-Za-z]/g, "")) {
-      const u = new SpeechSynthesisUtterance(ch); u.rate = 0.7; u.pitch = 1.2; speechSynthesis.speak(u);
-    }
-    const w = new SpeechSynthesisUtterance(text); w.rate = 0.8; w.pitch = 1.2; speechSynthesis.speak(w);
+    const u = new SpeechSynthesisUtterance(text);
+    if (_voice) u.voice = _voice;
+    u.rate = rate; u.pitch = pitch; u.volume = 1;
+    speechSynthesis.speak(u);
   } catch (e) {}
+}
+// read a word aloud — early-reading support (Web Speech, no files)
+function sayWord(text) { try { speechSynthesis.cancel(); } catch (e) {} speak(text, { rate: 0.85, pitch: 1.15 }); }
+// "sound it out": say each letter clearly, pause, then the whole word
+function sayLetters(text) {
+  try { speechSynthesis.cancel(); } catch (e) {}
+  const letters = text.replace(/[^A-Za-z]/g, "").split("");
+  letters.forEach((ch) => speak(ch, { rate: 0.62, pitch: 1.12 }));
+  speak("  ", { rate: 0.6 });                 // tiny breath before the whole word
+  speak(text, { rate: 0.78, pitch: 1.15 });
 }
 function addGemsToBank(n) { bankGems += n; saveGems(); updateGemHud(); refreshNewBadges(); }
 function updateGemHud() { const el = document.getElementById("gemCount"); if (el) el.textContent = bankGems; }
@@ -1409,11 +1445,14 @@ function clearWords() { state.words.forEach((w) => w.el.remove()); state.words =
 function maybeSurprise(ts) {
   if (ts - (state.lastSurprise || 0) < 12000) return;
   state.lastSurprise = ts;
+  // Level 4's only diamonds come from the dumpsters, so no gem surprises there
   const opts = [
-    () => { banner("💎 GEM SHOWER! 💎"); for (let i = 0; i < 3; i++) setTimeout(() => createGem(false), i * 250); },
-    () => { banner("✨ BIG GEM! ✨"); spawnBigGem(); tune([{ f: 784 }, { f: 1047, d: .2 }]); },
     () => { banner("📖 WORD TREASURE! 📖"); spawnWord(); },
   ];
+  if (level !== 4) {
+    opts.push(() => { banner("💎 GEM SHOWER! 💎"); for (let i = 0; i < 3; i++) setTimeout(() => createGem(false), i * 250); });
+    opts.push(() => { banner("✨ BIG GEM! ✨"); spawnBigGem(); tune([{ f: 784 }, { f: 1047, d: .2 }]); });
+  }
   if (level === 1) opts.push(() => { banner("🐟 TREAT RAIN! 🐟"); for (let i = 0; i < 6; i++) setTimeout(spawnTreat, i * 140); });
   if (level >= 2 && state.enemy) opts.push(() => { banner("💨 ZOOM! " + (state.bossName || "")); state.enemy.burstUntil = ts + 3000; shake(); });
   opts[Math.floor(Math.random() * opts.length)]();
@@ -2181,7 +2220,7 @@ function startLevel4() {
   level = 4; state.running = true;
   setScene(4); basketEl.classList.add("hidden");
   levelNameEl.textContent = "Level 4 · Dumpster Alley";
-  hudLine1.innerHTML = '🧶 Lasso the Lab Rat — bump bins for prizes! &nbsp;•&nbsp; ⏱ <b id="bossClock">1:00</b>';
+  hudLine1.innerHTML = '🧶 Lasso the Lab Rat — bump bins for big 💎! &nbsp;•&nbsp; ⏱ <b id="bossClock">1:00</b>';
   clearLevelObjects();
   state.levelStart = now(); state.levelMinMs = 60000; state.bossSubduedAnnounced = false;
   startMusic();   // back to the heroic track (L3 used Zsa Zsa's glam track)
@@ -2267,13 +2306,13 @@ function updateLevel4(ts) {
 function openDumpster(dd) {
   dd.opened = true;
   dd.el.innerHTML = DUMPSTER_OPEN_SVG;
-  popAt(dd.x - 16, dd.y - 64, "✨"); for (let i = 0; i < 4; i++) setTimeout(spawnSpark, i * 50);
+  popAt(dd.x - 16, dd.y - 64, "✨"); for (let i = 0; i < 5; i++) setTimeout(spawnSpark, i * 50);
   sndGold();
-  const big = Math.random() < 0.35;
+  // every bin hides ONE big diamond — the only diamonds in this level
   const gx = dd.x, gy = dd.y - 46;
-  const el = document.createElement("div"); el.className = "gem" + (big ? " bigGem" : ""); el.innerHTML = GEM_SVG;
+  const el = document.createElement("div"); el.className = "gem bigGem"; el.innerHTML = GEM_SVG;
   el.style.left = (gx - 22) + "px"; el.style.top = (gy - 22) + "px"; game.appendChild(el);
-  state.gems.push({ el, x: gx, y: gy, born: now(), val: big ? 3 : 1, persist: true });
+  state.gems.push({ el, x: gx, y: gy, born: now(), val: 3, persist: true });
 }
 function winLevel4() {
   state.running = false;
@@ -2607,7 +2646,7 @@ function loop(ts) {
   updateShots();
   updateGems(ts);
   updateWords(ts);
-  if (ts - state.lastGem > 6000) { spawnGem(); state.lastGem = ts; }
+  if (level !== 4 && ts - state.lastGem > 6000) { spawnGem(); state.lastGem = ts; }   // L4 diamonds come only from dumpsters
   if (ts - state.lastWord > 11000) { spawnWord(); state.lastWord = ts; }
   maybeSurprise(ts);
   // cosmetic sparkle/rainbow trail behind the kitty
@@ -2732,7 +2771,7 @@ const storyStage = document.getElementById("storyStage");
 const storyCap = document.getElementById("storyCaption");
 
 function narrate(t) {
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 0.92; u.pitch = 1.04; speechSynthesis.speak(u); } catch (e) {}
+  try { speechSynthesis.cancel(); } catch (e) {} speak(t, { rate: 0.9, pitch: 1.06 });
 }
 function storyMood() { tone(110, 0.7, "sine", 0.05); setTimeout(() => tone(146.8, 0.6, "sine", 0.04), 320); }
 
