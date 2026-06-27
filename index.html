@@ -92,6 +92,39 @@
   /* floating musical notes (Level 3 ambiance + the voices Zsa Zsa steals) */
   .note { position: absolute; z-index: 3; font-size: 30px; pointer-events: none;
     filter: drop-shadow(0 0 8px rgba(255,255,255,.5)); }
+  /* Sparkle Gems you collect for your Kitty Chest */
+  .gem { position: absolute; z-index: 3; width: 44px; pointer-events: none;
+    filter: drop-shadow(0 0 12px #7fe3ff); animation: gemBob 1.1s ease-in-out infinite; }
+  .gem svg { display: block; width: 44px; height: auto; }
+  @keyframes gemBob { 0%,100% { transform: translateY(0) rotate(-6deg) scale(1); } 50% { transform: translateY(-10px) rotate(6deg) scale(1.1); } }
+  /* sparkle / rainbow trail behind the kitty */
+  .trailBit { position: absolute; z-index: 4; font-size: 18px; pointer-events: none; animation: trailFade .7s ease-out forwards; }
+  @keyframes trailFade { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(.3); } }
+  .cosmetic { line-height: 1; text-shadow: 0 2px 3px rgba(0,0,0,.4); }
+  /* gem counter (top-right) */
+  #gemHud { position: absolute; top: 16px; right: 16px; z-index: 20;
+    background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-pill);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    padding: 8px 16px 8px 12px; font-family: var(--font-display); font-size: 22px; color: #fff;
+    display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow); }
+  #gemHud.hidden { display: none; }
+  #gemHud svg { width: 26px; height: 26px; }
+  #gemHud b { color: #9ff0ff; }
+  /* the Kitty Chest / dress-up shop */
+  .shopGrid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin: 14px 0 6px; }
+  .shopItem { width: 132px; background: rgba(255,255,255,.08); border: 3px solid transparent; border-radius: 20px; padding: 10px 8px 12px; }
+  .shopItem.equipped { border-color: var(--turq); box-shadow: 0 0 18px rgba(31,200,216,.5); }
+  .shopItem .pic { font-size: 46px; line-height: 1; }
+  .shopItem .word { font-family: var(--font-display); font-size: 24px; margin: 4px 0 2px; }
+  .shopItem .readBtn { background: rgba(255,255,255,.16); border: 1px solid var(--glass-border); color: #fff;
+    border-radius: var(--radius-pill); font-size: 15px; padding: 3px 12px; cursor: pointer; margin-bottom: 8px; }
+  .shopItem .buyBtn { width: 100%; border: none; border-radius: var(--radius-pill); cursor: pointer;
+    font-family: var(--font-display); font-size: 17px; padding: 8px 0; color: #fff;
+    background: linear-gradient(180deg, var(--hero-blue), #103e9e); }
+  .shopItem .buyBtn.owned { background: linear-gradient(180deg, #2fae54, #1d7d3a); }
+  .shopItem .buyBtn.cant { background: rgba(255,255,255,.14); color: #b9c2da; cursor: default; }
+  .shopGemLine { font-family: var(--font-display); font-size: 22px; color: #9ff0ff; margin: 6px 0 2px; }
+  #chestBtn { margin-top: 10px; }
   .note.enemyNote { z-index: 6; font-size: 32px; filter: drop-shadow(0 0 10px #ff4d9d) drop-shadow(0 0 4px #fff); animation: spin .5s linear infinite; }
 
   /* ============================================================ THE CATS */
@@ -500,6 +533,8 @@
     </div>
   </div>
 
+  <div id="gemHud" class="hidden"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><polygon points="20,2 34,14 20,38 6,14" fill="#7fe3ff" stroke="#2aa7d6" stroke-width="2"/><polygon points="20,2 34,14 20,17 6,14" fill="#d6f6ff"/><polygon points="20,17 34,14 20,38" fill="#5cc8ee"/></svg><b id="gemCount">0</b></div>
+
   <div id="banner"></div>
 
   <!-- coach hint for the lasso levels -->
@@ -549,6 +584,18 @@
         <button class="diffBtn" data-diff="hard">😼 Hard</button>
       </div>
       <button class="bigBtn" id="startBtn">▶ Play</button>
+      <div><button class="bigBtn blue" id="chestBtn" style="font-size:20px;padding:12px 26px">💎 My Kitty Chest</button></div>
+    </div>
+  </div>
+
+  <!-- KITTY CHEST / DRESS-UP SHOP -->
+  <div class="overlay hidden" id="shopOverlay">
+    <div class="card">
+      <h1 class="title" style="font-size:40px">💎 Kitty Chest</h1>
+      <p class="subtitle">Find <b>gems</b> in the game, then make your kitty fabulous!<br>Tap <b>🔊 read</b> to hear each word.</p>
+      <div class="shopGemLine">You have <span id="shopGems">0</span> 💎</div>
+      <div class="shopGrid" id="shopGrid"></div>
+      <button class="bigBtn" id="shopClose" style="margin-top:14px">◀ Back</button>
     </div>
   </div>
 
@@ -560,6 +607,8 @@
         <p>🎮 Move with the <span class="key">←</span> <span class="key">↑</span> <span class="key">↓</span> <span class="key">→</span> arrow keys
           (or <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>, or the buttons).</p>
         <p>🧶 Press <span class="key">SPACE</span> (or the 🧶 button) to <b>throw yarn</b> and slow down the baddie.</p>
+        <p>💎 Grab sparkly <b>gems</b> hidden in every level, then spend them in your <b>Kitty Chest</b> to dress up your kitty!</p>
+        <p>❤️ Watch your <b>hearts</b> — dodge the baddies and their attacks, or you'll have to try the level again.</p>
         <p><b>Level 1 — The Cavern:</b> 🐟 catch cat treats to fill your <b>basket</b> (gold ones = 3!).
           Beat the <b>Cat Burglar</b> to them. Full basket → <b>SUIT UP!</b></p>
         <p><b>Level 2 — Kitty Land:</b> 🐶 <b>Mr. Puppy Paws</b> wants the cat toys! Chase him and
@@ -586,7 +635,9 @@
         <div class="bg"><div class="bgArt" id="bgRat"></div>Lab Rat &amp; Otto the Octopus</div>
         <div class="bg"><div class="bgArt" id="bgBird"></div>Zsa Zsa the Cockatoo</div>
       </div>
-      <button class="bigBtn" id="playAgain" style="margin-top:18px">▶ Play Again</button>
+      <p class="shopGemLine" id="winGemLine" style="margin-top:14px"></p>
+      <button class="bigBtn blue" id="winChestBtn" style="font-size:20px;padding:12px 26px">💎 Spend gems in your Kitty Chest</button>
+      <div><button class="bigBtn" id="playAgain" style="margin-top:12px">▶ Play Again</button></div>
     </div>
   </div>
 </div>
@@ -886,12 +937,85 @@ let state = {
   running: false,
   score: 0, burglarScore: 0, basket: 0,
   hero: null, companion: null, enemy: null,
-  treats: [], crates: [], toys: [], yarns: [], waves: [], notes: [], shots: [],
+  treats: [], crates: [], toys: [], yarns: [], waves: [], notes: [], shots: [], gems: [],
   hearts: 5, hurtUntil: 0,
   keys: {},
-  lastSpark: 0, lastShot: 0,
+  lastSpark: 0, lastShot: 0, lastGem: 0, lastTrail: 0,
   puppy: null, toysStolen: 0,
 };
+
+/* ============================================================
+   2b) THE KITTY CHEST — persistent treasure + dress-up (localStorage)
+   Find Sparkle Gems in every level, then spend them in the Shop to make
+   your kitty fabulous. Every item is a WORD + picture + "read to me" 🔊.
+   ============================================================ */
+function store(key, def) {
+  try { const v = localStorage.getItem("sk_" + key); return v == null ? def : JSON.parse(v); }
+  catch (e) { return def; }
+}
+function save(key, val) { try { localStorage.setItem("sk_" + key, JSON.stringify(val)); } catch (e) {} }
+let bankGems = store("gems", 0);                 // gems saved across plays
+let owned = store("owned", []);                   // item ids the kitty owns
+let equip = store("equip", { hat: null, face: null, trail: null });
+
+// the dress-up catalog — slot, big simple WORD, picture, gem price
+const SHOP = [
+  { id: "bow",      slot: "hat",   word: "Bow",      emoji: "🎀", price: 4 },
+  { id: "hat",      slot: "hat",   word: "Hat",      emoji: "🎩", price: 6 },
+  { id: "crown",    slot: "hat",   word: "Crown",    emoji: "👑", price: 10 },
+  { id: "flower",   slot: "hat",   word: "Flower",   emoji: "🌸", price: 5 },
+  { id: "shades",   slot: "face",  word: "Shades",   emoji: "🕶️", price: 7 },
+  { id: "star",     slot: "face",  word: "Star",     emoji: "⭐", price: 5 },
+  { id: "sparkles", slot: "trail", word: "Sparkles", emoji: "✨", price: 8 },
+  { id: "rainbow",  slot: "trail", word: "Rainbow",  emoji: "🌈", price: 12 },
+];
+const shopItem = (id) => SHOP.find((s) => s.id === id);
+
+// read a word aloud — early-reading support (Web Speech, no files)
+function sayWord(text) {
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.85; u.pitch = 1.2; speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function addGemsToBank(n) { bankGems += n; save("gems", bankGems); updateGemHud(); }
+function updateGemHud() { const el = document.getElementById("gemCount"); if (el) el.textContent = bankGems; }
+
+const GEM_SVG = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><polygon points="20,2 34,14 20,38 6,14" fill="#7fe3ff" stroke="#2aa7d6" stroke-width="2"/><polygon points="20,2 34,14 20,17 6,14" fill="#d6f6ff"/><polygon points="20,17 34,14 20,38" fill="#5cc8ee"/><polygon points="6,14 20,17 20,38" fill="#49b6df"/></svg>`;
+function spawnGem() {
+  if (state.gems.length > 1) return;
+  const el = document.createElement("div"); el.className = "gem"; el.innerHTML = GEM_SVG;
+  let x, y, tries = 0;
+  do { x = 120 + Math.random() * (W() - 240); y = 150 + Math.random() * (H() - 330); tries++; }
+  while (tries < 8 && (inHud(x, y) || inPad(x, y) || inBasketUI(x, y)));
+  el.style.left = (x - 22) + "px"; el.style.top = (y - 22) + "px"; game.appendChild(el);
+  state.gems.push({ el, x, y, born: now() });
+}
+function updateGems(ts) {
+  const h = state.hero;
+  for (const g of [...state.gems]) {
+    if (Math.hypot(g.x - h.x, g.y - h.y) < 60) {
+      g.el.remove(); state.gems = state.gems.filter((q) => q !== g);
+      addGemsToBank(1); state.runGems = (state.runGems || 0) + 1;
+      popAt(g.x - 16, g.y - 16, "💎"); for (let i = 0; i < 5; i++) setTimeout(spawnSpark, i * 40);
+      tune([{ f: 988 }, { f: 1319, d: 0.18 }]);
+    } else if (ts - g.born > 9000) { g.el.remove(); state.gems = state.gems.filter((q) => q !== g); }
+  }
+}
+function clearGems() { state.gems.forEach((g) => g.el.remove()); state.gems = []; }
+
+// put the equipped hat/shades onto a kitty drawing (trail is done in the loop)
+function applyCosmetics(wrapEl, sizePx) {
+  wrapEl.querySelectorAll(".cosmetic").forEach((e) => e.remove());
+  const w = sizePx || 110;
+  const add = (emoji, css) => {
+    const s = document.createElement("div"); s.className = "cosmetic"; s.textContent = emoji;
+    s.style.position = "absolute"; s.style.pointerEvents = "none"; s.style.zIndex = "9";
+    Object.assign(s.style, css); wrapEl.appendChild(s);
+  };
+  if (equip.hat) { const it = shopItem(equip.hat); if (it) add(it.emoji, { left: "50%", top: "-3%", transform: "translateX(-50%)", fontSize: (w * 0.42) + "px" }); }
+  if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "26%", transform: "translateX(-50%)", fontSize: (w * 0.3) + "px" }); }
+}
 
 /* ============================================================
    3) SOUND + MUSIC  (built-in synth — no files)
@@ -1020,8 +1144,8 @@ function placeHero() {
   h.el.classList.toggle("faceLeft", h.vx < -0.4);
 }
 function clearActors() {
-  document.querySelectorAll(".catWrap.actor,.treat,.crate,.toy,.yarn,.slowStars,.enemyWrap,.note,.wave,.dumpster,.dazeSwirl,.yarnBurst").forEach((e) => e.remove());
-  state.waves = []; state.notes = []; state.shots = [];
+  document.querySelectorAll(".catWrap.actor,.treat,.crate,.toy,.yarn,.slowStars,.enemyWrap,.note,.wave,.dumpster,.dazeSwirl,.yarnBurst,.gem,.trailBit").forEach((e) => e.remove());
+  state.waves = []; state.notes = []; state.shots = []; state.gems = [];
 }
 function makeHeroAndCompanion(superMode) {
   clearActors();
@@ -1034,6 +1158,7 @@ function makeHeroAndCompanion(superMode) {
   compEl.style.width = "92px"; compEl.style.height = "116px"; compEl.style.opacity = "0.95";
   game.appendChild(compEl);
   state.companion = { x: W() * 0.6, y: H() * 0.62, el: compEl, t: 0 };
+  applyCosmetics(heroEl, 110); applyCosmetics(compEl, 92);   // wear your Kitty Chest items!
   placeHero();
 }
 
@@ -1373,9 +1498,9 @@ function winLevel2() {
 /* ---- shared helpers for the later levels ---- */
 function setScene(n) { game.classList.remove("lvl2", "lvl3", "lvl4"); if (n >= 2) game.classList.add("lvl" + n); }
 function clearLevelObjects() {
-  document.querySelectorAll(".treat,.crate,.toy,.yarn,.slowStars,.note,.wave,.dumpster,.enemyWrap,.yarnBurst").forEach((e) => e.remove());
+  document.querySelectorAll(".treat,.crate,.toy,.yarn,.slowStars,.note,.wave,.dumpster,.enemyWrap,.yarnBurst,.gem,.trailBit").forEach((e) => e.remove());
   if (state.enemy && state.enemy.starsEl) state.enemy.starsEl.remove();
-  state.treats = []; state.crates = []; state.toys = []; state.yarns = []; state.notes = []; state.waves = []; state.shots = [];
+  state.treats = []; state.crates = []; state.toys = []; state.yarns = []; state.notes = []; state.waves = []; state.shots = []; state.gems = [];
   if (state.hero) { state.hero.dazedUntil = 0; state.hero.kx = 0; state.hero.ky = 0; state.hero.el.style.opacity = "1"; if (state.hero.swirlEl) { state.hero.swirlEl.remove(); state.hero.swirlEl = null; } }
 }
 function spawnNote() {
@@ -1566,7 +1691,11 @@ function finalWin() {
     `${HEROES.ginny.name} & ${HEROES.bitsy.name} beat the Cat Burglar, Mr. Puppy Paws, Zsa Zsa, and the Lab Rat & Otto!`;
   document.getElementById("comingLine").innerHTML =
     "You are the <b>Super Kitties</b>! 🦸🐱🦸 Press Play Again to start a new adventure.";
+  const rg = state.runGems || 0;
+  document.getElementById("winGemLine").innerHTML =
+    `💎 You found <b>${rg}</b> gem${rg === 1 ? "" : "s"} this adventure — <b>${bankGems}</b> saved in your chest!`;
   renderCatInto("winGinny", "ginny", false); renderCatInto("winBitsy", "bitsy", false);
+  refreshHeroCosmetics();
   document.getElementById("bgRat").innerHTML = LABRAT_SVG;
   document.getElementById("bgBird").innerHTML = COCKATOO_SVG;
   document.getElementById("winOverlay").classList.remove("hidden");
@@ -1745,6 +1874,17 @@ function loop(ts) {
   updateYarns(ts);
   updateWaves(ts);
   updateShots();
+  updateGems(ts);
+  if (ts - state.lastGem > 6000) { spawnGem(); state.lastGem = ts; }
+  // cosmetic sparkle/rainbow trail behind the kitty
+  if (equip.trail && ts - state.lastTrail > 90) {
+    state.lastTrail = ts;
+    const d = document.createElement("div"); d.className = "trailBit";
+    if (equip.trail === "rainbow") { d.style.background = BURST_COLORS[Math.floor(ts / 90) % BURST_COLORS.length]; d.style.width = "14px"; d.style.height = "14px"; d.style.borderRadius = "50%"; }
+    else d.textContent = "✨";
+    d.style.left = (h.x - 7) + "px"; d.style.top = (h.y + 12) + "px"; game.appendChild(d);
+    setTimeout(() => d.remove(), 700);
+  }
 
   // touching the baddie hurts (so you can't just barge in — keep your distance!)
   const en = state.enemy;
@@ -1762,8 +1902,9 @@ function startGame() {
   document.getElementById("startOverlay").classList.add("hidden");
   document.getElementById("winOverlay").classList.add("hidden");
   document.getElementById("touch").classList.remove("hidden");
+  document.getElementById("gemHud").classList.remove("hidden");
   meNameEl && (meNameEl.textContent = HEROES[chosenHero].name);
-  state.running = true;
+  state.running = true; state.runGems = 0; updateGemHud();
   startMusic();
   setupLevel1();
   game.tabIndex = 0; game.focus();   // make sure key presses reach the game
@@ -1840,9 +1981,67 @@ const helpOverlay = document.getElementById("helpOverlay");
 document.getElementById("helpBtn").addEventListener("click", () => helpOverlay.classList.remove("hidden"));
 document.getElementById("helpClose").addEventListener("click", () => helpOverlay.classList.add("hidden"));
 
+/* ---- the Kitty Chest / dress-up shop ---- */
+function refreshHeroCosmetics() {
+  const sel = [["#pickGinny", 120], ["#pickBitsy", 120], ["#winGinny", 150], ["#winBitsy", 150]];
+  for (const [id, sz] of sel) { const w = document.querySelector(id + " .catWrap"); if (w) applyCosmetics(w, sz); }
+  if (state.hero && state.hero.el) applyCosmetics(state.hero.el, 110);
+  if (state.companion && state.companion.el) applyCosmetics(state.companion.el, 92);
+}
+function renderShop() {
+  document.getElementById("shopGems").textContent = bankGems;
+  const grid = document.getElementById("shopGrid"); grid.innerHTML = "";
+  for (const it of SHOP) {
+    const isOwned = owned.includes(it.id), isEquipped = equip[it.slot] === it.id;
+    const card = document.createElement("div");
+    card.className = "shopItem" + (isEquipped ? " equipped" : "");
+    let btn;
+    if (!isOwned) btn = `<button class="buyBtn ${bankGems >= it.price ? "" : "cant"}" data-buy="${it.id}">💎 ${it.price}</button>`;
+    else if (isEquipped) btn = `<button class="buyBtn owned" data-off="${it.id}">Wearing ✓</button>`;
+    else btn = `<button class="buyBtn owned" data-wear="${it.id}">Wear it</button>`;
+    card.innerHTML = `<div class="pic">${it.emoji}</div><div class="word">${it.word}</div>`
+      + `<button class="readBtn" data-say="${it.word}">🔊 read</button>` + btn;
+    grid.appendChild(card);
+  }
+}
+let shopReturn = "startOverlay";
+function openShop(from) {
+  shopReturn = from; document.getElementById(from).classList.add("hidden");
+  renderShop(); document.getElementById("shopOverlay").classList.remove("hidden");
+}
+function closeShop() {
+  document.getElementById("shopOverlay").classList.add("hidden");
+  document.getElementById(shopReturn).classList.remove("hidden");
+}
+document.getElementById("shopGrid").addEventListener("click", (e) => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.say) { sayWord(t.dataset.say); return; }
+  if (t.dataset.buy) {
+    const it = shopItem(t.dataset.buy);
+    if (bankGems >= it.price) {
+      bankGems -= it.price; save("gems", bankGems);
+      owned.push(it.id); save("owned", owned);
+      equip[it.slot] = it.id; save("equip", equip);
+      sayWord(it.word); tune([{ f: 880 }, { f: 1175, d: 0.2 }]);
+      updateGemHud(); renderShop(); refreshHeroCosmetics();
+    }
+  } else if (t.dataset.wear) {
+    const it = shopItem(t.dataset.wear); equip[it.slot] = it.id; save("equip", equip);
+    renderShop(); refreshHeroCosmetics();
+  } else if (t.dataset.off) {
+    const it = shopItem(t.dataset.off); equip[it.slot] = null; save("equip", equip);
+    renderShop(); refreshHeroCosmetics();
+  }
+});
+document.getElementById("chestBtn").addEventListener("click", () => openShop("startOverlay"));
+document.getElementById("winChestBtn").addEventListener("click", () => openShop("winOverlay"));
+document.getElementById("shopClose").addEventListener("click", closeShop);
+
 /* menu art */
 renderCatInto("pickGinny", "ginny", true);
 renderCatInto("pickBitsy", "bitsy", true);
+refreshHeroCosmetics();
+updateGemHud();
 
 window.addEventListener("resize", () => { if (state.running) placeHero(); });
 </script>

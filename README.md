@@ -41,6 +41,24 @@ his face) is trying to **steal all the cat toys**! This is a **trapping** level:
 
 Trap him and you **win** and save Kitty Land. 🎉
 
+## 💎 Sparkle Gems & the Kitty Chest
+
+A glittering **Sparkle Gem** appears in every level now and then — touch it to pop
+it into your **Kitty Chest**! Your gems are **saved between plays**.
+
+Open **💎 My Kitty Chest** (on the start screen, or after you win) to spend gems on
+fun **dress-up** items — a Bow, Hat, Crown, Flower, Shades, Star, Sparkles trail or
+Rainbow trail. Whatever you wear shows up **on your kitty in the game**! 👑😎✨
+
+Every item shows a **big word + a picture**, and a **🔊 read** button reads the word
+out loud — a gentle way to practise reading while you play.
+
+## ❤️ Hearts
+
+You have **hearts** (5 on Easy, 3 on Hard). Getting hit by a baddie or its attack
+costs a heart — if they all pop, you simply **try that level again**. So keep
+moving and **dodge**!
+
 ## 🦸 The two kitty heroes
 
 - **Ginny** — orange kitty → **pink** suit, **blue** boots/gloves/belt, **pink mask**.
