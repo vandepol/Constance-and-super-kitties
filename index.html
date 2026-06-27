@@ -2953,9 +2953,17 @@ const STORY_L2L3 = [
   { build: () => storyTown(`<div style="position:absolute;left:60%;top:8%;width:30%">${ZSAZSA_SVG}</div>`
       + storyFlyTreats().replace(/🐟/g, "🎵")),
     text: "But high on the glittering rooftops, a fancy cockatoo named Zsa Zsa was swooping in — stealing the whole town's singing voices!", dur: 8000, origin: "70% 25%", to: "scale(1.4)" },
+  { build: () => storyTown(`<div style="position:absolute;left:9%;bottom:1%;width:25%">${GRANNY_SVG}</div>`
+      + `<div style="position:absolute;right:7%;bottom:1%;width:31%">${PUPPY_SVG}</div>`
+      + `<div class="flyTreat" style="left:21%;top:52%;--fx:5vw;--fy:-220px">🎵</div>`
+      + `<div class="flyTreat" style="left:27%;top:56%;--fx:9vw;--fy:-260px;animation-delay:.4s">🎶</div>`
+      + `<div class="flyTreat" style="left:73%;top:50%;--fx:-5vw;--fy:-230px;animation-delay:.2s">🎵</div>`
+      + `<div class="flyTreat" style="left:80%;top:54%;--fx:-9vw;--fy:-210px;animation-delay:.6s">🎶</div>`
+      + `<div style="position:absolute;left:25%;top:44%;font-size:30px">❓</div><div style="position:absolute;right:17%;top:42%;font-size:30px">❓</div>`),
+    text: "Oh no — even Granny Caterina and Mr. Puppy Paws felt their voices floating away! They opened their mouths… but no sound came out!", dur: 7500, to: "scale(1.15)" },
   { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
       + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:22%;width:34%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:22%;width:34%" }),
-    text: "'To the Rooftop Concert, Super Kitties!' Up, up, and away!", dur: 6000, to: "scale(1.12)" },
+    text: "'We have to get everyone's voices back! To the Rooftop Concert, Super Kitties!' Up, up, and away!", dur: 6500, to: "scale(1.12)" },
 ];
 
 function showScene(i) {
