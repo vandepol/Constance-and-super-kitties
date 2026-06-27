@@ -51,7 +51,23 @@ fun **dress-up** items — a Bow, Hat, Crown, Flower, Shades, Star, Sparkles tra
 Rainbow trail. Whatever you wear shows up **on your kitty in the game**! 👑😎✨
 
 Every item shows a **big word + a picture**, and a **🔊 read** button reads the word
-out loud — a gentle way to practise reading while you play.
+out loud — a gentle way to practise reading while you play. There are **Quick Looks**
+too (Princess 👑, Cool 😎, Party 🥳) that dress your kitty in a whole set with one tap.
+Watch for a **NEW!** badge on the chest when you've saved enough for something new.
+Rare **big gems** are worth **3**!
+
+## ✏️ Name Your Kitty
+
+Tap **✏️ Name Kitty** on the start screen and **tap letters to spell a name** — each
+letter is read aloud as you tap it, and a **🔊 read my name** button reads the whole
+word. Great early letter/word practice, and your kitty's name then shows in the game.
+
+## 🏅 Stars & Sticker Book
+
+Finish a level with all your hearts to earn **3 stars** (fewer if you got bumped).
+Beat each baddie to win their **sticker** — the **Sticker Book** in your Kitty Chest
+fills up with **Cat Burglar, Mr. Puppy Paws, Zsa Zsa** and the **Lab Rat** (with their
+names to read). Your best star score is saved.
 
 ## ❤️ Hearts
 
