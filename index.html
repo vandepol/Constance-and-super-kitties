@@ -2209,7 +2209,7 @@ function winLevel3() {
   sndTrap(); epicCelebrate();
   setTimeout(() => tune([{ f: 659 }, { f: 784 }, { f: 988 }, { f: 1319, d: 0.4 }]), 300);
   showLevelReward("zsazsa");
-  setTimeout(startLevel4, 3300);          // final showdown!
+  setTimeout(() => playStory(STORY_L3L4, startLevel4), 3300);   // collar-chase interlude
 }
 
 /* ============================================================
@@ -2222,8 +2222,9 @@ function startLevel4() {
   level = 4; state.running = true;
   setScene(4); basketEl.classList.add("hidden");
   levelNameEl.textContent = "Level 4 · Dumpster Alley";
-  hudLine1.innerHTML = '🧶 Lasso the Lab Rat — bump bins for big 💎! &nbsp;•&nbsp; ⏱ <b id="bossClock">1:00</b>';
+  hudLine1.innerHTML = '🧶 Bump bins to find your collars — lasso the Lab Rat! &nbsp;•&nbsp; ⏱ <b id="bossClock">1:00</b>';
   clearLevelObjects();
+  state.collarsFound = false; document.querySelectorAll(".foundCollar").forEach((e) => e.remove());
   state.levelStart = now(); state.levelMinMs = 60000; state.bossSubduedAnnounced = false;
   startMusic();   // back to the heroic track (L3 used Zsa Zsa's glam track)
   state.hero.x = W() * 0.5; state.hero.y = H() * 0.84; state.hero.vx = 0; state.hero.vy = 0; placeHero();
@@ -2309,12 +2310,32 @@ function openDumpster(dd) {
   dd.opened = true;
   dd.el.innerHTML = DUMPSTER_OPEN_SVG;
   popAt(dd.x - 16, dd.y - 64, "✨"); for (let i = 0; i < 5; i++) setTimeout(spawnSpark, i * 50);
+  // the LAST bin you open hides the case with the stolen golden collars!
+  if ((state.dumpsters || []).every((d) => d.opened) && !state.collarsFound) { revealCollars(dd.x, dd.y - 46); return; }
   sndGold();
-  // every bin hides ONE big diamond — the only diamonds in this level
+  // the other bins each hide ONE big diamond — the only diamonds in this level
   const gx = dd.x, gy = dd.y - 46;
   const el = document.createElement("div"); el.className = "gem bigGem"; el.innerHTML = GEM_SVG;
   el.style.left = (gx - 22) + "px"; el.style.top = (gy - 22) + "px"; game.appendChild(el);
   state.gems.push({ el, x: gx, y: gy, born: now(), val: 3, persist: true });
+}
+// the big payoff: the case opens, the golden collars go back on the kitties, cheers!
+function revealCollars(x, y) {
+  if (state.collarsFound) return;
+  state.collarsFound = true;
+  const px = (x == null) ? (state.hero ? state.hero.x : W() / 2) : x;
+  const py = (y == null) ? (state.hero ? state.hero.y - 60 : H() / 2) : y;
+  popAt(px - 18, py - 12, "💼");
+  banner("🎉 You found your COLLARS! 🎉");
+  sndSuit(); epicCelebrate();
+  [state.hero, state.companion].forEach((k) => {
+    if (!k || !k.el) return;
+    const c = document.createElement("div"); c.className = "foundCollar";
+    c.style.cssText = "position:absolute;left:50%;top:52%;transform:translateX(-50%);width:44%;pointer-events:none;z-index:9";
+    c.innerHTML = (shopItem("goldcollar") || {}).svg || "";
+    k.el.appendChild(c);
+  });
+  for (let i = 0; i < 10; i++) setTimeout(spawnSpark, i * 60);
 }
 function winLevel4() {
   state.running = false;
@@ -2886,7 +2907,7 @@ function storyApartment(extra) {
 
 let activeStory = null;
 const STORY_INTRO = [
-  { build: () => storyTown(), text: "Late one night in Kitty Ville, under the twinkling lights…", dur: 5500, to: "scale(1.14)" },
+  { build: () => storyTown(), text: "Late one night in Kittydale, under the twinkling lights…", dur: 5500, to: "scale(1.14)" },
   { build: () => storyTown(storyFlyTreats()), text: "…all the cat treats started to vanish — whooshing out the windows into the dark!", dur: 6500, to: "scale(1.2) translateY(4%)" },
   { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%, #241a3a, #0a0a18)"></div>`
       + storyCatHTML("ginny", { style: "left:8%;top:18%;width:42%" }) + storyCatHTML("bitsy", { style: "right:8%;top:18%;width:42%" }),
@@ -2895,7 +2916,7 @@ const STORY_INTRO = [
       + storyCatHTML("bitsy", { plain: true, walker: true, style: "left:50%;top:62%;width:15%" })),
     text: "The brave little kitties followed the trail of treats through the sleepy town…", dur: 6000, from: "scale(1.1) translateX(-8%)", to: "scale(1.1) translateX(8%)" },
   { build: () => storyCavern(), text: "…straight to their very own secret Cat-vern. They pushed open the door…", dur: 5500, to: "scale(1.5)" },
-  { build: () => storyBurglarScene(), text: "…and there was the Cat Burglar — grabbing ALL the treats! 'Cat Burglar! Are you stealing the treats from Kitty Ville?'", dur: 7500, to: "scale(1.5) translateY(-3%)" },
+  { build: () => storyBurglarScene(), text: "…and there was the Cat Burglar — grabbing ALL the treats! 'Cat Burglar! Are you stealing the treats from Kittydale?'", dur: 7500, to: "scale(1.5) translateY(-3%)" },
   { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
       + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:20%;width:34%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:20%;width:34%" }),
     text: "'We can't let her get them all!' SUIT UP, Super Kitties! Grab the treats before she does — but don't bump into her, or you'll lose a heart. Find sparkly diamonds to buy treats at the Kitty Mall!", dur: 10500, to: "scale(1.12)" },
@@ -2964,6 +2985,40 @@ const STORY_L2L3 = [
   { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
       + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:22%;width:34%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:22%;width:34%" }),
     text: "'We have to get everyone's voices back! To the Rooftop Concert, Super Kitties!' Up, up, and away!", dur: 6500, to: "scale(1.12)" },
+];
+
+// a dim alley with a row of dumpsters (for the collar chase)
+function storyAlley(extra) {
+  let bins = "";
+  for (let i = 0; i < 4; i++) bins += `<div style="position:absolute;left:${6 + i * 23}%;bottom:2%;width:20%">${DUMPSTER_SVG}</div>`;
+  return `<div style="position:absolute;inset:0;background:linear-gradient(180deg,#161324,#0a0812)"></div>${bins}${extra || ""}`;
+}
+
+const STORY_L3L4 = [
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%, #3a2a6a, #120c2a)"></div>`
+      + `<div style="position:absolute;left:54%;top:8%;width:34%">${ZSAZSA_SVG}</div>`
+      + storyCatHTML("ginny", { plain: false, sup: true, style: "left:6%;bottom:4%;width:24%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "left:28%;bottom:4%;width:24%" }),
+    text: "'No more stealing voices, Zsa Zsa!'", dur: 5500, to: "scale(1.12)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 60% 40%, #3a2a6a, #120c2a)"></div>`
+      + `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46%">${ZSAZSA_SVG}</div>`,
+    text: "'Well, I just LOVE to sing — I love my own voice. I didn't want to hear anyone else but ME!'", dur: 7500, origin: "50% 40%", to: "scale(1.4)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 40% 45%, #2a2c58, #0d1030)"></div>`
+      + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:24%;width:32%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:24%;width:32%" }),
+    text: "'But everyone wants to speak and sing, Zsa Zsa. You can sing too — just like everyone else!'", dur: 7500, to: "scale(1.12)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 55% 40%, #4a2a5a, #160a1e)"></div>`
+      + `<div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:40%">${ZSAZSA_SVG}</div>`
+      + goldCollarBig("left:20%;top:58%;width:15%") + goldCollarBig("right:20%;top:58%;width:15%"),
+    text: "'Fine! But while you weren't looking, I took your golden kitty collars with the hearts — now you'll never hear the Super Kitties call!'", dur: 9000, to: "scale(1.25)" },
+  { build: () => `<div style="position:absolute;inset:0;background:linear-gradient(180deg,#161324,#0a0812)"></div>`
+      + `<div style="position:absolute;left:46%;top:44%;width:34%">${LABRAT_SVG}</div>`
+      + `<div style="position:absolute;left:34%;top:60%;font-size:44px">💼</div>` + goldCollarBig("left:36%;top:52%;width:11%"),
+    text: "Just then — the Lab Rat scurried out with a case, a gold collar peeking out! 'GET HIM!' the kitties yelled.", dur: 7500, to: "scale(1.3) translateX(4%)" },
+  { build: () => storyAlley(`<div style="position:absolute;left:40%;top:30%;width:22%">${LABRAT_SVG}</div>`
+      + `<div style="position:absolute;left:44%;top:24%;font-size:34px">💼</div>`),
+    text: "Out in the alley, the Lab Rat tossed the case into a dumpster… then shuffled them all around! Which one is it?!", dur: 8000, to: "scale(1.2) translateX(-5%)" },
+  { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
+      + storyCatHTML("ginny", { plain: false, sup: true, style: "left:14%;top:22%;width:34%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:14%;top:22%;width:34%" }),
+    text: "Bump the dumpsters to find your collars, Super Kitties — and tangle that sneaky Lab Rat!", dur: 6500, to: "scale(1.12)" },
 ];
 
 function showScene(i) {
