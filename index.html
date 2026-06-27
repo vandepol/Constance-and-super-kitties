@@ -182,7 +182,6 @@
   .shopItem .buyBtn.cant { background: rgba(255,255,255,.14); color: #b9c2da; cursor: default; }
   .shopGemLine { font-family: var(--font-display); font-size: 22px; color: #9ff0ff; margin: 6px 0 2px; }
   #chestBtn { margin-top: 10px; }
-  #shopOverlay .card, #nameOverlay .card { max-height: 94vh; overflow-y: auto; }
   .note.enemyNote { z-index: 6; font-size: 32px; filter: drop-shadow(0 0 10px #ff4d9d) drop-shadow(0 0 4px #fff); animation: spin .5s linear infinite; }
   /* a baddie's wind-up warning (you see it before the throw) */
   .shotWarn { position: absolute; z-index: 8; font-size: 30px; pointer-events: none; animation: shotWarn .52s ease-in-out; }
@@ -202,7 +201,7 @@
   .cat .shine  { fill: #ffffff; }
   .cat .nose   { fill: var(--nose); }
   .cat .whisk  { stroke: var(--furD); stroke-width: 2.4; stroke-linecap: round; fill: none; opacity: .85; }
-  .cat .lash   { stroke: #3a2f45; stroke-width: 3; stroke-linecap: round; fill: none; }
+  .cat .lash   { stroke: #2a2030; stroke-width: 4; stroke-linecap: round; fill: none; }
   .cat .mouth  { stroke: var(--furD); stroke-width: 2.6; stroke-linecap: round; fill: none; }
   .cat .suit   { fill: var(--suit); }
   .cat .glove  { fill: var(--accent); }
@@ -322,15 +321,16 @@
 
   /* ---- overlays ---- */
   .overlay {
-    position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center; padding: 22px; box-sizing: border-box;
+    position: absolute; inset: 0; z-index: 60; overflow-y: auto; text-align: center;
+    padding: 18px 12px; box-sizing: border-box;
     background: radial-gradient(circle at 50% 30%, rgba(31,109,255,.28), rgba(7,17,46,.9) 70%);
   }
   .overlay.hidden { display: none; }
   .card {
     background: var(--glass); border: 1px solid var(--glass-border);
     -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-    border-radius: 28px; padding: 26px 30px; box-shadow: var(--shadow); max-width: 640px;
+    border-radius: 28px; padding: 22px 28px; box-shadow: var(--shadow); max-width: 640px;
+    margin: 0 auto;
   }
   .title {
     font-family: var(--font-display); font-weight: 800; line-height: 1.02;
@@ -782,22 +782,22 @@ const CAT_SVG = `
   <path class="tail fur" d="M64 252 C14 248 12 190 44 170 C24 198 38 226 72 224 C68 238 66 246 64 252 Z"/>
   <path class="cape" d="M94 150 C74 178 68 226 82 262 L120 242 L158 262 C172 226 166 178 146 150 Z"/>
   <g class="body">
-    <!-- slim legs/boots, close together (athletic) -->
-    <path class="boot" d="M98 250 q-4 30 0 40 q2 6 13 6 q11 0 11 -10 l0 -34 z"/>
-    <path class="boot" d="M118 252 l0 34 q0 10 11 10 q11 0 13 -6 q4 -10 0 -40 z"/>
-    <ellipse class="boot" cx="105" cy="294" rx="15" ry="8"/>
-    <ellipse class="boot" cx="135" cy="294" rx="15" ry="8"/>
-    <!-- torso: athletic, tapered waist -->
-    <path class="suit" d="M120 156 C95 156 85 180 85 206 C85 238 99 266 120 266 C141 266 155 238 155 206 C155 180 145 156 120 156 Z"/>
-    <rect class="belt" x="87" y="216" width="66" height="15" rx="7"/>
-    <rect class="buckle" x="112" y="215" width="16" height="17" rx="5"/>
-    <circle class="emblem" cx="120" cy="190" r="20"/>
-    <path class="emHeart" d="M120 199 C113 192 106 188 106 182 C106 178 109 175 113 175 C116 175 119 178 120 181 C121 178 124 175 127 175 C131 175 134 178 134 182 C134 188 127 192 120 199 Z"/>
-    <!-- slimmer arms -->
-    <path class="suit" d="M88 174 C66 182 56 202 60 220 C64 228 74 228 78 218 C82 204 92 194 98 188 Z"/>
-    <path class="suit" d="M152 174 C174 182 184 202 180 220 C176 228 166 228 162 218 C158 204 148 194 142 188 Z"/>
-    <circle class="glove" cx="62" cy="222" r="14"/>
-    <circle class="glove" cx="178" cy="222" r="14"/>
+    <!-- slim kid-like legs/boots -->
+    <path class="boot" d="M104 252 q-4 28 0 38 q2 6 11 6 q9 0 9 -9 l0 -33 z"/>
+    <path class="boot" d="M118 254 l0 33 q0 9 9 9 q9 0 11 -6 q4 -10 0 -38 z"/>
+    <ellipse class="boot" cx="109" cy="294" rx="13" ry="7"/>
+    <ellipse class="boot" cx="131" cy="294" rx="13" ry="7"/>
+    <!-- slim, kid-like torso (strong, not muscly) -->
+    <path class="suit" d="M120 158 C102 158 95 180 95 206 C95 238 106 266 120 266 C134 266 145 238 145 206 C145 180 138 158 120 158 Z"/>
+    <rect class="belt" x="97" y="216" width="46" height="14" rx="7"/>
+    <rect class="buckle" x="112" y="215" width="16" height="16" rx="5"/>
+    <circle class="emblem" cx="120" cy="190" r="18"/>
+    <path class="emHeart" d="M120 198 C114 192 108 188 108 183 C108 179 111 177 114 177 C117 177 119 179 120 181 C121 179 123 177 126 177 C129 177 132 179 132 183 C132 188 126 192 120 198 Z"/>
+    <!-- slim arms -->
+    <path class="suit" d="M97 174 C79 181 71 199 75 215 C79 223 87 223 91 213 C95 201 101 192 106 188 Z"/>
+    <path class="suit" d="M143 174 C161 181 169 199 165 215 C161 223 153 223 149 213 C145 201 139 192 134 188 Z"/>
+    <circle class="glove" cx="77" cy="218" r="13"/>
+    <circle class="glove" cx="163" cy="218" r="13"/>
     <!-- WIDER ears -->
     <path class="fur" d="M66 74 L42 12 L114 52 Z"/>
     <path class="fur" d="M174 74 L198 12 L126 52 Z"/>
@@ -819,9 +819,9 @@ const CAT_SVG = `
     <circle class="shine" cx="151" cy="93" r="6.5"/>
     <circle class="shine" cx="88" cy="106" r="3.5"/>
     <circle class="shine" cx="138" cy="106" r="3.5"/>
-    <!-- flirty eyelashes at the outer corners -->
-    <path class="lash" d="M73 82 l-13 -7 M72 89 l-14 -3 M73 96 l-14 2"/>
-    <path class="lash" d="M167 82 l13 -7 M168 89 l14 -3 M167 96 l14 2"/>
+    <!-- bold cat-eye eyelashes flicking up & out from the outer corners -->
+    <path class="lash" d="M74 80 Q58 71 49 62 M77 86 Q61 79 50 73 M79 93 Q64 89 53 85"/>
+    <path class="lash" d="M166 80 Q182 71 191 62 M163 86 Q179 79 190 73 M161 93 Q176 89 187 85"/>
     <path class="nose" d="M114 120 L126 120 L120 128 Z"/>
     <path class="mouth" d="M120 128 q-8 10 -16 6 M120 128 q8 10 16 6"/>
     <path class="whisk" d="M88 122 L50 114 M88 130 L52 130 M152 122 L190 114 M152 130 L188 130"/>
@@ -1287,6 +1287,7 @@ function applyCosmetics(wrapEl, sizePx) {
   if (equip.hat) { const it = shopItem(equip.hat); if (it) add(it.emoji, { left: "50%", top: "-3%", transform: "translateX(-50%)", fontSize: (w * 0.42) + "px" }); }
   if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "26%", transform: "translateX(-50%)", fontSize: (w * 0.3) + "px" }); }
   if (equip.neck) { const it = shopItem(equip.neck); if (it) add(it.emoji, { left: "50%", top: "52%", transform: "translateX(-50%)", fontSize: (w * 0.26) + "px" }); }
+  if (equip.trail) { const it = shopItem(equip.trail); if (it) add(it.emoji, { left: "80%", top: "58%", fontSize: (w * 0.28) + "px" }); }   // show the trail at rest too
 }
 
 /* ============================================================
@@ -1343,11 +1344,12 @@ function musicTick() {
   musicStep++;
 }
 function startMusic() {
-  stopMusic();
+  stopAllMusic();
   if (!soundOn || !audioCtx) return;
   musicTimer = setInterval(musicTick, 200);      // 0.2s per eighth note
 }
 function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
+function stopAllMusic() { stopMusic(); stopDanceMusic(); }
 
 /* an upbeat DANCE track for the Kitty City party (kick + hat + bouncy melody) */
 let danceTimer = null, danceStep = 0;
@@ -1363,7 +1365,7 @@ function danceTick() {
   if (s.m) tone(s.m, 0.13, "sawtooth", 0.07);      // melody
   danceStep++;
 }
-function startDanceMusic() { stopMusic(); stopDanceMusic(); if (!soundOn || !audioCtx) return; danceTimer = setInterval(danceTick, 145); }
+function startDanceMusic() { stopAllMusic(); if (!soundOn || !audioCtx) return; danceTimer = setInterval(danceTick, 145); }
 function stopDanceMusic() { if (danceTimer) { clearInterval(danceTimer); danceTimer = null; } }
 
 /* ============================================================
@@ -1671,7 +1673,7 @@ function startLevel2() {
   resetHearts(); updateTangleHud();
 
   banner("KITTY LAND — LASSO HIM! 🧶🐶"); sndLevel();
-  requestAnimationFrame(loop);   // winLevel1 stopped the loop for the cut-scene; restart it
+  startLoop();   // winLevel1 stopped the loop for the cut-scene; restart it
 }
 
 function placeCrate(c) { c.el.style.left = (c.x - CRATE_R) + "px"; c.el.style.top = (c.y - CRATE_R) + "px"; }
@@ -1878,7 +1880,7 @@ function startLevel3() {
     el.style.left = (gx - 22) + "px"; el.style.top = (gy - 22) + "px"; game.appendChild(el);
     state.gems.push({ el, x: gx, y: gy, born: now(), val: i === 2 ? 3 : 1, persist: true });   // stay until grabbed
   }
-  requestAnimationFrame(loop);
+  startLoop();
 }
 function updateLevel3(ts) {
   const z = state.zsa; if (!z) return;
@@ -1970,7 +1972,7 @@ function startLevel4() {
   state.enemyCenter = 70; state.onWin = winLevel4;
   resetHearts(); updateTangleHud();
   banner("DUMPSTER ALLEY — LASSO THE LAB RAT! 🧶🐀"); sndLevel();
-  requestAnimationFrame(loop);
+  startLoop();
 }
 function updateLevel4(ts) {
   const r = state.rat, o = state.otto; if (!r) return;
@@ -2231,7 +2233,7 @@ function loseLevelRetry() {
   state.running = false;
   banner("🙀 Oops! Try again!");
   setTimeout(() => {
-    if (level === 1) { state.running = true; setupLevel1(); requestAnimationFrame(loop); }
+    if (level === 1) { state.running = true; setupLevel1(); startLoop(); }
     else if (level === 2) startLevel2();
     else if (level === 3) startLevel3();
     else startLevel4();
@@ -2279,8 +2281,10 @@ function clearShots() { state.shots.forEach((s) => s.el.remove()); state.shots =
    9) THE GAME LOOP
    ============================================================ */
 const SPEED = 0.55, FRICTION = 0.74, MAXV = 4.8;  // gentler: small, controllable steps
+let loopRunning = false;
+function startLoop() { if (loopRunning) return; loopRunning = true; requestAnimationFrame(loop); }  // never run two loops at once
 function loop(ts) {
-  if (!state.running) return;
+  if (!state.running) { loopRunning = false; return; }
   const k = state.keys, h = state.hero;
   const dazed = ts < (h.dazedUntil || 0);     // a sound-wave/tentacle hit scrambles the controls
   h.el.classList.toggle("dazed", dazed);
@@ -2366,7 +2370,7 @@ function startGame() {
   startMusic();
   setupLevel1();
   game.tabIndex = 0; game.focus();   // make sure key presses reach the game
-  requestAnimationFrame(loop);
+  startLoop();
 }
 // keep keyboard focus on the game whenever it's clicked/tapped
 game.addEventListener("pointerdown", () => { try { game.focus(); } catch (e) {} });
