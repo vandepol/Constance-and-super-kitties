@@ -332,6 +332,13 @@
     transition: transform .6s cubic-bezier(.2,.7,.3,1), opacity .6s ease-out; }
   .yarnBurst svg { display: block; width: 24px; }
   @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  /* the unspooling thread trailing a thrown yarn ball */
+  .yarnThread { position: absolute; height: 3px; background: #ff5a9e; transform-origin: 0 50%;
+    z-index: 5; opacity: .8; pointer-events: none; border-radius: 2px; box-shadow: 0 0 4px #ff5a9e; }
+  /* yarn cinching around a baddie when it's hit (the "tie up") */
+  .yarnWrap { position: absolute; border: 3px dashed #ff5a9e; border-radius: 50%; z-index: 4;
+    pointer-events: none; animation: wrapCinch .6s ease-out forwards; }
+  @keyframes wrapCinch { 0% { transform: scale(.3) rotate(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(1.05) rotate(200deg); opacity: 0; } }
   /* firework sparks (Kitty City party) */
   .fxSpark { position: absolute; z-index: 46; pointer-events: none; width: 11px; height: 11px;
     border-radius: 50%; box-shadow: 0 0 8px currentColor;
@@ -479,6 +486,12 @@
   @keyframes firePulse {
     0%,100% { box-shadow: 0 0 0 0 rgba(255,210,63,.7); }
     50%     { box-shadow: 0 0 0 10px rgba(255,210,63,0); }
+  }
+  /* big, obvious pulse until you've thrown your first yarn this level */
+  .tbtn.fire.needYarn { animation: firePulseBig .85s ease-in-out infinite; }
+  @keyframes firePulseBig {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,210,63,.95); transform: scale(1); }
+    50%     { box-shadow: 0 0 0 18px rgba(255,210,63,0); transform: scale(1.16); }
   }
   /* the "throw yarn!" coach hint */
   #coach {
@@ -888,7 +901,7 @@
   <div class="overlay hidden" id="dressOverlay">
     <div class="card">
       <h1 class="title" style="font-size:34px">👗 Dressing Room</h1>
-      <p class="subtitle">Drag a thing onto your kitty to put it on! Drag it to the 🧺 to take it off.</p>
+      <p class="subtitle">Drag a thing onto your kitty (or tap it) to put it on! Tap it again — or drag to the 🧺 — to take it off.</p>
       <div class="dressStage">
         <div id="dressKitty" class="dropZone"></div>
         <div id="dressBin" class="takeOff">🧺<br><span>take off</span></div>
@@ -1354,8 +1367,9 @@ const levelNameEl = document.getElementById("levelName");
 const basketEl = document.getElementById("basket");
 const basketFish = document.getElementById("basketFish");
 const coachEl = document.getElementById("coach");
-function showCoach(msg) { coachEl.innerHTML = msg; coachEl.classList.remove("hidden"); }
-function hideCoach() { coachEl.classList.add("hidden"); }
+function cueThrow(on) { const f = document.getElementById("tFire"); if (f) f.classList.toggle("needYarn", !!on); }
+function showCoach(msg) { coachEl.innerHTML = msg; coachEl.classList.remove("hidden"); cueThrow(true); }   // big 🧶 pulse too
+function hideCoach() { coachEl.classList.add("hidden"); cueThrow(false); }
 
 const W = () => window.innerWidth;
 const H = () => window.innerHeight;
@@ -1434,9 +1448,15 @@ const SHOP = [
   { id: "redcape",    cat: "Capes",    slot: "cape",  word: "Red Cape",  emoji: "🧥", price: 8,  color: "#ff3b3b" },
   { id: "bluecape",   cat: "Capes",    slot: "cape",  word: "Blue Cape", emoji: "🧥", price: 8,  color: "#1f6dff" },
   { id: "goldcape",   cat: "Capes",    slot: "cape",  word: "Gold Cape", emoji: "🧥", price: 12, color: "#ffcf3a" },
+  { id: "purplecape", cat: "Capes",    slot: "cape",  word: "Purple Cape", emoji: "🧥", price: 9,  color: "#9a5cff" },
+  { id: "greencape",  cat: "Capes",    slot: "cape",  word: "Green Cape", emoji: "🧥", price: 9,  color: "#3ec46a" },
+  { id: "pinkcape",   cat: "Capes",    slot: "cape",  word: "Pink Cape",  emoji: "🧥", price: 9,  color: "#ff5ab0" },
   { id: "goldsuit",   cat: "Glitter Suits", slot: "suit", word: "Gold Suit",    emoji: "✨", price: 14, color: "#ffcf3a", glitter: true },
   { id: "pinksuit",   cat: "Glitter Suits", slot: "suit", word: "Pink Glitter", emoji: "✨", price: 14, color: "#ff5ab0", glitter: true },
   { id: "diamondsuit",cat: "Glitter Suits", slot: "suit", word: "Diamond Suit", emoji: "💎", price: 18, color: "#9fe0ff", glitter: true },
+  { id: "purplesuit", cat: "Glitter Suits", slot: "suit", word: "Purple Suit",  emoji: "✨", price: 14, color: "#9a5cff", glitter: true },
+  { id: "mintsuit",   cat: "Glitter Suits", slot: "suit", word: "Mint Suit",    emoji: "✨", price: 14, color: "#7be0c0", glitter: true },
+  { id: "orangesuit", cat: "Glitter Suits", slot: "suit", word: "Orange Suit",  emoji: "✨", price: 14, color: "#ff8a3d", glitter: true },
   { id: "heart",      cat: "Necklaces", slot: "neck", word: "Heart",    emoji: "💖", price: 6 },
   { id: "bell",       cat: "Necklaces", slot: "neck", word: "Bell",     emoji: "🔔", price: 7 },
   { id: "beads",      cat: "Necklaces", slot: "neck", word: "Beads",    emoji: "📿", price: 9 },
@@ -1626,7 +1646,7 @@ function applyCosmetics(wrapEl, sizePx) {
   wrapEl.style.setProperty("--suitC", suitIt ? suitIt.color : "");
   // emoji accessories — each slot has its OWN spot so nothing covers the face
   if (equip.hat) { const it = shopItem(equip.hat); if (it) addItem(it, { left: "50%", top: it.svg ? "4%" : "-7%", transform: "translateX(-50%)", width: (w * 0.5) + "px", fontSize: (w * 0.4) + "px" }); }     // on top of the head
-  if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "25%", transform: "translateX(-50%)", fontSize: (w * 0.28) + "px" }); }    // glasses on the eyes
+  if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "26%", transform: "translateX(-50%)", fontSize: (w * 0.42) + "px" }); }    // glasses on the eyes (big!)
   if (equip.cheek) { const it = shopItem(equip.cheek); if (it) add(it.emoji, { left: "26%", top: "34%", fontSize: (w * 0.2) + "px" }); }                                  // little accent on the cheek
   if (equip.neck) { const it = shopItem(equip.neck); if (it) addItem(it, { left: "50%", top: it.svg ? "42%" : "54%", transform: "translateX(-50%)", width: (w * (it.svg ? 0.36 : 0.42)) + "px", fontSize: (w * 0.24) + "px" }); }    // collar hugs the neck
   if (equip.trail) { const it = shopItem(equip.trail); if (it) add(it.emoji, { left: "82%", top: "56%", fontSize: (w * 0.26) + "px" }); }                                 // trail at the side
@@ -1749,6 +1769,15 @@ function spawnSpark() {
 }
 // a burst of little yarn balls flying outward from (x,y)
 const BURST_COLORS = ["#ff5a9e", "#ffd23f", "#5ad1ff", "#9a7dff", "#7be08a", "#ff8a3d"];
+// a quick yarn loop that cinches around a baddie when it's hit (the "tie up" look)
+function wrapUp(e) {
+  if (!e || !e.el) return;
+  const c = state.enemyCenter || 60;
+  const w = document.createElement("div"); w.className = "yarnWrap";
+  w.style.left = (c * 0.18) + "px"; w.style.top = (c * 0.34) + "px";
+  w.style.width = (c * 1.45) + "px"; w.style.height = (c * 1.05) + "px";
+  e.el.appendChild(w); setTimeout(() => w.remove(), 640);
+}
 function burstYarn(x, y, count) {
   for (let i = 0; i < (count || 10); i++) {
     const el = document.createElement("div"); el.className = "yarnBurst"; el.innerHTML = YARN_SVG;
@@ -2611,16 +2640,21 @@ function finalWin() {
    ============================================================ */
 function shootYarn(from) {
   if (!state.running) return;
+  cueThrow(false);                 // they threw — stop the big "throw!" pulse
   from = from || state.hero;
   const t = now(); if (t - (from.lastShot || 0) < 320) return; from.lastShot = t;
   const e = state.enemy; if (!e) return;
   const dx = e.x - from.x, dy = e.y - from.y, d = Math.hypot(dx, dy) || 1;
   const el = document.createElement("div"); el.className = "yarn";
   const throwIt = equip.throw && shopItem(equip.throw);
+  let thread = null;
   if (throwIt) { el.textContent = throwIt.emoji; el.style.fontSize = "30px"; }   // throw your chosen thing!
-  else { el.innerHTML = YARN_SVG; el.querySelector("svg").style.setProperty("--yc", "#ff5a9e"); }
+  else {
+    el.innerHTML = YARN_SVG; el.querySelector("svg").style.setProperty("--yc", "#ff5a9e");
+    thread = document.createElement("div"); thread.className = "yarnThread"; game.appendChild(thread);   // unspooling string
+  }
   game.appendChild(el);
-  state.yarns.push({ el, x: from.x, y: from.y, vx: (dx / d) * 11, vy: (dy / d) * 11, life: 0 });
+  state.yarns.push({ el, thread, ox: from.x, oy: from.y, x: from.x, y: from.y, vx: (dx / d) * 11, vy: (dy / d) * 11, life: 0 });
   sndYarn();
 }
 function updateYarns(ts) {
@@ -2649,14 +2683,22 @@ function updateYarns(ts) {
       }
     }
     y.el.style.left = (y.x - 17) + "px"; y.el.style.top = (y.y - 17) + "px";
+    // the unspooling thread: a line from where it was thrown to the ball
+    if (y.thread) {
+      const tx = y.x - y.ox, tyy = y.y - y.oy, len = Math.hypot(tx, tyy);
+      y.thread.style.left = y.ox + "px"; y.thread.style.top = y.oy + "px";
+      y.thread.style.width = len + "px"; y.thread.style.transform = "rotate(" + Math.atan2(tyy, tx) + "rad)";
+    }
     if (e && e.hittable !== false && Math.hypot(e.x - y.x, e.y - y.y) < (e.r + 30)) {
       e.slowUntil = ts + SLOW_MS; popAt(y.x - 14, y.y - 14, "💫"); sndHit();
-      shakeEl(e.el); burstYarn(e.x, e.y);            // shake just the baddie + yarn flies out!
+      shakeEl(e.el); wrapUp(e); burstYarn(e.x, e.y);  // shake the baddie + WRAP it in yarn
       if (level === 1) spillTreats(e);               // knock the stolen treats out of the Cat Burglar
       else tangleEnemy();                            // tangle up the level's baddie (L2/L3/L4)
+      if (y.thread) y.thread.remove();
       y.el.remove(); state.yarns = state.yarns.filter((q) => q !== y); continue;
     }
     if (y.x < -40 || y.x > W() + 40 || y.y < -40 || y.y > H() + 40 || y.life > 200) {
+      if (y.thread) y.thread.remove();
       y.el.remove(); state.yarns = state.yarns.filter((q) => q !== y);
     }
   }
@@ -3447,7 +3489,7 @@ function startDressDrag(e, item) {
   const ghost = document.createElement("div"); ghost.className = "dragGhost";
   ghost.innerHTML = item.svg ? item.svg : item.emoji;
   document.body.appendChild(ghost);
-  dragData = { item, ghost };
+  dragData = { item, ghost, sx: e.clientX, sy: e.clientY, moved: false };
   moveDressGhost(e);
   window.addEventListener("pointermove", moveDressGhost);
   window.addEventListener("pointerup", endDressDrag);
@@ -3462,20 +3504,26 @@ function dropZoneAt(x, y) {
 function moveDressGhost(e) {
   if (!dragData) return;
   dragData.ghost.style.left = e.clientX + "px"; dragData.ghost.style.top = e.clientY + "px";
+  if (Math.hypot(e.clientX - dragData.sx, e.clientY - dragData.sy) > 8) dragData.moved = true;
   const zone = dropZoneAt(e.clientX, e.clientY);
   document.getElementById("dressKitty").classList.toggle("dragOver", zone === "kitty");
   document.getElementById("dressBin").classList.toggle("dragOver", zone === "bin");
 }
+function dressPutOn(item) { equip[item.slot] = item.id; saveEquip(); sayWord(item.word); tune([{ f: 880 }, { f: 1175, d: 0.18 }]); }
+function dressTakeOff(item) { equip[item.slot] = null; saveEquip(); tone(300, 0.12, "sine", 0.12); }
 function endDressDrag(e) {
   if (!dragData) return;
-  const { item, ghost } = dragData; ghost.remove();
+  const { item, ghost, moved } = dragData; ghost.remove();
   window.removeEventListener("pointermove", moveDressGhost);
   window.removeEventListener("pointerup", endDressDrag);
   document.getElementById("dressKitty").classList.remove("dragOver");
   document.getElementById("dressBin").classList.remove("dragOver");
   const zone = dropZoneAt(e.clientX, e.clientY);
-  if (zone === "kitty") { equip[item.slot] = item.id; saveEquip(); sayWord(item.word); tune([{ f: 880 }, { f: 1175, d: 0.18 }]); }
-  else if (zone === "bin") { equip[item.slot] = null; saveEquip(); tone(300, 0.12, "sine", 0.12); }
+  if (!moved) {                                    // a TAP toggles the item on/off
+    if (equip[item.slot] === item.id) dressTakeOff(item); else dressPutOn(item);
+  } else if (zone === "kitty") dressPutOn(item);
+  else if (zone === "bin") dressTakeOff(item);
+  else if (equip[item.slot] === item.id) dressTakeOff(item);   // dragged a worn item away → take it off
   dragData = null;
   refreshDress();
 }
