@@ -1674,9 +1674,8 @@ function launchFirework(x, y) {
   }, 200);
 }
 // confetti + fireworks + repeated shakes — the big "you win!" moment
-function epicCelebrate() {
-  shake();
-  let s = 0; const shakeIv = setInterval(() => { shake(); if (++s > 1) clearInterval(shakeIv); }, 460);   // gentler: fewer shakes
+function epicCelebrate(noShake) {
+  if (!noShake) { shake(); let s = 0; const shakeIv = setInterval(() => { shake(); if (++s > 1) clearInterval(shakeIv); }, 460); }   // gentler: fewer shakes (none during the calm party)
   // confetti rain (calmer amount)
   for (let i = 0; i < 38; i++) {
     const c = document.createElement("div"); c.className = "confetti";
@@ -1952,7 +1951,7 @@ function startLevel2() {
   pe.className = "enemyWrap"; pe.style.position = "absolute"; pe.style.zIndex = "5";
   pe.style.width = "120px"; pe.style.height = "120px"; pe.innerHTML = PUPPY_SVG;
   game.appendChild(pe);
-  state.puppy = { x: W() * 0.85, y: H() * 0.5, el: pe, target: null, slowUntil: 0, tangle: 0, r: PUPPY_R };
+  state.puppy = { x: W() * 0.85, y: H() * 0.5, el: pe, target: null, slowUntil: 0, tangle: 0, r: PUPPY_R, throwAt: now() + 2800 };
   state.enemy = state.puppy;
   state.levelMinMs = 0;   // L2 ends as soon as he's trapped (no time floor)
   state.tangleNeed = isHard() ? 8 : 6;   // must lasso the puppy this many times to win
@@ -2036,9 +2035,9 @@ function updateLevel2(ts) {
       goal = { x: cc.x + (hx / hl) * (CRATE_R + p.r - 4), y: cc.y + (hy / hl) * (CRATE_R + p.r - 4) };
     }
   }
-  if (goal && !munching) {
+  if (goal && !munching && !enemyFrozen(p)) {
     const slowed = ts < p.slowUntil;
-    const sp = PUPPY_SPEED * (isHard() ? 1.4 : 1) * enrageMult(p) * (slowed ? SLOW_FACTOR : 1);
+    const sp = PUPPY_SPEED * (isHard() ? 1.9 : 1) * enrageMult(p) * (slowed ? SLOW_FACTOR : 1);
     const dx = goal.x - p.x, dy = goal.y - p.y, d = Math.hypot(dx, dy) || 1;
     const stepX = (dx / d) * sp, stepY = (dy / d) * sp;
     if (!hitsCrate(p.x + stepX, p.y + stepY, p.r)) { p.x += stepX; p.y += stepY; }
@@ -2050,6 +2049,11 @@ function updateLevel2(ts) {
   p.el.style.left = (p.x - 60) + "px"; p.el.style.top = (p.y - 60) + "px";
   p.el.style.transform = p.faceLeft ? "scaleX(-1)" : "none";
   drawSlowStars(p, ts < p.slowUntil);
+
+  // HARD mode: Mr. Puppy Paws fights back — he flings bones at you (dodge them!)
+  if (isHard() && !munching && !enemyFrozen(p) && ts >= (p.throwAt || 0)) {
+    spawnEnemyShot(p.x, p.y - 12, "🦴", "#e8dcc0"); p.throwAt = ts + 2400;
+  }
 
   // (Tangle the puppy with yarn to trap him — see tanglePuppy() — OR rescue all the toys.)
 
@@ -2122,6 +2126,8 @@ function tickBossClock() {
   c.textContent = fmtTime(Math.max(0, (state.levelMinMs || 0) - (now() - (state.levelStart || 0))));
 }
 const enrageMult = (e) => (e && e.enraged ? 1.45 : 1) * (e && now() < (e.burstUntil || 0) ? 1.7 : 1);
+// a baddie frozen by Star Blast can't move or attack
+const enemyFrozen = (e) => !!(e && now() < (e.frozenUntil || 0));
 function loseLevel2() {
   banner("He got the toys! Try again 🐶");
   setTimeout(() => { if (level === 2) startLevel2(); }, 1600);
@@ -2174,6 +2180,7 @@ function startLevel3() {
   ze.style.width = "184px"; ze.style.height = "166px"; ze.innerHTML = ZSAZSA_SVG;
   game.appendChild(ze);
   state.zsa = { x: W() * 0.7, y: H() * 0.3, el: ze, tangle: 0, slowUntil: 0, r: 68, hittable: true, tx: W() * 0.5, ty: H() * 0.3, phase: "perch", phaseUntil: now() + 1400 };
+  state.lastYarnRemind = 0;
   state.enemy = state.zsa;
   state.tangleNeed = isHard() ? 9 : 5;
   state.bossName = "Zsa Zsa";
@@ -2195,9 +2202,10 @@ function startLevel3() {
 function updateLevel3(ts) {
   const z = state.zsa; if (!z) return;
   const slowed = ts < z.slowUntil;
+  const frozen = enemyFrozen(z);   // Star Blast immobilizes her
   z.phase = z.phase || "swoop"; z.phaseUntil = z.phaseUntil || 0;
   // SWOOP to a new spot (hard to hit) -> PERCH and sing (stays still = your window!)
-  if (ts >= z.phaseUntil) {
+  if (ts >= z.phaseUntil && !frozen) {
     if (z.phase === "swoop") {
       z.phase = "perch"; z.phaseUntil = ts + (isHard() ? 1300 : 1800);
     } else {
@@ -2205,22 +2213,27 @@ function updateLevel3(ts) {
       z.tx = 150 + Math.random() * (W() - 300); z.ty = 110 + Math.random() * (H() * 0.42);
     }
   }
-  if (z.phase === "swoop") {
+  if (z.phase === "swoop" && !frozen) {
     const sp = (slowed ? 1.2 : 3.0) * (isHard() ? 1.15 : 1) * enrageMult(z);
     const dx = z.tx - z.x, dy = z.ty - z.y, d = Math.hypot(dx, dy) || 1;
     z.x += (dx / d) * sp; z.y += (dy / d) * sp + Math.sin(ts / 160) * 1.0;
     z.el.style.transform = (dx < 0) ? "scaleX(-1)" : "none";
-  } else {
+  } else if (!frozen) {
     z.y += Math.sin(ts / 200) * 0.8;               // perched: gentle bob, easy to lasso
   }
   z.x = Math.max(60, Math.min(W() - 60, z.x)); z.y = Math.max(80, Math.min(H() * 0.72, z.y));
   z.el.style.left = (z.x - 92) + "px"; z.el.style.top = (z.y - 83) + "px";
   drawSlowStars(z, slowed);
   tickBossClock(); maybeWinBoss();
-  // she winds up and HURLS music notes you can see coming — dodge them! (not while slowed)
-  if (!slowed && ts >= (z.throwAt || 0)) {
+  // she winds up and HURLS music notes you can see coming — dodge them! (not while slowed/frozen)
+  if (!slowed && !frozen && ts >= (z.throwAt || 0)) {
     spawnEnemyShot(z.x, z.y, "🎵", "#ff4d9d");
     z.throwAt = ts + (isHard() ? 1300 : 2600);
+  }
+  // haven't thrown any yarn at her near the end? remind them how to win
+  if (z.tangle === 0 && (now() - (state.levelStart || 0)) > ((state.levelMinMs || 0) - 10000) && now() - (state.lastYarnRemind || 0) > 9000) {
+    banner("🧶 Throw YARN at Zsa Zsa!"); showCoach("👉 Press <b>SPACE</b> or tap <b>🧶</b> to throw <b>yarn</b> at <b>Zsa Zsa</b> — that's how you win!");
+    state.lastYarnRemind = now();
   }
   // floating voices drift up (flavour)
   if (ts - (state.lastNote || 0) > 1600 && state.notes.length < 5) { spawnNote(); state.lastNote = ts; }
@@ -2290,8 +2303,8 @@ function startLevel4() {
 }
 function updateLevel4(ts) {
   const r = state.rat, o = state.otto; if (!r) return;
-  // Otto roams slowly and fires ring beams from wherever he is
-  if (o) {
+  // Otto roams slowly and fires ring beams from wherever he is (unless Star-Blast frozen)
+  if (o && !enemyFrozen(o)) {
     if (ts >= o.retargetAt) { o.tx = W() * 0.22 + Math.random() * (W() * 0.56); o.ty = H() * 0.3 + Math.random() * (H() * 0.42); o.retargetAt = ts + 1400 + Math.random() * 900; }
     const osp = isHard() ? 1.7 : 1.2;
     const odx = o.tx - o.x, ody = o.ty - o.y, od = Math.hypot(odx, ody) || 1;
@@ -2302,7 +2315,7 @@ function updateLevel4(ts) {
     if (ts >= o.sweepAt) { spawnEnemyShot(o.x, o.y, GARBAGE[Math.floor(Math.random() * GARBAGE.length)], "#8a6a3a"); o.sweepAt = ts + (isHard() ? 2100 : 3800); }
   }
   // Lab Rat: mostly OUT roaming the alley, only briefly ducking into a dumpster
-  if (ts >= r.modeUntil) {
+  if (ts >= r.modeUntil && !enemyFrozen(r)) {
     if (r.mode === "out") {
       r.mode = "hiding"; r.hittable = false; r.el.style.opacity = "0";
       r.hideTo = state.dumpsters[Math.floor(Math.random() * state.dumpsters.length)];
@@ -2313,7 +2326,7 @@ function updateLevel4(ts) {
       r.modeUntil = ts + (isHard() ? 3200 : 4000); r.retargetAt = 0;   // out & scurrying much longer
     }
   }
-  if (r.mode === "out") {
+  if (r.mode === "out" && !enemyFrozen(r)) {
     const slowed = ts < r.slowUntil;
     if (ts >= r.retargetAt) { r.tx = 120 + Math.random() * (W() - 240); r.ty = H() * 0.34 + Math.random() * (H() * 0.42); r.retargetAt = ts + 650 + Math.random() * 500; }
     const sp = (slowed ? 0.8 : 2.5) * (isHard() ? 1.25 : 1) * enrageMult(r);
@@ -2427,7 +2440,7 @@ function startParty() {
   banner("🎉 KITTY CITY PARTY! 🎶");
   startDanceMusic();
   state._partyGift = setInterval(rainGift, 280);                 // treats & toys rain down
-  state._partyCf = setInterval(epicCelebrate, 4200);   // calmer party confetti cadence
+  state._partyCf = setInterval(() => epicCelebrate(true), 4200);   // calmer party confetti — no screen shake
   for (let i = 0; i < 12; i++) setTimeout(spawnSpark, i * 120);
   state._partyEnd = setTimeout(endParty, 16000);                 // then the trophy screen
   game.addEventListener("pointerdown", partyFirework);           // tap anywhere = a firework!
@@ -2565,7 +2578,7 @@ function updateWaves(ts) {
     // the dangerous part is the ring EDGE — dodge it or lose a heart!
     if (!w.hitHero && h && now() >= state.hurtUntil) {
       const d = Math.hypot(h.x - w.x, h.y - w.y);
-      if (Math.abs(d - w.r) < 36) { w.hitHero = true; loseHeart(w.x, w.y, 18); }
+      if (Math.abs(d - w.r) < 36) { w.hitHero = true; hazardHit(w.x, w.y, "💫", 18); }
     }
     if (w.r >= w.maxR) { w.el.remove(); state.waves = state.waves.filter((q) => q !== w); }
   }
@@ -2629,6 +2642,12 @@ function slipHit(srcX, srcY, emoji) {
   freezeHero(srcX, srcY, emoji);
   banner("💗 Slipped!");   // Easy mode: thrown things only make you slip — never cost a heart
 }
+// any thrown/swept hazard: on Easy in the Zsa Zsa & Lab Rat levels it's a harmless
+// slip (no heart); otherwise it costs a heart.
+function hazardHit(x, y, emoji, strength) {
+  if (!isHard() && (level === 3 || level === 4)) slipHit(x, y, emoji);
+  else loseHeart(x, y, strength);
+}
 function loseLevelRetry() {
   state.running = false;
   banner("🙀 Oops! Try again!");
@@ -2666,9 +2685,7 @@ function updateShots() {
     s.x += s.vx; s.y += s.vy; s.life++;
     s.el.style.left = (s.x - 15) + "px"; s.el.style.top = (s.y - 15) + "px";
     if (now() >= state.hurtUntil && Math.hypot(h.x - s.x, h.y - s.y) < (HERO_R + 14)) {
-      // Zsa Zsa & Lab Rat on Easy: getting hit makes you SLIP & turn pink — only lose a heart on the 3rd slip
-      if (!isHard() && (level === 3 || level === 4)) slipHit(s.x, s.y, s.el.textContent);
-      else loseHeart(s.x - s.vx * 6, s.y - s.vy * 6, 30);   // fling the kitty toward the wall
+      hazardHit(s.x, s.y, s.el.textContent, 30);   // Easy L3/L4 → slip (no heart); else lose a heart
       s.el.remove(); state.shots = state.shots.filter((q) => q !== s); continue;
     }
     if (s.x < -40 || s.x > W() + 40 || s.y < -40 || s.y > H() + 40 || s.life > 260) {
@@ -3292,12 +3309,14 @@ let pausedByUser = false;
 function pauseGame() {
   if (!state.running || level === 5) return;
   pausedByUser = true; state.running = false;
+  stopAllMusic();   // hush the music while paused
   document.getElementById("pauseOverlay").classList.remove("hidden");
 }
 function resumeGame() {
   if (!pausedByUser) return;
   pausedByUser = false;
   document.getElementById("pauseOverlay").classList.add("hidden");
+  if (level === 3) startGlamMusic(); else startMusic();   // bring the music back
   state.running = true; try { game.focus(); } catch (e) {} startLoop();
 }
 document.getElementById("pauseBtn").addEventListener("click", () => (pausedByUser ? resumeGame() : pauseGame()));
@@ -3320,6 +3339,10 @@ function fireStarBlast() {
   // on a real boss fight (tangleNeed is set), give the baddie a bonus tangle;
   // on Level 1's treat hunt there is no tangle, so just the sparkle + shot-sweep
   if (state.tangleNeed && state.enemy && state.enemy.hittable !== false) tangleEnemy();
+  // FREEZE the baddie (and Otto) in place for a few seconds
+  const FREEZE_BADDIE_MS = 3500;
+  if (state.enemy) { state.enemy.frozenUntil = now() + FREEZE_BADDIE_MS; popAt(state.enemy.x - 16, (state.enemy.y || 0) - 30, "❄️"); }
+  if (state.otto) { state.otto.frozenUntil = now() + FREEZE_BADDIE_MS; }
   banner("⭐ STAR BLAST! ⭐");
   tune([{ f: 880 }, { f: 1320, d: 0.12 }, { f: 1760, d: 0.18 }]);
   // short cool-down so it can't be spammed
