@@ -323,12 +323,16 @@
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0.9; }
   }
 
-  #game.shake { animation: shake .44s ease; }
-  @keyframes shake {
-    0%,100% { transform: translate(0,0); }
-    20% { transform: translate(-7px,4px); } 40% { transform: translate(7px,-4px); }
-    60% { transform: translate(-5px,-3px); } 80% { transform: translate(5px,3px); }
+  /* object-only shake (we never shake the whole screen) */
+  .objShake { animation: objShake .42s ease; }
+  @keyframes objShake {
+    0%,100% { transform: translate(0,0) rotate(0); }
+    20% { transform: translate(-5px,3px) rotate(-4deg); } 40% { transform: translate(5px,-3px) rotate(4deg); }
+    60% { transform: translate(-4px,-2px) rotate(-3deg); } 80% { transform: translate(4px,2px) rotate(3deg); }
   }
+  /* knocked-down kitty (Lab Rat level) — topples over, no pink */
+  .catWrap.fell .cat { animation: fellOver .5s ease-out; transform: rotate(72deg) translateY(14px); transform-origin: 50% 90%; }
+  @keyframes fellOver { 0% { transform: rotate(0) translateY(0); } 60% { transform: rotate(82deg) translateY(16px); } 100% { transform: rotate(72deg) translateY(14px); } }
 
   /* ---- HUD ---- */
   #hud {
@@ -1341,8 +1345,8 @@ const SHOP = [
   { id: "throwstar",  cat: "Throwables", slot: "throw", word: "Star",   emoji: "⭐", price: 10 },
   { id: "throwbolt",  cat: "Throwables", slot: "throw", word: "Bolt",   emoji: "⚡", price: 12 },
   { id: "throwheart", cat: "Throwables", slot: "throw", word: "Heart",  emoji: "💕", price: 10 },
-  { id: "magnet",     cat: "Powers",   slot: "power", word: "Magnet",   emoji: "🧲", price: 20 },
-  { id: "starblast",  cat: "Powers",   slot: "powerB",word: "Star Blast", emoji: "🌟", price: 30 },
+  { id: "magnet",     cat: "Powers",   slot: "power", word: "Magnet",   emoji: "🧲", price: 45 },
+  { id: "starblast",  cat: "Powers",   slot: "powerB",word: "Star Blast", emoji: "🌟", price: 75 },
 ];
 const SHOP_CATS = ["Hats", "Glasses", "Capes", "Glitter Suits", "Necklaces", "Trails", "Throwables", "Powers"];
 const shopItem = (id) => SHOP.find((s) => s.id === id);
@@ -1481,7 +1485,7 @@ function maybeSurprise(ts) {
     opts.push(() => { banner("✨ BIG GEM! ✨"); spawnBigGem(); tune([{ f: 784 }, { f: 1047, d: .2 }]); });
   }
   if (level === 1) opts.push(() => { banner("🐟 TREAT RAIN! 🐟"); for (let i = 0; i < 6; i++) setTimeout(spawnTreat, i * 140); });
-  if (level >= 2 && state.enemy) opts.push(() => { banner("💨 ZOOM! " + (state.bossName || "")); state.enemy.burstUntil = ts + 3000; shake(); });
+  if (level >= 2 && state.enemy) opts.push(() => { banner("💨 ZOOM! " + (state.bossName || "")); state.enemy.burstUntil = ts + 3000; shakeEl(state.enemy.el); });
   opts[Math.floor(Math.random() * opts.length)]();
 }
 
@@ -1625,7 +1629,8 @@ function stopGlamMusic() { if (glamTimer) { clearInterval(glamTimer); glamTimer 
    4) HELPERS
    ============================================================ */
 function banner(msg) { bannerEl.textContent = msg; bannerEl.classList.remove("show"); void bannerEl.offsetWidth; bannerEl.classList.add("show"); }
-function shake() { game.classList.remove("shake"); void game.offsetWidth; game.classList.add("shake"); }
+function shake() { /* screen shake disabled — we only shake individual objects now */ }
+function shakeEl(el) { if (!el) return; el.classList.remove("objShake"); void el.offsetWidth; el.classList.add("objShake"); setTimeout(() => el.classList.remove("objShake"), 460); }
 function popAt(x, y, emoji, cls) {
   const p = document.createElement("div"); p.className = "pop" + (cls ? " " + cls : ""); p.textContent = emoji;
   p.style.left = x + "px"; p.style.top = y + "px"; game.appendChild(p); setTimeout(() => p.remove(), 560);
@@ -2090,6 +2095,7 @@ function tangleEnemy() {
   const e = state.enemy; if (!e) return;
   hideCoach();                          // they've figured out the yarn — hide the hint
   e.tangle = (e.tangle || 0) + 1;
+  shakeEl(e.el);                        // shake just the baddie when it's hit (not the screen)
   // stick a little yarn ball onto the baddie so you SEE them getting wrapped up
   const c = state.enemyCenter || 60;
   const w = document.createElement("div");
@@ -2104,7 +2110,7 @@ function tangleEnemy() {
   updateTangleHud();
   // halfway = the baddie gets MAD and speeds up (a surprise mid-fight!)
   if (!e.enraged && e.tangle >= Math.ceil(state.tangleNeed / 2) && e.tangle < state.tangleNeed) {
-    e.enraged = true; shake();
+    e.enraged = true; shakeEl(e.el);
     banner("😾 " + (state.bossName || "The baddie") + " is MAD now!");
     tune([{ f: 200, d: .1 }, { f: 160, d: .14 }]);
   }
@@ -2539,7 +2545,7 @@ function updateYarns(ts) {
     y.el.style.left = (y.x - 17) + "px"; y.el.style.top = (y.y - 17) + "px";
     if (e && e.hittable !== false && Math.hypot(e.x - y.x, e.y - y.y) < (e.r + 30)) {
       e.slowUntil = ts + SLOW_MS; popAt(y.x - 14, y.y - 14, "💫"); sndHit();
-      shake(); burstYarn(e.x, e.y);                  // whole scene shakes + yarn flies out!
+      shakeEl(e.el); burstYarn(e.x, e.y);            // shake just the baddie + yarn flies out!
       if (level === 1) spillTreats(e);               // knock the stolen treats out of the Cat Burglar
       else tangleEnemy();                            // tangle up the level's baddie (L2/L3/L4)
       y.el.remove(); state.yarns = state.yarns.filter((q) => q !== y); continue;
@@ -2620,7 +2626,7 @@ function breakHeart(srcX, srcY, strength) {
   state.hearts--; updateHeartsHud(); state.pinkHits = 0;
   const h = state.hero, dx = h.x - srcX, dy = h.y - srcY, d = Math.hypot(dx, dy) || 1, k = strength || 14;
   h.kx = (dx / d) * k; h.ky = (dy / d) * k; h.dazedUntil = now() + 350;   // knocked back & briefly stunned
-  shake(); sndHit(); popAt(h.x - 14, h.y - 44, "💔");
+  shakeEl(h.el); sndHit(); popAt(h.x - 14, h.y - 44, "💔");
   if (state.hearts <= 0) loseLevelRetry();
 }
 function loseHeart(srcX, srcY, strength) {
@@ -2628,7 +2634,7 @@ function loseHeart(srcX, srcY, strength) {
   state.hurtUntil = now() + 1300; breakHeart(srcX, srcY, strength);
 }
 // SLIP: a friendly alternative — the kitty freezes & turns PINK for ~3s
-const FREEZE_MS = 3000;
+const FREEZE_MS = 1800;
 function freezeHero(srcX, srcY, emoji) {
   if (now() < state.hurtUntil) return;                     // still in grace from the last slip
   state.frozenUntil = now() + FREEZE_MS; state.hurtUntil = now() + FREEZE_MS;  // no re-slip while frozen
@@ -2707,7 +2713,8 @@ function loop(ts) {
   const dazed = ts < (h.dazedUntil || 0);     // a sound-wave/tentacle hit scrambles the controls
   const frozen = ts < (state.frozenUntil || 0);   // slipped on a banana — frozen for a moment
   h.el.classList.toggle("dazed", dazed);
-  h.el.classList.toggle("frozen", frozen);
+  h.el.classList.toggle("frozen", frozen && level !== 4);   // Zsa Zsa: pink slip
+  h.el.classList.toggle("fell", frozen && level === 4);     // Lab Rat: topples over (no pink)
   updateDazeSwirl(h, dazed);
   let ax = 0, ay = 0;
   if (!dazed && !frozen) {
