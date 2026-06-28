@@ -239,6 +239,28 @@
   .shopItem .buyBtn.owned { background: linear-gradient(180deg, #2fae54, #1d7d3a); }
   .shopItem .buyBtn.cant { background: rgba(255,255,255,.14); color: #b9c2da; cursor: default; }
   .shopGemLine { font-family: var(--font-display); font-size: 22px; color: #9ff0ff; margin: 6px 0 2px; }
+  /* ===== Dressing Room (drag & drop dress-up) ===== */
+  .dressStage { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 8px 0; }
+  #dressKitty { width: 200px; height: 250px; border-radius: 24px; touch-action: none;
+    background: radial-gradient(circle at 50% 38%, rgba(255,210,120,.18), transparent 60%), rgba(255,255,255,.05);
+    border: 3px dashed rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; }
+  #dressKitty.dragOver { border-color: var(--gold); box-shadow: 0 0 24px rgba(255,210,63,.6); }
+  #dressKitty .catWrap { position: static; width: 150px; height: 188px; }
+  .takeOff { width: 90px; height: 90px; border-radius: 18px; border: 3px dashed rgba(255,255,255,.25);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 34px;
+    color: #fff; font-family: var(--font-display); }
+  .takeOff span { font-size: 13px; }
+  .takeOff.dragOver { border-color: #ff5a9e; box-shadow: 0 0 20px rgba(255,90,158,.6); }
+  .dressTray { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 620px; margin: 4px auto; }
+  .dressChip { width: 78px; padding: 8px 4px 6px; border-radius: 16px; background: rgba(255,255,255,.08);
+    border: 3px solid transparent; cursor: grab; touch-action: none; user-select: none; }
+  .dressChip.worn { border-color: var(--turq); box-shadow: 0 0 14px rgba(31,200,216,.5); }
+  .dressChip .cpic { font-size: 34px; line-height: 1; pointer-events: none; }
+  .dressChip .cpic svg { width: 40px; }
+  .dressChip .cword { font-family: var(--font-display); font-size: 15px; margin-top: 2px; pointer-events: none; }
+  .dragGhost { position: fixed; z-index: 200; pointer-events: none; transform: translate(-50%,-50%); font-size: 44px; filter: drop-shadow(0 6px 8px rgba(0,0,0,.5)); }
+  .dragGhost svg { width: 56px; }
+  .dressEmpty { color: #b9c2da; font-size: 15px; margin: 8px; }
   #chestBtn { margin-top: 10px; }
   .note.enemyNote { z-index: 6; font-size: 32px; filter: drop-shadow(0 0 10px #ff4d9d) drop-shadow(0 0 4px #fff); animation: spin .5s linear infinite; }
   /* a baddie's wind-up warning (you see it before the throw) */
@@ -855,7 +877,29 @@
       <h2 class="title" style="font-size:30px;margin:14px 0 2px">🏅 Sticker Book</h2>
       <p class="subtitle" style="margin:0 0 4px">Beat a baddie to win their sticker!</p>
       <div class="stickerRow" id="stickerRow"></div>
-      <button class="bigBtn" id="shopClose" style="margin-top:14px">✓ OK (saved)</button>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+        <button class="bigBtn blue" id="dressBtn">👗 Dressing Room</button>
+        <button class="bigBtn" id="shopClose">✓ OK (saved)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRESSING ROOM — drag & drop dress-up -->
+  <div class="overlay hidden" id="dressOverlay">
+    <div class="card">
+      <h1 class="title" style="font-size:34px">👗 Dressing Room</h1>
+      <p class="subtitle">Drag a thing onto your kitty to put it on! Drag it to the 🧺 to take it off.</p>
+      <div class="dressStage">
+        <div id="dressKitty" class="dropZone"></div>
+        <div id="dressBin" class="takeOff">🧺<br><span>take off</span></div>
+      </div>
+      <p class="subtitle" id="dressTrayHint" style="margin:8px 0 2px">Your closet:</p>
+      <div class="dressTray" id="dressTray"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+        <button class="bigBtn blue" id="dressSwap">🔄 Other Kitty</button>
+        <button class="bigBtn blue" id="dressBare">🧺 Take it all off</button>
+        <button class="bigBtn" id="dressClose">✓ Done</button>
+      </div>
     </div>
   </div>
 
@@ -3374,6 +3418,82 @@ document.getElementById("chestBtn").addEventListener("click", () => openShop("st
 document.getElementById("winChestBtn").addEventListener("click", () => openShop("winOverlay"));
 document.getElementById("shopClose").addEventListener("click", closeShop);
 document.getElementById("storeBtn").addEventListener("click", () => openShop("game"));
+
+/* ============================================================
+   DRESSING ROOM — drag & drop dress-up (pointer events = mouse + touch)
+   ============================================================ */
+let dressHero = "ginny", dragData = null;
+function ownedWearables() { return owned.map(shopItem).filter((it) => it && WEAR_SLOTS.includes(it.slot)); }
+function refreshDress() {
+  // the big kitty + its current outfit
+  renderCatInto("dressKitty", dressHero, false);
+  const wrap = document.querySelector("#dressKitty .catWrap");
+  if (wrap) applyCosmetics(wrap, 150);
+  // the closet tray
+  const tray = document.getElementById("dressTray"); tray.innerHTML = "";
+  const items = ownedWearables();
+  if (!items.length) { tray.innerHTML = '<div class="dressEmpty">Buy some things in the store first, then come back to dress up! 🛍️</div>'; return; }
+  for (const it of items) {
+    const chip = document.createElement("div");
+    chip.className = "dressChip" + (equip[it.slot] === it.id ? " worn" : "");
+    const pic = it.svg ? it.svg : it.emoji;
+    chip.innerHTML = `<div class="cpic">${pic}</div><div class="cword">${it.word}</div>`;
+    chip.addEventListener("pointerdown", (e) => startDressDrag(e, it));
+    tray.appendChild(chip);
+  }
+}
+function startDressDrag(e, item) {
+  e.preventDefault();
+  const ghost = document.createElement("div"); ghost.className = "dragGhost";
+  ghost.innerHTML = item.svg ? item.svg : item.emoji;
+  document.body.appendChild(ghost);
+  dragData = { item, ghost };
+  moveDressGhost(e);
+  window.addEventListener("pointermove", moveDressGhost);
+  window.addEventListener("pointerup", endDressDrag);
+}
+function dropZoneAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  const kitty = document.getElementById("dressKitty"), bin = document.getElementById("dressBin");
+  if (kitty && (el === kitty || kitty.contains(el))) return "kitty";
+  if (bin && (el === bin || bin.contains(el))) return "bin";
+  return null;
+}
+function moveDressGhost(e) {
+  if (!dragData) return;
+  dragData.ghost.style.left = e.clientX + "px"; dragData.ghost.style.top = e.clientY + "px";
+  const zone = dropZoneAt(e.clientX, e.clientY);
+  document.getElementById("dressKitty").classList.toggle("dragOver", zone === "kitty");
+  document.getElementById("dressBin").classList.toggle("dragOver", zone === "bin");
+}
+function endDressDrag(e) {
+  if (!dragData) return;
+  const { item, ghost } = dragData; ghost.remove();
+  window.removeEventListener("pointermove", moveDressGhost);
+  window.removeEventListener("pointerup", endDressDrag);
+  document.getElementById("dressKitty").classList.remove("dragOver");
+  document.getElementById("dressBin").classList.remove("dragOver");
+  const zone = dropZoneAt(e.clientX, e.clientY);
+  if (zone === "kitty") { equip[item.slot] = item.id; saveEquip(); sayWord(item.word); tune([{ f: 880 }, { f: 1175, d: 0.18 }]); }
+  else if (zone === "bin") { equip[item.slot] = null; saveEquip(); tone(300, 0.12, "sine", 0.12); }
+  dragData = null;
+  refreshDress();
+}
+function openDress() {
+  dressHero = chosenHero;
+  document.getElementById("shopOverlay").classList.add("hidden");
+  document.getElementById("dressOverlay").classList.remove("hidden");
+  refreshDress();
+}
+function closeDress() {
+  document.getElementById("dressOverlay").classList.add("hidden");
+  document.getElementById("shopOverlay").classList.remove("hidden");
+  renderShop(); refreshHeroCosmetics();
+}
+document.getElementById("dressBtn").addEventListener("click", openDress);
+document.getElementById("dressClose").addEventListener("click", closeDress);
+document.getElementById("dressSwap").addEventListener("click", () => { dressHero = dressHero === "ginny" ? "bitsy" : "ginny"; refreshDress(); });
+document.getElementById("dressBare").addEventListener("click", () => { WEAR_SLOTS.forEach((s) => (equip[s] = null)); saveEquip(); tone(300, 0.12, "sine", 0.12); refreshDress(); });
 
 /* ---- Pause / Resume ---- */
 let pausedByUser = false;
