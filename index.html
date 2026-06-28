@@ -259,7 +259,8 @@
   .cat .tail { transform-box: fill-box; transform-origin: 92% 88%; animation: tailWag 1.3s ease-in-out infinite; }
   @keyframes tailWag { 0%,100% { transform: rotate(-7deg); } 50% { transform: rotate(9deg); } }
   .catWrap.faceLeft { transform: scaleX(-1); }
-  .catWrap.frozen .cat { animation: slipWobble .5s ease-in-out infinite; transform-origin: 50% 82%; }
+  .catWrap.frozen .cat { animation: slipWobble .5s ease-in-out infinite; transform-origin: 50% 82%;
+    filter: sepia(.85) saturate(5) hue-rotate(300deg) brightness(1.05); }   /* slipped → turns pink */
   @keyframes slipWobble { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
   .catWrap.hop .cat .body { animation: catHop .35s ease; }
   @keyframes catHop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-22px) scale(1.08,.94); } 100% { transform: translateY(0) scale(1); } }
@@ -823,7 +824,7 @@
       <h2 class="title" style="font-size:30px;margin:14px 0 2px">🏅 Sticker Book</h2>
       <p class="subtitle" style="margin:0 0 4px">Beat a baddie to win their sticker!</p>
       <div class="stickerRow" id="stickerRow"></div>
-      <button class="bigBtn" id="shopClose" style="margin-top:14px">◀ Back</button>
+      <button class="bigBtn" id="shopClose" style="margin-top:14px">✓ OK (saved)</button>
     </div>
   </div>
 
@@ -1147,15 +1148,17 @@ const LABRAT_SVG = `
   <!-- snout -->
   <ellipse cx="56" cy="76" rx="22" ry="16" fill="#c7c7d2"/>
   <circle cx="40" cy="78" r="6" fill="#ff6b9a"/>
-  <!-- eyes (beady, sneaky) -->
-  <circle cx="72" cy="58" r="6" fill="#1a1a1a"/><circle cx="74" cy="56" r="2" fill="#fff"/>
-  <circle cx="90" cy="56" r="6" fill="#1a1a1a"/><circle cx="92" cy="54" r="2" fill="#fff"/>
-  <path d="M62 50 q8 -5 16 -2 M84 49 q8 -3 14 1" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- RED DIVE MASK (single lens, underwater adventure) -->
-  <path d="M50 58 H112" stroke="#d62828" stroke-width="6"/>
+  <!-- big "Beanie-Boo" eyes (yellow-ish light grey), seen through the goggles -->
+  <ellipse cx="69" cy="57" rx="12" ry="13" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1"/>
+  <ellipse cx="94" cy="57" rx="12" ry="13" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1"/>
+  <ellipse cx="69" cy="58" rx="9.5" ry="10.5" fill="#cfc79c" stroke="rgba(0,0,0,.28)" stroke-width="1.3"/>
+  <ellipse cx="94" cy="58" rx="9.5" ry="10.5" fill="#cfc79c" stroke="rgba(0,0,0,.28)" stroke-width="1.3"/>
+  <circle cx="69" cy="59" r="6.5" fill="#16182c"/><circle cx="94" cy="59" r="6.5" fill="#16182c"/>
+  <circle cx="72" cy="55" r="2.8" fill="#fff"/><circle cx="97" cy="55" r="2.8" fill="#fff"/>
+  <circle cx="66" cy="61" r="1.4" fill="#fff"/><circle cx="91" cy="61" r="1.4" fill="#fff"/>
+  <!-- RED DIVE GOGGLES: a frame around the eyes + straps on each side (no line through the lens) -->
+  <rect x="52" y="42" width="58" height="32" rx="16" fill="#bfe9ff" fill-opacity="0.16" stroke="#d62828" stroke-width="6"/>
   <path d="M52 58 Q40 56 36 67 M110 58 Q122 56 126 67" stroke="#d62828" stroke-width="4" fill="none"/>
-  <rect x="52" y="44" width="58" height="30" rx="15" fill="#bfe9ff" fill-opacity="0.55" stroke="#d62828" stroke-width="6"/>
-  <ellipse cx="67" cy="52" rx="6" ry="3" fill="#fff" opacity="0.8"/>
   <!-- tiny colander perched on top of his head, centred over his face/goggles -->
   <path d="M72 36 Q73 20 81 20 Q89 20 90 36 Z" fill="#c4c8d2" stroke="#888d99" stroke-width="2.5"/>
   <ellipse cx="81" cy="36" rx="10" ry="3.5" fill="#aeb3c0" stroke="#888d99" stroke-width="2.5"/>
@@ -1188,11 +1191,14 @@ const OTTO_SVG = `
   <ellipse cx="90" cy="74" rx="60" ry="56" fill="#b06bff"/>
   <!-- light pink area around the mouth -->
   <ellipse cx="90" cy="96" rx="42" ry="28" fill="#ffd2e2" opacity=".85"/>
-  <!-- eyes — GREEN -->
-  <circle cx="68" cy="62" r="18" fill="#fff"/><circle cx="112" cy="62" r="18" fill="#fff"/>
-  <circle cx="70" cy="64" r="11" fill="#3fb950"/><circle cx="114" cy="64" r="11" fill="#3fb950"/>
-  <circle cx="71" cy="66" r="6" fill="#143314"/><circle cx="115" cy="66" r="6" fill="#143314"/>
-  <circle cx="74" cy="61" r="3" fill="#fff"/><circle cx="118" cy="61" r="3" fill="#fff"/>
+  <!-- big "Beanie-Boo" eyes — light strong GREEN -->
+  <ellipse cx="68" cy="62" rx="18" ry="19" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1.4"/>
+  <ellipse cx="112" cy="62" rx="18" ry="19" fill="#fff" stroke="rgba(20,18,40,.16)" stroke-width="1.4"/>
+  <ellipse cx="68" cy="63" rx="15" ry="16" fill="#5fd35f" stroke="rgba(0,0,0,.28)" stroke-width="1.8"/>
+  <ellipse cx="112" cy="63" rx="15" ry="16" fill="#5fd35f" stroke="rgba(0,0,0,.28)" stroke-width="1.8"/>
+  <circle cx="68" cy="64" r="11" fill="#16182c"/><circle cx="112" cy="64" r="11" fill="#16182c"/>
+  <circle cx="73" cy="58" r="4.5" fill="#fff"/><circle cx="117" cy="58" r="4.5" fill="#fff"/>
+  <circle cx="63" cy="67" r="2.4" fill="#fff"/><circle cx="107" cy="67" r="2.4" fill="#fff"/>
   <!-- big grey-blue glasses -->
   <g fill="#cfe0f2" fill-opacity="0.22" stroke="#6f8db0" stroke-width="5">
     <circle cx="68" cy="62" r="23"/><circle cx="112" cy="62" r="23"/>
@@ -2381,9 +2387,21 @@ function startParty() {
   hudLine2.innerHTML = "Tap or press SPACE for fireworks! 🎆";
   document.getElementById("hearts").textContent = "";
   clearLevelObjects(); clearActors();
-  // a crowd of happy city kitties, dancing
+  // a crowd of happy city kitties — all different colours!
+  const PARTY_FURS = [
+    { fur: "#ff8fc7", furD: "#e85fa6", muz: "#ffe6f2" }, // pink
+    { fur: "#b99cff", furD: "#9a7de0", muz: "#efe8ff" }, // purple
+    { fur: "#7fe0c0", furD: "#4fc0a0", muz: "#e6fff7" }, // mint
+    { fur: "#ffc36b", furD: "#e89a3a", muz: "#fff2dc" }, // peach
+    { fur: "#9fb3c8", furD: "#74899e", muz: "#eef3f8" }, // grey
+    { fur: "#c79a6b", furD: "#a87a4a", muz: "#f3e6d6" }, // tan
+    { fur: "#8fd0ff", furD: "#5fa8e0", muz: "#e6f5ff" }, // sky
+    { fur: "#ffe066", furD: "#e0bb2a", muz: "#fff8d6" }, // yellow
+  ];
   for (let i = 0; i < 8; i++) {
     const k = makeCat({ hero: i % 2 ? "bitsy" : "ginny", plain: true });
+    const c = PARTY_FURS[i % PARTY_FURS.length];
+    k.style.setProperty("--fur", c.fur); k.style.setProperty("--furD", c.furD); k.style.setProperty("--muz", c.muz);
     k.classList.add("actor", "partyCat");
     k.style.width = "82px"; k.style.height = "102px";
     k.style.left = (W() * (0.08 + i * 0.108)) + "px";
@@ -2560,7 +2578,7 @@ function updateDazeSwirl(h, dazed) {
 
 /* ---- HEARTS / getting hurt ---- */
 const startingHearts = () => (isHard() ? 3 : 5);
-function resetHearts() { state.hearts = startingHearts(); state.hurtUntil = 0; state.frozenUntil = 0; state.levelGems = 0; state.lastSurprise = now(); updateHeartsHud(); }
+function resetHearts() { state.hearts = startingHearts(); state.hurtUntil = 0; state.frozenUntil = 0; state.pinkHits = 0; state.levelGems = 0; state.lastSurprise = now(); updateHeartsHud(); }
 // 3 stars for finishing a level with all hearts, down to 1
 function levelStars() {
   const full = startingHearts();
@@ -2578,22 +2596,33 @@ function updateHeartsHud() {
   const el = document.getElementById("hearts"); if (!el) return;
   el.textContent = "❤️".repeat(Math.max(0, state.hearts)) + "🖤".repeat(Math.max(0, startingHearts() - state.hearts));
 }
-function loseHeart(srcX, srcY, strength) {
-  if (!state.running || now() < state.hurtUntil) return;   // brief invincibility after a hit
-  state.hearts--; state.hurtUntil = now() + 1300; updateHeartsHud();
+// the actual heart loss (knockback + effects); guard handled by callers
+function breakHeart(srcX, srcY, strength) {
+  state.hearts--; updateHeartsHud(); state.pinkHits = 0;
   const h = state.hero, dx = h.x - srcX, dy = h.y - srcY, d = Math.hypot(dx, dy) || 1, k = strength || 14;
   h.kx = (dx / d) * k; h.ky = (dy / d) * k; h.dazedUntil = now() + 350;   // knocked back & briefly stunned
   shake(); sndHit(); popAt(h.x - 14, h.y - 44, "💔");
   if (state.hearts <= 0) loseLevelRetry();
 }
-// SLIP: a friendly alternative to losing a heart — the kitty freezes for ~3s
+function loseHeart(srcX, srcY, strength) {
+  if (!state.running || now() < state.hurtUntil) return;   // brief invincibility after a hit
+  state.hurtUntil = now() + 1300; breakHeart(srcX, srcY, strength);
+}
+// SLIP: a friendly alternative — the kitty freezes & turns PINK for ~3s
 const FREEZE_MS = 3000;
 function freezeHero(srcX, srcY, emoji) {
   if (now() < state.hurtUntil) return;                     // still in grace from the last slip
   state.frozenUntil = now() + FREEZE_MS; state.hurtUntil = now() + FREEZE_MS;  // no re-slip while frozen
   const h = state.hero; h.vx = 0; h.vy = 0;
-  popAt(h.x - 16, h.y - 46, emoji || "🍌"); popAt(h.x - 8, h.y - 30, "💫");
+  popAt(h.x - 16, h.y - 46, emoji || "🍌"); popAt(h.x - 8, h.y - 30, "💗");
   tone(220, 0.18, "sine", 0.12);
+}
+// kid-friendly hit (Easy, L3/L4): slip + turn pink; only lose a heart on the 3rd slip
+function slipHit(srcX, srcY, emoji) {
+  if (now() < state.hurtUntil) return;
+  freezeHero(srcX, srcY, emoji);
+  state.pinkHits = (state.pinkHits || 0) + 1;
+  if (state.pinkHits >= 3) breakHeart(srcX, srcY, 18);     // resets pinkHits to 0
 }
 function loseLevelRetry() {
   state.running = false;
@@ -2632,8 +2661,8 @@ function updateShots() {
     s.x += s.vx; s.y += s.vy; s.life++;
     s.el.style.left = (s.x - 15) + "px"; s.el.style.top = (s.y - 15) + "px";
     if (now() >= state.hurtUntil && Math.hypot(h.x - s.x, h.y - s.y) < (HERO_R + 14)) {
-      // Lab Rat alley on Easy: getting hit just makes you SLIP (freeze ~3s), no heart lost
-      if (level === 4 && !isHard()) freezeHero(s.x, s.y, s.el.textContent);
+      // Zsa Zsa & Lab Rat on Easy: getting hit makes you SLIP & turn pink — only lose a heart on the 3rd slip
+      if (!isHard() && (level === 3 || level === 4)) slipHit(s.x, s.y, s.el.textContent);
       else loseHeart(s.x - s.vx * 6, s.y - s.vy * 6, 30);   // fling the kitty toward the wall
       s.el.remove(); state.shots = state.shots.filter((q) => q !== s); continue;
     }
@@ -3004,8 +3033,8 @@ const STORY_L2L3 = [
       + goldCollarBig("left:42%;top:34%;width:22%"),
     text: "Then Granny Caterina hurried over. 'Oh my — THIS shiny thing? I found it on my balcony!' It was his GOLDEN COLLAR all along!", dur: 8500, origin: "52% 42%", to: "scale(1.7)" },
   { build: () => `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, #3a2a6a, #120c2a)"></div>`
-      + `<div style="position:absolute;left:46%;top:46%;transform:translate(-50%,-50%);width:32%">${PUPPY_SVG}</div>`
-      + goldCollarBig("left:40%;top:30%;width:18%")
+      + `<div style="position:absolute;left:46%;top:44%;transform:translate(-50%,-50%);width:30%">${PUPPY_SVG}</div>`
+      + goldCollarBig("left:62%;top:18%;width:15%")
       + storyCatHTML("ginny", { plain: false, sup: true, style: "left:6%;bottom:4%;width:22%" }) + storyCatHTML("bitsy", { plain: false, sup: true, style: "right:6%;bottom:4%;width:22%" }),
     text: "She gave it back, and Mr. Puppy Paws wagged his tail with joy. Everyone was friends — hooray!", dur: 7000, to: "scale(1.15)" },
   { build: () => storyTown(`<div style="position:absolute;left:60%;top:8%;width:30%">${ZSAZSA_SVG}</div>`
