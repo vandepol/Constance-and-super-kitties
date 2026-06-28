@@ -267,8 +267,8 @@
   .catWrap.hop .cat .body { animation: catHop .35s ease; }
   @keyframes catHop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-22px) scale(1.08,.94); } 100% { transform: translateY(0) scale(1); } }
   .catWrap.super { filter: drop-shadow(0 0 18px rgba(120,200,255,.7)); }
-  .catWrap.charge { animation: chargeFlash .5s ease-in-out 5; }
-  @keyframes chargeFlash { 0%,100% { filter: drop-shadow(0 0 6px #fff); } 50% { filter: brightness(2.2) drop-shadow(0 0 30px #fff); } }
+  .catWrap.charge { animation: chargeFlash .6s ease-in-out 3; }
+  @keyframes chargeFlash { 0%,100% { filter: drop-shadow(0 0 6px #fff); } 50% { filter: brightness(1.45) drop-shadow(0 0 16px #fff); } }
   .cat .cape { fill: var(--capeC, var(--suit)); opacity: .96; }
   .cat .capeClasp { fill: #ffd23f; stroke: #c79320; stroke-width: 2; }
   .cat.wearCape .cape, .cat.wearCape .capeClasp { display: block !important; }   /* a bought cape shows even on a plain kitty */
@@ -806,6 +806,7 @@
       <p class="subtitle">Tap the letters to spell a name — hear each one!</p>
       <div class="nameDisplay" id="nameDisplay"></div>
       <button class="readBtn" id="nameReadBtn" style="background:rgba(255,255,255,.16);border:1px solid var(--glass-border);color:#fff;border-radius:999px;font-size:16px;padding:4px 16px;cursor:pointer">🔊 read my name</button>
+      <button class="readBtn" id="caseToggle" style="background:rgba(255,255,255,.16);border:1px solid var(--glass-border);color:#fff;border-radius:999px;font-size:16px;padding:4px 16px;margin-left:8px;cursor:pointer">🔡 small letters</button>
       <div class="letterGrid" id="letterGrid"></div>
       <div class="nameActions">
         <button class="bigBtn blue" id="nameBack" style="font-size:18px;padding:10px 20px">⌫ Back space</button>
@@ -880,10 +881,11 @@
    ============================================================ */
 const CAT_SVG = `
 <svg class="cat" viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg">
-  <path class="tail fur" d="M104 242 C70 244 40 206 52 176 C34 206 52 236 98 228 C102 233 103 238 104 242 Z"/>
   <!-- a real flowing cape: clasped at the neck, billowing wide BEHIND the body -->
   <path class="capeClasp" d="M104 150 Q120 142 136 150 L132 162 Q120 156 108 162 Z"/>
   <path class="cape" d="M106 154 C70 172 52 220 56 274 Q76 260 92 276 Q106 260 120 276 Q134 260 148 276 Q164 260 184 274 C188 220 170 172 134 154 Q120 148 106 154 Z"/>
+  <!-- tail drawn AFTER the cape so it sits in FRONT of it -->
+  <path class="tail fur" d="M104 242 C70 244 40 206 52 176 C34 206 52 236 98 228 C102 233 103 238 104 242 Z"/>
   <g class="body">
     <!-- legs braced apart in an athletic ready stance -->
     <path class="boot" d="M108 250 C100 264 91 276 87 288 q-3 8 7 10 q10 2 14 -6 q5 -18 7 -42 z"/>
@@ -1468,7 +1470,7 @@ function clearWords() { state.words.forEach((w) => w.el.remove()); state.words =
 
 // ---- SURPRISE EVENTS — keep every playthrough unpredictable ----
 function maybeSurprise(ts) {
-  if (ts - (state.lastSurprise || 0) < 12000) return;
+  if (ts - (state.lastSurprise || 0) < 20000) return;
   state.lastSurprise = ts;
   // Level 4's only diamonds come from the dumpsters, so no gem surprises there
   const opts = [
@@ -1674,9 +1676,9 @@ function launchFirework(x, y) {
 // confetti + fireworks + repeated shakes — the big "you win!" moment
 function epicCelebrate() {
   shake();
-  let s = 0; const shakeIv = setInterval(() => { shake(); if (++s > 5) clearInterval(shakeIv); }, 420);
-  // confetti rain
-  for (let i = 0; i < 70; i++) {
+  let s = 0; const shakeIv = setInterval(() => { shake(); if (++s > 1) clearInterval(shakeIv); }, 460);   // gentler: fewer shakes
+  // confetti rain (calmer amount)
+  for (let i = 0; i < 38; i++) {
     const c = document.createElement("div"); c.className = "confetti";
     c.style.left = Math.random() * W() + "px"; c.style.top = "-20px";
     c.style.background = BURST_COLORS[i % BURST_COLORS.length];
@@ -1684,12 +1686,12 @@ function epicCelebrate() {
     c.style.transform = `rotate(${Math.random() * 360}deg)`;
     game.appendChild(c); setTimeout(() => c.remove(), 3200);
   }
-  // fireworks bursts of yarn at a few spots
-  for (let f = 0; f < 5; f++) {
-    setTimeout(() => burstYarn(W() * (0.2 + Math.random() * 0.6), H() * (0.2 + Math.random() * 0.4), 14), f * 350);
+  // a couple of gentle firework bursts
+  for (let f = 0; f < 2; f++) {
+    setTimeout(() => burstYarn(W() * (0.2 + Math.random() * 0.6), H() * (0.2 + Math.random() * 0.4), 12), f * 400);
   }
   // sparkles everywhere
-  for (let i = 0; i < 26; i++) setTimeout(spawnSpark, i * 60);
+  for (let i = 0; i < 14; i++) setTimeout(spawnSpark, i * 70);
 }
 function inHud(x, y) { return x < 300 && y < 300; }
 function inPad(x, y) { return x > W() - 240 && y > H() - 280; }
@@ -2425,7 +2427,7 @@ function startParty() {
   banner("🎉 KITTY CITY PARTY! 🎶");
   startDanceMusic();
   state._partyGift = setInterval(rainGift, 280);                 // treats & toys rain down
-  state._partyCf = setInterval(epicCelebrate, 1700);
+  state._partyCf = setInterval(epicCelebrate, 4200);   // calmer party confetti cadence
   for (let i = 0; i < 12; i++) setTimeout(spawnSpark, i * 120);
   state._partyEnd = setTimeout(endParty, 16000);                 // then the trophy screen
   game.addEventListener("pointerdown", partyFirework);           // tap anywhere = a firework!
@@ -2625,9 +2627,7 @@ function freezeHero(srcX, srcY, emoji) {
 function slipHit(srcX, srcY, emoji) {
   if (now() < state.hurtUntil) return;
   freezeHero(srcX, srcY, emoji);
-  state.pinkHits = (state.pinkHits || 0) + 1;
-  if (state.pinkHits >= 3) { banner("💔 Oof! Keep dodging!"); breakHeart(srcX, srcY, 18); }  // 3rd slip → a heart (resets count)
-  else banner("💗 Slipped! (" + state.pinkHits + "/3)");                                       // freeze, turn pink, no heart yet
+  banner("💗 Slipped!");   // Easy mode: thrown things only make you slip — never cost a heart
 }
 function loseLevelRetry() {
   state.running = false;
@@ -3332,16 +3332,19 @@ document.getElementById("powerBtn").addEventListener("click", fireStarBlast);
 /* ---- Name Your Kitty (early reading: letters -> sounds -> a word) ---- */
 const heroDisplayName = () => kittyName || HEROES[chosenHero].name;
 let typingName = "";
+let lowerCase = false;   // the keyboard can show CAPITAL or small letters
 function buildLetterGrid() {
   const grid = document.getElementById("letterGrid"); grid.innerHTML = "";
   for (let i = 65; i <= 90; i++) {
-    const ch = String.fromCharCode(i);
+    const ch = lowerCase ? String.fromCharCode(i + 32) : String.fromCharCode(i);
     const b = document.createElement("button"); b.className = "letterBtn"; b.textContent = ch;
     b.addEventListener("click", () => {
       if (typingName.length < 9) { typingName += ch; renderName(); sayWord(ch); }
     });
     grid.appendChild(b);
   }
+  const tog = document.getElementById("caseToggle");
+  if (tog) tog.textContent = lowerCase ? "🔠 BIG letters" : "🔡 small letters";
 }
 function renderName() {
   document.getElementById("nameDisplay").textContent = typingName || "…";
@@ -3353,7 +3356,7 @@ function openNameScreen() {
 }
 function closeNameScreen(saveIt) {
   if (saveIt) {
-    kittyName = typingName.charAt(0) + typingName.slice(1).toLowerCase();   // Titlecase
+    kittyName = typingName;   // keep exactly what was typed (big or small letters)
     saveName();
     if (kittyName) sayWord(kittyName);
   }
@@ -3366,6 +3369,7 @@ document.getElementById("nameBtn").addEventListener("click", openNameScreen);
 document.getElementById("nameBack").addEventListener("click", () => { typingName = typingName.slice(0, -1); renderName(); });
 document.getElementById("nameDone").addEventListener("click", () => closeNameScreen(true));
 document.getElementById("nameReadBtn").addEventListener("click", () => sayWord(typingName || "your kitty"));
+document.getElementById("caseToggle").addEventListener("click", () => { lowerCase = !lowerCase; buildLetterGrid(); });
 document.getElementById("nameDisplay").addEventListener("click", () => { if (typingName) sayLetters(typingName); });
 buildLetterGrid();
 
