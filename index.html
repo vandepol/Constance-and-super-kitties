@@ -1516,7 +1516,7 @@ function applyCosmetics(wrapEl, sizePx) {
   if (equip.hat) { const it = shopItem(equip.hat); if (it) addItem(it, { left: "50%", top: it.svg ? "4%" : "-7%", transform: "translateX(-50%)", width: (w * 0.5) + "px", fontSize: (w * 0.4) + "px" }); }     // on top of the head
   if (equip.face) { const it = shopItem(equip.face); if (it) add(it.emoji, { left: "50%", top: "25%", transform: "translateX(-50%)", fontSize: (w * 0.28) + "px" }); }    // glasses on the eyes
   if (equip.cheek) { const it = shopItem(equip.cheek); if (it) add(it.emoji, { left: "26%", top: "34%", fontSize: (w * 0.2) + "px" }); }                                  // little accent on the cheek
-  if (equip.neck) { const it = shopItem(equip.neck); if (it) addItem(it, { left: "50%", top: it.svg ? "47%" : "54%", transform: "translateX(-50%)", width: (w * 0.42) + "px", fontSize: (w * 0.24) + "px" }); }    // collar/emblem on the chest
+  if (equip.neck) { const it = shopItem(equip.neck); if (it) addItem(it, { left: "50%", top: it.svg ? "42%" : "54%", transform: "translateX(-50%)", width: (w * (it.svg ? 0.36 : 0.42)) + "px", fontSize: (w * 0.24) + "px" }); }    // collar hugs the neck
   if (equip.trail) { const it = shopItem(equip.trail); if (it) add(it.emoji, { left: "82%", top: "56%", fontSize: (w * 0.26) + "px" }); }                                 // trail at the side
 }
 
